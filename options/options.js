@@ -197,9 +197,9 @@ async function loadSettings() {
   // Enter key behavior settings
   const enterBehavior = settings.enterKeyBehavior || {
     enabled: true,
-    preset: 'swapped',
-    newlineModifiers: { shift: false, ctrl: false, alt: false, meta: false },
-    sendModifiers: { shift: true, ctrl: false, alt: false, meta: false }
+    preset: 'default',
+    newlineModifiers: { shift: true, ctrl: false, alt: false, meta: false },
+    sendModifiers: { shift: false, ctrl: false, alt: false, meta: false }
   };
 
   const enterBehaviorToggle = document.getElementById('enter-behavior-toggle');
@@ -210,7 +210,7 @@ async function loadSettings() {
 
   const enterPresetSelect = document.getElementById('enter-preset-select');
   if (enterPresetSelect) {
-    enterPresetSelect.value = enterBehavior.preset || 'swapped';
+    enterPresetSelect.value = enterBehavior.preset || 'default';
     updateCustomEnterSettingsVisibility(enterBehavior.preset);
   }
 
@@ -510,7 +510,7 @@ function setupEventListeners() {
   const multiPanelLayoutSelect = document.getElementById('multi-panel-layout-select');
   if (multiPanelLayoutSelect) {
     // Load saved layout
-    chrome.storage.sync.get({ multiPanelLayout: '2x2' }, (result) => {
+    chrome.storage.sync.get({ multiPanelLayout: '1x3' }, (result) => {
       multiPanelLayoutSelect.value = result.multiPanelLayout;
     });
 

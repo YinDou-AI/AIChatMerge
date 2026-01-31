@@ -175,7 +175,7 @@ function registerRuntimeMessageListener() {
 async function loadSettings() {
   try {
     const settings = await chrome.storage.sync.get({
-      multiPanelLayout: '2x2',
+      multiPanelLayout: '1x3',
       multiPanelProviders: DEFAULT_PROVIDERS,
       openMode: 'tab'
     });

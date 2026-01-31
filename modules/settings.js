@@ -9,11 +9,11 @@ const DEFAULT_SETTINGS = {
   openMode: 'tab',  // 'tab' or 'popup'
   enterKeyBehavior: {
     enabled: true,
-    preset: 'swapped',  // 'default', 'swapped', 'slack', 'discord', 'custom'
+    preset: 'default',  // 'default', 'swapped', 'slack', 'discord', 'custom'
     newlineKey: 'Enter',
-    newlineModifiers: { shift: false, ctrl: false, alt: false, meta: false },
+    newlineModifiers: { shift: true, ctrl: false, alt: false, meta: false },
     sendKey: 'Enter',
-    sendModifiers: { shift: true, ctrl: false, alt: false, meta: false }
+    sendModifiers: { shift: false, ctrl: false, alt: false, meta: false }
   }
 };
 
