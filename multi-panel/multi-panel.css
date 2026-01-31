@@ -716,7 +716,7 @@ body {
 
 .modal-content.modal-large {
   max-width: 900px;
-  height: 80vh;
+  max-height: 80vh;
 }
 
 .modal-header {
