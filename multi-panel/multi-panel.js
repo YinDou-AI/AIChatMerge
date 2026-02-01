@@ -1407,6 +1407,9 @@ function openPromptModal() {
 function closePromptModal() {
   document.getElementById('prompt-modal').style.display = 'none';
   document.getElementById('prompt-search').value = '';
+  // Reset filters to show all prompts on next open
+  currentPromptFilter = 'all';
+  currentCategoryFilter = '';
 }
 
 // ===== Provider Switcher =====
