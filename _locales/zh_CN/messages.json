@@ -197,6 +197,18 @@
   "btnImportCustom": {
     "message": "导入自定义提示词"
   },
+  "descCustomPromptGuide": {
+    "message": "需要帮助格式化自定义提示词？打开指南或下载 JSON 模板。"
+  },
+  "btnOpenPromptGuide": {
+    "message": "打开指南"
+  },
+  "btnDownloadPromptTemplate": {
+    "message": "下载模板"
+  },
+  "msgPromptGuideTip": {
+    "message": "提示：在“设置 > Prompt Library”中打开指南或下载 JSON 模板。"
+  },
   "noteCustomImport": {
     "message": "导入自定义提示词前，请先阅读： <code style = \"background: #f5f5f5; padding: 2px 6px; border - radius: 3px;\">data/prompt - libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
@@ -643,9 +655,6 @@
   },
   "descDefaultPromptLibrary": {
     "message": "用于提示词优化、规划、编码、测试、研究、写作等的元提示。包含对动态模板的变量支持。"
-  },
-  "descCustomPromptReadme": {
-    "message": "导入自定义提示词前，请先阅读： <code style = \"background: #f5f5f5; padding: 2px 6px; border - radius: 3px;\">data/prompt - libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
   "statStorageUsed": {
     "message": "已用存储"

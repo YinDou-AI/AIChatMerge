@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Generare una libreria di prompt di base</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Avenir", "Noto Sans", "Helvetica Neue", sans-serif;
+      background: #f7f7f9;
+      color: #1f1f24;
+    }
+    main {
+      max-width: 860px;
+      margin: 40px auto 80px;
+      padding: 0 24px;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+    h2 {
+      font-size: 22px;
+      margin-top: 32px;
+    }
+    p {
+      line-height: 1.6;
+      margin: 12px 0;
+    }
+    blockquote {
+      margin: 16px 0;
+      padding: 16px 20px;
+      background: #ffffff;
+      border-left: 4px solid #1a73e8;
+      border-radius: 8px;
+      box-shadow: 0 6px 14px rgba(26, 115, 232, 0.08);
+    }
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    li {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+    code {
+      background: #eef1f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    pre {
+      margin: 12px 0 0;
+      padding: 12px 16px;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      overflow: auto;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #0f1116;
+        color: #e4e7ee;
+      }
+      blockquote {
+        background: #161a22;
+        border-left-color: #7aa6ff;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+      }
+      code {
+        background: #1f2937;
+        color: #e2e8f0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Generare una libreria di prompt di base</h1>
+
+    <section>
+      <h2>I tre prompt fondamentali più potenti</h2>
+      <blockquote>
+        <ul>
+          <li>Riscrivi il seguente prompt in un italiano chiaro e naturale e miglioralo usando le migliori pratiche di scrittura dei prompt per l’IA, per ottenere risultati più accurati, specifici e utili. Prompt: {draft}</li>
+          <li>Elenca il maggior numero possibile di elementi, esempi o idee pertinenti relativi al seguente tema o domanda. Punta a completezza, accuratezza e chiarezza. Tema: {topic}</li>
+          <li>Quali sono i framework, i metodi o i modelli più efficaci per {objective}? Per ciascun framework, spiega l'idea centrale, i vantaggi e quando è meglio applicarlo.</li>
+        </ul>
+      </blockquote>
+      <p>Puoi importarli usando il percorso del file: <code>data/prompt-libraries/three-samples.json</code></p>
+    </section>
+
+    <section>
+      <h2>Generare una nuova libreria di prompt</h2>
+      <p>Usa il seguente prompt per generare una libreria di prompt che può essere importata direttamente in questo plugin.</p>
+      <blockquote>
+        <p>Genera 20 dei prompt più efficaci e di alta qualità che hai incontrato o creato recentemente. Ogni prompt deve essere particolarmente perspicace, creativo o educativo, utile per l'apprendimento o l'ispirazione.</p>
+        <p>Fornisci ogni risultato con la seguente struttura JSON:</p>
+        <pre><code class="language-json">{
+  "title": "Short descriptive title of the prompt",
+  "content": "Full text of the prompt. Use {variables} for any placeholders.",
+  "category": "General theme or purpose of the prompt (e.g., Writing, Analysis, Creativity)",
+  "tags": ["tag1", "tag2"],
+  "variables": ["{variables used}"],
+  "isFavorite": false,
+  "useCount": 0,
+  "lastUsed": null
+}</code></pre>
+        <p>Assicurati che ogni oggetto JSON sia autonomo, scritto chiaramente e formattato per una facile analisi.</p>
+      </blockquote>
+    </section>
+  </main>
+</body>
+</html>

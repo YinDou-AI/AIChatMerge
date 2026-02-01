@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>生成基礎提示詞庫</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Avenir", "Noto Sans", "Helvetica Neue", sans-serif;
+      background: #f7f7f9;
+      color: #1f1f24;
+    }
+    main {
+      max-width: 860px;
+      margin: 40px auto 80px;
+      padding: 0 24px;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+    h2 {
+      font-size: 22px;
+      margin-top: 32px;
+    }
+    p {
+      line-height: 1.6;
+      margin: 12px 0;
+    }
+    blockquote {
+      margin: 16px 0;
+      padding: 16px 20px;
+      background: #ffffff;
+      border-left: 4px solid #1a73e8;
+      border-radius: 8px;
+      box-shadow: 0 6px 14px rgba(26, 115, 232, 0.08);
+    }
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    li {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+    code {
+      background: #eef1f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    pre {
+      margin: 12px 0 0;
+      padding: 12px 16px;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      overflow: auto;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #0f1116;
+        color: #e4e7ee;
+      }
+      blockquote {
+        background: #161a22;
+        border-left-color: #7aa6ff;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+      }
+      code {
+        background: #1f2937;
+        color: #e2e8f0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>生成基礎提示詞庫</h1>
+
+    <section>
+      <h2>三個最強基礎提示詞</h2>
+      <blockquote>
+        <ul>
+          <li>請將以下提示詞改寫成清晰、自然的中文，並運用 AI 提示詞寫作最佳實務進行優化，以獲得更準確、具體且有用的結果。提示詞：{draft}</li>
+          <li>請盡可能列出與以下主題或問題相關的項目、範例或想法，力求完整、準確、清晰。主題：{topic}</li>
+          <li>有哪些最有效的框架、方法或模型可以用來{objective}？請為每個框架說明其核心概念、優勢，以及最適用的情境。</li>
+        </ul>
+      </blockquote>
+      <p>你可以使用以下檔案路徑匯入這些提示詞： <code>data/prompt-libraries/three-samples.json</code></p>
+    </section>
+
+    <section>
+      <h2>生成新的提示詞庫</h2>
+      <p>使用以下提示詞生成可直接匯入本外掛的提示詞庫。</p>
+      <blockquote>
+        <p>生成 20 條你最近遇到或建立的最有效、最高品質的提示詞。每條提示詞都應特別有洞見、創意或教育價值，可用於學習或啟發。</p>
+        <p>請依以下 JSON 結構輸出每條結果：</p>
+        <pre><code class="language-json">{
+  "title": "Short descriptive title of the prompt",
+  "content": "Full text of the prompt. Use {variables} for any placeholders.",
+  "category": "General theme or purpose of the prompt (e.g., Writing, Analysis, Creativity)",
+  "tags": ["tag1", "tag2"],
+  "variables": ["{variables used}"],
+  "isFavorite": false,
+  "useCount": 0,
+  "lastUsed": null
+}</code></pre>
+        <p>請確保每個 JSON 物件自洽、表述清楚，且便於解析。</p>
+      </blockquote>
+    </section>
+  </main>
+</body>
+</html>

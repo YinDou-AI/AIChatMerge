@@ -197,6 +197,18 @@
   "btnImportCustom": {
     "message": "Benutzerdefinierte Prompts importieren"
   },
+  "descCustomPromptGuide": {
+    "message": "Brauchen Sie Hilfe beim Formatieren benutzerdefinierter Prompts? Öffnen Sie den Leitfaden oder laden Sie eine JSON-Vorlage herunter."
+  },
+  "btnOpenPromptGuide": {
+    "message": "Leitfaden öffnen"
+  },
+  "btnDownloadPromptTemplate": {
+    "message": "Vorlage herunterladen"
+  },
+  "msgPromptGuideTip": {
+    "message": "Tipp: Öffnen Sie in Einstellungen > Prompt Library den Leitfaden oder laden Sie die JSON-Vorlage herunter."
+  },
   "noteCustomImport": {
     "message": "Bevor Sie benutzerdefinierte Prompts importieren, lesen Sie bitte: <code style=\"background: #f5f5f5; padding: 2px 6px; border-radius: 3px;\">data/prompt-libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
@@ -643,9 +655,6 @@
   },
   "descDefaultPromptLibrary": {
     "message": "Meta-Prompts für Prompt-Verfeinerung, Planung, Programmierung, Tests, Recherche, Schreiben und mehr. Enthält Variablenunterstützung für dynamische Vorlagen."
-  },
-  "descCustomPromptReadme": {
-    "message": "Bevor Sie benutzerdefinierte Prompts importieren, lesen Sie bitte: <code style=\"background: #f5f5f5; padding: 2px 6px; border-radius: 3px;\">data/prompt-libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
   "statStorageUsed": {
     "message": "Verwendeter Speicher"

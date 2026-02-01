@@ -197,6 +197,18 @@
   "btnImportCustom": {
     "message": "Импортировать пользовательские промпты"
   },
+  "descCustomPromptGuide": {
+    "message": "Нужна помощь с форматированием пользовательских промптов? Откройте руководство или скачайте JSON-шаблон."
+  },
+  "btnOpenPromptGuide": {
+    "message": "Открыть руководство"
+  },
+  "btnDownloadPromptTemplate": {
+    "message": "Скачать шаблон"
+  },
+  "msgPromptGuideTip": {
+    "message": "Подсказка: в «Настройки > Prompt Library» откройте руководство или скачайте JSON-шаблон."
+  },
   "noteCustomImport": {
     "message": "Перед импортом пользовательских промптов прочитайте: <code style=\"background: #f5f5f5; padding: 2px 6px; border-radius: 3px;\">data/prompt-libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
@@ -643,9 +655,6 @@
   },
   "descDefaultPromptLibrary": {
     "message": "Мета-промпты для улучшения промптов, планирования, программирования, тестирования, исследований, написания текстов и многого другого. Включает поддержку переменных для динамических шаблонов."
-  },
-  "descCustomPromptReadme": {
-    "message": "Перед импортом пользовательских промптов прочитайте: <code style=\"background: #f5f5f5; padding: 2px 6px; border-radius: 3px;\">data/prompt-libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
   "statStorageUsed": {
     "message": "Использовано хранилища"

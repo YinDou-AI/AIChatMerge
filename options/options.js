@@ -76,6 +76,30 @@ function openShortcutSettings(browserOverride) {
   }
 }
 
+function getExtensionResourceUrl(path) {
+  if (chrome?.runtime?.getURL) {
+    return chrome.runtime.getURL(path);
+  }
+  return new URL(path, `${window.location.origin}/`).href;
+}
+
+function getPromptGuidePath(locale) {
+  const guidePaths = {
+    en: 'data/prompt-libraries/guide.en.html',
+    zh_CN: 'data/prompt-libraries/guide.zh_CN.html',
+    zh_TW: 'data/prompt-libraries/guide.zh_TW.html',
+    ko: 'data/prompt-libraries/guide.ko.html',
+    ja: 'data/prompt-libraries/guide.ja.html',
+    es: 'data/prompt-libraries/guide.es.html',
+    fr: 'data/prompt-libraries/guide.fr.html',
+    de: 'data/prompt-libraries/guide.de.html',
+    it: 'data/prompt-libraries/guide.it.html',
+    ru: 'data/prompt-libraries/guide.ru.html'
+  };
+
+  return guidePaths[locale] || guidePaths.en;
+}
+
 function setupShortcutHelpers() {
   const openShortcutsBtn = document.getElementById('open-shortcuts-btn');
   if (openShortcutsBtn) {
@@ -474,6 +498,25 @@ function setupEventListeners() {
     }
   });
 
+  // Custom prompt guide and template
+  document.getElementById('open-custom-prompt-guide')?.addEventListener('click', async () => {
+    const settings = await getSettings();
+    const locale = settings.language || getCurrentBrowserLanguage();
+    const guidePath = getPromptGuidePath(locale);
+    const url = getExtensionResourceUrl(guidePath);
+    window.open(url, '_blank', 'noopener');
+  });
+
+  document.getElementById('download-custom-prompt-template')?.addEventListener('click', () => {
+    const url = getExtensionResourceUrl('data/prompt-libraries/custom-prompt-template.json');
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'custom-prompt-template.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  });
+
   // Enter key behavior toggle
   const enterBehaviorToggle = document.getElementById('enter-behavior-toggle');
   if (enterBehaviorToggle) {
@@ -736,7 +779,7 @@ Optional fields:
 - useCount (number, default: 0)
 - lastUsed (number or null, default: null)
 
-See: data/prompt-libraries/Generate_a_Basic_Prompt_Library.md`;
+${t('msgPromptGuideTip')}`;
 }
 
 // Import Custom Prompt Library
