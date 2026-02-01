@@ -116,12 +116,6 @@
   "btnConfigureEdge": {
     "message": "Edge で設定"
   },
-  "labelAutoPaste": {
-    "message": "プロンプトライブラリにクリップボードを自動貼り付け"
-  },
-  "descAutoPaste": {
-    "message": "Command + Shift + L でプロンプトライブラリを開くときに、ワークスペースにクリップボードの内容を自動的に貼り付けます"
-  },
   "sectionChatHistory": {
     "message": "チャット履歴"
   },
@@ -301,12 +295,6 @@
   },
   "msgShortcutDisabled": {
     "message": "キーボードショートカットが無効になりました"
-  },
-  "msgAutoPasteEnabled": {
-    "message": "自動貼り付けが有効になりました"
-  },
-  "msgAutoPasteDisabled": {
-    "message": "自動貼り付けが無効になりました"
   },
   "msgEnterCustomizationEnabled": {
     "message": "Enter キーのカスタマイズが有効になりました"

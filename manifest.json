@@ -10,7 +10,6 @@
     "contextMenus",
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess",
-    "clipboardRead",
     "downloads"
   ],
 

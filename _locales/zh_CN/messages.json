@@ -116,12 +116,6 @@
   "btnConfigureEdge": {
     "message": "在 Edge 中配置"
   },
-  "labelAutoPaste": {
-    "message": "自动粘贴剪贴板到提示词库"
-  },
-  "descAutoPaste": {
-    "message": "使用 Command + Shift + L 打开提示词库时自动将剪贴板内容粘贴到工作区"
-  },
   "sectionChatHistory": {
     "message": "聊天历史"
   },
@@ -301,12 +295,6 @@
   },
   "msgShortcutDisabled": {
     "message": "键盘快捷键已禁用"
-  },
-  "msgAutoPasteEnabled": {
-    "message": "自动粘贴已启用"
-  },
-  "msgAutoPasteDisabled": {
-    "message": "自动粘贴已禁用"
   },
   "msgEnterCustomizationEnabled": {
     "message": "回车键自定义已启用"

@@ -116,12 +116,6 @@
   "btnConfigureEdge": {
     "message": "Configurer dans Edge"
   },
-  "labelAutoPaste": {
-    "message": "Coller automatiquement le presse-papiers dans la bibliothèque de prompts"
-  },
-  "descAutoPaste": {
-    "message": "Coller automatiquement le contenu du presse-papiers dans l'espace de travail lors de l'ouverture de la bibliothèque de prompts avec Command+Maj+L"
-  },
   "sectionChatHistory": {
     "message": "Historique des conversations"
   },
@@ -301,12 +295,6 @@
   },
   "msgShortcutDisabled": {
     "message": "Raccourci clavier désactivé"
-  },
-  "msgAutoPasteEnabled": {
-    "message": "Collage automatique activé"
-  },
-  "msgAutoPasteDisabled": {
-    "message": "Collage automatique désactivé"
   },
   "msgEnterCustomizationEnabled": {
     "message": "Personnalisation de la touche Entrée activée"

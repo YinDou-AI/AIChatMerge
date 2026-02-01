@@ -116,12 +116,6 @@
   "btnConfigureEdge": {
     "message": "Configura in Edge"
   },
-  "labelAutoPaste": {
-    "message": "Incolla automaticamente appunti nella Libreria Prompt"
-  },
-  "descAutoPaste": {
-    "message": "Incolla automaticamente il contenuto degli appunti nell'area di lavoro quando si apre la Libreria Prompt con Command+Shift+L"
-  },
   "sectionChatHistory": {
     "message": "Cronologia chat"
   },
@@ -301,12 +295,6 @@
   },
   "msgShortcutDisabled": {
     "message": "Scorciatoia da tastiera disattivata"
-  },
-  "msgAutoPasteEnabled": {
-    "message": "Incolla automatico attivato"
-  },
-  "msgAutoPasteDisabled": {
-    "message": "Incolla automatico disattivato"
   },
   "msgEnterCustomizationEnabled": {
     "message": "Personalizzazione tasto Invio attivata"

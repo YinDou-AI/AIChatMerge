@@ -169,7 +169,6 @@ insidebar.ai requests the following Chrome extension permissions:
 | `contextMenus` | Add "Send to insidebar.ai" option when right-clicking |
 | `declarativeNetRequest` | Allow AI provider websites to load in the sidebar (bypass X-Frame-Options) |
 | `declarativeNetRequestWithHostAccess` | Apply header modifications for specific AI provider domains |
-| `clipboardRead` | Read clipboard content when using auto-paste feature |
 | `management` | Detect installation type (Chrome Web Store vs manual) to show/hide update checking |
 | Host permissions | Access AI provider websites to load them in the sidebar |
 

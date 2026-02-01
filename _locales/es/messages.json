@@ -116,12 +116,6 @@
   "btnConfigureEdge": {
     "message": "Configurar en Edge"
   },
-  "labelAutoPaste": {
-    "message": "Pegar Automáticamente Portapapeles en Biblioteca de Prompts"
-  },
-  "descAutoPaste": {
-    "message": "Pega automáticamente el contenido del portapapeles en el espacio de trabajo al abrir la Biblioteca de Prompts con Command+Shift+L"
-  },
   "sectionChatHistory": {
     "message": "Historial de Chat"
   },
@@ -301,12 +295,6 @@
   },
   "msgShortcutDisabled": {
     "message": "Atajo de teclado deshabilitado"
-  },
-  "msgAutoPasteEnabled": {
-    "message": "Pegado automático habilitado"
-  },
-  "msgAutoPasteDisabled": {
-    "message": "Pegado automático deshabilitado"
   },
   "msgEnterCustomizationEnabled": {
     "message": "Personalización de tecla Enter habilitada"

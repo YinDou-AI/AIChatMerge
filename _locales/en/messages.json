@@ -167,12 +167,6 @@
   "btnConfigureEdge": {
     "message": "Configure in Edge"
   },
-  "labelAutoPaste": {
-    "message": "Auto-paste Clipboard to Prompt Library"
-  },
-  "descAutoPaste": {
-    "message": "Automatically paste clipboard content to workspace when opening Prompt Library with Command+Shift+L"
-  },
   "sectionChatHistory": {
     "message": "Chat History"
   },
@@ -352,12 +346,6 @@
   },
   "msgShortcutDisabled": {
     "message": "Keyboard shortcut disabled"
-  },
-  "msgAutoPasteEnabled": {
-    "message": "Auto-paste enabled"
-  },
-  "msgAutoPasteDisabled": {
-    "message": "Auto-paste disabled"
   },
   "msgSourceUrlPlacementUpdated": {
     "message": "Source URL placement updated"
