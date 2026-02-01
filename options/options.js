@@ -377,13 +377,44 @@ async function loadLibraryCount() {
   if (!countElement) return;
 
   try {
-    const response = await fetch(chrome.runtime.getURL('data/prompt-libraries/default-prompts.json'));
+    const language = await getDefaultLibraryLanguage();
+    const libraryPath = getDefaultLibraryPath(language);
+    const response = await fetch(chrome.runtime.getURL(libraryPath));
     const promptsArray = await response.json();
     const count = Array.isArray(promptsArray) ? promptsArray.length : 0;
     countElement.textContent = t('msgPromptsCount', count.toString());
   } catch (error) {
     console.error('Failed to load library count:', error);
     countElement.textContent = t('msgUnknownCount');
+  }
+}
+
+// Get the appropriate default library path based on language
+function getDefaultLibraryPath(language) {
+  // Only Simplified Chinese uses translated prompts
+  // All other languages fall back to English
+  if (language === 'zh_CN') {
+    return 'data/prompt-libraries/default-prompts-zh_CN.json';
+  }
+  
+  // Default to English for all other languages (including zh_TW)
+  return 'data/prompt-libraries/default-prompts.json';
+}
+
+// Get user's preferred language for default library
+async function getDefaultLibraryLanguage() {
+  try {
+    const settings = await chrome.storage.sync.get({ language: null });
+    
+    // Only Simplified Chinese gets Chinese prompts
+    if (settings.language === 'zh_CN') {
+      return 'zh_CN';
+    }
+    
+    // All other languages (including zh_TW) fall back to English
+    return 'en';
+  } catch (error) {
+    return 'en';
   }
 }
 
@@ -826,8 +857,12 @@ async function importDefaultLibraryHandler() {
     button.disabled = true;
     button.textContent = t('msgImporting');
 
+    // Get user's language preference
+    const language = await getDefaultLibraryLanguage();
+    const libraryPath = getDefaultLibraryPath(language);
+
     // Fetch the default library data
-    const response = await fetch(chrome.runtime.getURL('data/prompt-libraries/default-prompts.json'));
+    const response = await fetch(chrome.runtime.getURL(libraryPath));
     const promptsArray = await response.json();
 
     // Wrap array in expected format { prompts: [...] }

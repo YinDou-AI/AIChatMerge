@@ -226,6 +226,7 @@
     {
       "resources": [
         "data/prompt-libraries/default-prompts.json",
+        "data/prompt-libraries/default-prompts-zh_CN.json",
         "data/prompt-libraries/custom-prompt-template.json",
         "data/prompt-libraries/guide.en.html",
         "data/prompt-libraries/guide.zh_CN.html",
