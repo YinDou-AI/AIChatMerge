@@ -116,12 +116,6 @@
   "btnConfigureEdge": {
     "message": "In Edge konfigurieren"
   },
-  "labelAutoPaste": {
-    "message": "Zwischenablage automatisch in Prompt-Bibliothek einfügen"
-  },
-  "descAutoPaste": {
-    "message": "Fügt den Inhalt der Zwischenablage automatisch in den Arbeitsbereich ein, wenn die Prompt-Bibliothek mit Befehl+Umschalt+L geöffnet wird"
-  },
   "sectionChatHistory": {
     "message": "Chat-Verlauf"
   },
@@ -301,12 +295,6 @@
   },
   "msgShortcutDisabled": {
     "message": "Tastaturkürzel deaktiviert"
-  },
-  "msgAutoPasteEnabled": {
-    "message": "Automatisches Einfügen aktiviert"
-  },
-  "msgAutoPasteDisabled": {
-    "message": "Automatisches Einfügen deaktiviert"
   },
   "msgEnterCustomizationEnabled": {
     "message": "Enter-Tasten-Anpassung aktiviert"

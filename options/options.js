@@ -176,12 +176,6 @@ async function loadSettings() {
   }
   updateShortcutHelperVisibility(keyboardShortcutEnabled);
 
-  // Auto-paste clipboard setting
-  const autoPasteToggle = document.getElementById('auto-paste-toggle');
-  if (autoPasteToggle) {
-    autoPasteToggle.checked = settings.autoPasteClipboard === true;
-  }
-
   // Source URL placement setting
   const sourceUrlPlacementSelect = document.getElementById('source-url-placement-select');
   if (sourceUrlPlacementSelect) {
@@ -401,16 +395,6 @@ function setupEventListeners() {
       await saveSetting('keyboardShortcutEnabled', enabled);
       updateShortcutHelperVisibility(enabled);
       showStatus('success', enabled ? t('msgShortcutEnabled') : t('msgShortcutDisabled'));
-    });
-  }
-
-  // Auto-paste clipboard toggle
-  const autoPasteToggle = document.getElementById('auto-paste-toggle');
-  if (autoPasteToggle) {
-    autoPasteToggle.addEventListener('change', async (e) => {
-      const enabled = e.target.checked;
-      await saveSetting('autoPasteClipboard', enabled);
-      showStatus('success', enabled ? t('msgAutoPasteEnabled') : t('msgAutoPasteDisabled'));
     });
   }
 

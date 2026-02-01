@@ -116,12 +116,6 @@
   "btnConfigureEdge": {
     "message": "Настроить в Edge"
   },
-  "labelAutoPaste": {
-    "message": "Автовставка из буфера в библиотеку промптов"
-  },
-  "descAutoPaste": {
-    "message": "Автоматически вставлять содержимое буфера обмена в рабочее пространство при открытии библиотеки промптов с помощью Command+Shift+L"
-  },
   "sectionChatHistory": {
     "message": "История чатов"
   },
@@ -301,12 +295,6 @@
   },
   "msgShortcutDisabled": {
     "message": "Горячие клавиши отключены"
-  },
-  "msgAutoPasteEnabled": {
-    "message": "Автовставка включена"
-  },
-  "msgAutoPasteDisabled": {
-    "message": "Автовставка отключена"
   },
   "msgEnterCustomizationEnabled": {
     "message": "Настройка клавиши Enter включена"
