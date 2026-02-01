@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>기본 프롬프트 라이브러리 만들기</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Avenir", "Noto Sans", "Helvetica Neue", sans-serif;
+      background: #f7f7f9;
+      color: #1f1f24;
+    }
+    main {
+      max-width: 860px;
+      margin: 40px auto 80px;
+      padding: 0 24px;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+    h2 {
+      font-size: 22px;
+      margin-top: 32px;
+    }
+    p {
+      line-height: 1.6;
+      margin: 12px 0;
+    }
+    blockquote {
+      margin: 16px 0;
+      padding: 16px 20px;
+      background: #ffffff;
+      border-left: 4px solid #1a73e8;
+      border-radius: 8px;
+      box-shadow: 0 6px 14px rgba(26, 115, 232, 0.08);
+    }
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    li {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+    code {
+      background: #eef1f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    pre {
+      margin: 12px 0 0;
+      padding: 12px 16px;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      overflow: auto;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #0f1116;
+        color: #e4e7ee;
+      }
+      blockquote {
+        background: #161a22;
+        border-left-color: #7aa6ff;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+      }
+      code {
+        background: #1f2937;
+        color: #e2e8f0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>기본 프롬프트 라이브러리 만들기</h1>
+
+    <section>
+      <h2>가장 강력한 기본 프롬프트 3가지</h2>
+      <blockquote>
+        <ul>
+          <li>다음 프롬프트를 명확하고 자연스러운 한국어로 다시 작성하고, AI 프롬프트 작성 모범 사례를 적용해 더 정확하고 구체적이며 유용한 결과를 얻도록 개선하세요. 프롬프트: {draft}</li>
+          <li>다음 주제나 질문과 관련된 항목, 예시, 아이디어를 가능한 한 많이 나열하세요. 완전성, 정확성, 명확성을 목표로 합니다. 주제: {topic}</li>
+          <li>{objective}에 가장 효과적인 프레임워크, 방법 또는 모델은 무엇인가요? 각 프레임워크의 핵심 아이디어, 장점, 그리고 가장 적합한 사용 상황을 설명하세요.</li>
+        </ul>
+      </blockquote>
+      <p>다음 파일 경로로 이 프롬프트들을 가져올 수 있습니다: <code>data/prompt-libraries/three-samples.json</code></p>
+    </section>
+
+    <section>
+      <h2>새 프롬프트 라이브러리 생성</h2>
+      <p>다음 프롬프트를 사용해 이 플러그인에 바로 가져올 수 있는 프롬프트 라이브러리를 생성하세요.</p>
+      <blockquote>
+        <p>최근에 접하거나 만든 가장 효과적이고 고품질의 프롬프트 20개를 생성하세요. 각 프롬프트는 통찰력, 창의성 또는 교육적 가치가 있어 학습이나 영감에 도움이 되어야 합니다.</p>
+        <p>각 결과를 다음 JSON 구조로 제공하세요:</p>
+        <pre><code class="language-json">{
+  "title": "Short descriptive title of the prompt",
+  "content": "Full text of the prompt. Use {variables} for any placeholders.",
+  "category": "General theme or purpose of the prompt (e.g., Writing, Analysis, Creativity)",
+  "tags": ["tag1", "tag2"],
+  "variables": ["{variables used}"],
+  "isFavorite": false,
+  "useCount": 0,
+  "lastUsed": null
+}</code></pre>
+        <p>각 JSON 객체가 자체적으로 완결되고, 명확하게 작성되며, 쉽게 파싱될 수 있도록 해주세요.</p>
+      </blockquote>
+    </section>
+  </main>
+</body>
+</html>

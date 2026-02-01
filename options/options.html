@@ -264,9 +264,13 @@
             <button class="btn btn-primary" id="import-default-library" data-i18n="btnImportDefault">Import Default Prompts</button>
             <button class="btn btn-secondary" id="import-custom-library" data-i18n="btnImportCustom">Import Custom Prompts</button>
           </div>
-          <p style="font-size: 12px; color: #888; margin-top: 12px; font-style: italic;" data-i18n-html="descCustomPromptReadme">
-            Before importing custom prompts, please read: <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px;">data/prompt-libraries/Generate_a_Basic_Prompt_Library.md</code>
+          <p class="library-helper" data-i18n="descCustomPromptGuide">
+            Need help formatting custom prompts? Open the guide or download a JSON template.
           </p>
+          <div class="btn-group">
+            <button class="btn btn-secondary" id="open-custom-prompt-guide" type="button" data-i18n="btnOpenPromptGuide">Open Guide</button>
+            <button class="btn btn-secondary" id="download-custom-prompt-template" type="button" data-i18n="btnDownloadPromptTemplate">Download Template</button>
+          </div>
           <input type="file" id="import-custom-library-file" accept=".json" style="display: none;" />
         </div>
       </section>

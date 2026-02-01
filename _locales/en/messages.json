@@ -248,6 +248,18 @@
   "btnImportCustom": {
     "message": "Import Custom Prompts"
   },
+  "descCustomPromptGuide": {
+    "message": "Need help formatting custom prompts? Open the guide or download a JSON template."
+  },
+  "btnOpenPromptGuide": {
+    "message": "Open Guide"
+  },
+  "btnDownloadPromptTemplate": {
+    "message": "Download Template"
+  },
+  "msgPromptGuideTip": {
+    "message": "Tip: Open the Prompt Library guide or download the JSON template from Settings > Prompt Library."
+  },
   "noteCustomImport": {
     "message": "Before importing custom prompts, please read: <code style=\"background: #f5f5f5; padding: 2px 6px; border-radius: 3px;\">data/prompt-libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
@@ -694,9 +706,6 @@
   },
   "descDefaultPromptLibrary": {
     "message": "Meta-prompts for prompt refinement, planning, coding, testing, research, writing, and more. Includes variables support for dynamic templates."
-  },
-  "descCustomPromptReadme": {
-    "message": "Before importing custom prompts, please read: <code style=\"background: #f5f5f5; padding: 2px 6px; border-radius: 3px;\">data/prompt-libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
   "statStorageUsed": {
     "message": "Storage Used"
