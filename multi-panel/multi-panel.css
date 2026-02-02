@@ -320,6 +320,12 @@ body {
   grid-template-rows: 1fr;
 }
 
+/* 1x7 七列 - 最小宽度 350px */
+.layout-1x7 {
+  grid-template-columns: repeat(7, minmax(350px, 1fr));
+  grid-template-rows: 1fr;
+}
+
 .layout-2x1 {
   grid-template-columns: 1fr;
   grid-template-rows: 1fr 1fr;
@@ -340,6 +346,24 @@ body {
   grid-template-rows: 1fr 1fr 1fr;
 }
 
+/* 2x4 网格 - 8 panels */
+.layout-2x4 {
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+/* 3x3 网格 - 9 panels */
+.layout-3x3 {
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+}
+
+/* 4x2 网格 - 8 panels */
+.layout-4x2 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr;
+}
+
 .layout-3x2 {
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr;
@@ -351,7 +375,8 @@ body {
 .layout-1x3 .panel-item,
 .layout-1x4 .panel-item,
 .layout-1x5 .panel-item,
-.layout-1x6 .panel-item {
+.layout-1x6 .panel-item,
+.layout-1x7 .panel-item {
   scroll-snap-align: start;
 }
 
@@ -922,9 +947,29 @@ body {
   grid-template-rows: 1fr;
 }
 
+.layout-1x7-preview {
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: 1fr;
+}
+
 .layout-2x3-preview {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
+}
+
+.layout-2x4-preview {
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.layout-3x3-preview {
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+}
+
+.layout-4x2-preview {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr;
 }
 
 .layout-3x2-preview {

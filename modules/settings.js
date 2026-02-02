@@ -1,5 +1,5 @@
 const DEFAULT_SETTINGS = {
-  enabledProviders: ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'google'],
+  enabledProviders: ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google'],
   providerOrder: null,
   defaultProvider: 'chatgpt',
   lastSelectedProvider: 'chatgpt',

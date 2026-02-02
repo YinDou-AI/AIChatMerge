@@ -40,6 +40,14 @@ export const PROVIDERS = [
     enabled: true
   },
   {
+    id: 'kimi',
+    name: 'Kimi',
+    url: 'https://www.kimi.com',
+    icon: '/icons/providers/kimi.png',
+    iconDark: '/icons/providers/dark/kimi.png',
+    enabled: true
+  },
+  {
     id: 'google',
     name: 'Google',
     url: 'https://www.google.com/search?udm=50',
@@ -62,7 +70,7 @@ export async function getProviderByIdWithSettings(id) {
 
 export async function getEnabledProviders() {
   let settings = {
-    enabledProviders: ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'google'],
+    enabledProviders: ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google'],
     providerOrder: null
   };
   

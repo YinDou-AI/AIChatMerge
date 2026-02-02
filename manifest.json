@@ -20,6 +20,8 @@
     "*://gemini.google.com/*",
     "*://grok.com/*",
     "*://chat.deepseek.com/*",
+    "*://www.kimi.com/*",
+    "*://kimi.com/*",
     "*://www.perplexity.ai/*",
     "*://perplexity.ai/*",
     "*://www.google.com/*",
@@ -139,6 +141,18 @@
         "content-scripts/focus-toggle.js"
       ],
       
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://www.kimi.com/*", "https://kimi.com/*"],
+      "js": [
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-kimi.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
       "run_at": "document_start",
       "all_frames": true
     },
