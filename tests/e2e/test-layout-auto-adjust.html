@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layout Auto-Adjust Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; }
+    
+    #test-results {
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      background: #f5f5f5;
+    }
+    #test-results.pass { background: #e8f5e9; color: #2e7d32; }
+    #test-results.fail { background: #ffebee; color: #c62828; }
+    
+    #panel-grid {
+      display: grid;
+      gap: 10px;
+      padding: 10px;
+      background: #e0e0e0;
+      border-radius: 8px;
+      min-height: 200px;
+    }
+    
+    .layout-1x1 { grid-template-columns: 1fr; }
+    .layout-1x2 { grid-template-columns: repeat(2, 1fr); }
+    .layout-1x3 { grid-template-columns: repeat(3, 1fr); }
+    .layout-1x4 { grid-template-columns: repeat(4, 1fr); }
+    .layout-1x5 { grid-template-columns: repeat(5, 1fr); }
+    .layout-1x6 { grid-template-columns: repeat(6, 1fr); }
+    .layout-2x1 { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+    .layout-2x2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+    
+    .panel-item {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      min-height: 100px;
+    }
+    
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #1976d2;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    button:hover { background: #1565c0; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    
+    select {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    
+    .status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .current-layout {
+      font-weight: bold;
+      color: #1976d2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Layout Auto-Adjust Test Page</h1>
+  
+  <div id="test-results">
+    <strong>Test Status:</strong> <span id="test-status">Running...</span>
+    <div id="test-details"></div>
+  </div>
+  
+  <div id="panel-grid" class="layout-1x2"></div>
+  
+  <div class="controls">
+    <label>Add Panel:</label>
+    <select id="provider-select">
+      <option value="chatgpt">ChatGPT</option>
+      <option value="claude">Claude</option>
+      <option value="gemini">Gemini</option>
+      <option value="grok">Grok</option>
+      <option value="deepseek">DeepSeek</option>
+      <option value="google">Google</option>
+    </select>
+    <button id="add-panel-btn">Add Panel</button>
+    <button id="clear-btn">Clear All</button>
+  </div>
+  
+  <div class="status">
+    Current Layout: <span id="current-layout" class="current-layout">1x2</span> | 
+    Panels: <span id="panel-count">0</span>/6
+  </div>
+
+  <script>
+    // LAYOUT_PANEL_COUNTS constant
+    const LAYOUT_PANEL_COUNTS = {
+      '1x1': 1, '1x2': 2, '1x3': 3, '1x4': 4, '1x5': 5, '1x6': 6,
+      '2x1': 2, '2x2': 4, '2x3': 6, '3x1': 3, '3x2': 6
+    };
+    
+    const MAX_PANELS = 6;
+    let currentLayout = '1x2';
+    let panels = [];
+    
+    // The function being tested
+    function getAutoAdjustedLayout(layout, newPanelCount) {
+      const match = layout.match(/^1x(\d)$/);
+      if (!match) return null;
+      
+      const currentCols = parseInt(match[1]);
+      const currentCapacity = LAYOUT_PANEL_COUNTS[layout];
+      
+      if (newPanelCount <= currentCapacity) return null;
+      
+      const nextCols = currentCols + 1;
+      const nextLayout = `1x${nextCols}`;
+      
+      if (LAYOUT_PANEL_COUNTS[nextLayout]) {
+        return nextLayout;
+      }
+      
+      return null;
+    }
+    
+    function setLayout(layout) {
+      currentLayout = layout;
+      const panelGrid = document.getElementById('panel-grid');
+      panelGrid.className = `layout-${layout}`;
+      document.getElementById('current-layout').textContent = layout;
+    }
+    
+    function addPanel(providerId) {
+      if (panels.length >= MAX_PANELS) {
+        alert('Maximum number of panels reached (6)');
+        return;
+      }
+      
+      // Auto layout adjustment - apply directly without setLayout to avoid recursion
+      const newPanelCount = panels.length + 1;
+      const adjustedLayout = getAutoAdjustedLayout(currentLayout, newPanelCount);
+      
+      if (adjustedLayout) {
+        currentLayout = adjustedLayout;
+        const panelGrid = document.getElementById('panel-grid');
+        panelGrid.className = `layout-${adjustedLayout}`;
+        document.getElementById('current-layout').textContent = adjustedLayout;
+      }
+      
+      const panelGrid = document.getElementById('panel-grid');
+      const panelEl = document.createElement('div');
+      panelEl.className = 'panel-item';
+      panelEl.innerHTML = `
+        <h3>${providerId.toUpperCase()}</h3>
+        <p>Panel #${panels.length + 1}</p>
+        <button onclick="removePanel('${providerId}')">Remove</button>
+      `;
+      panelGrid.appendChild(panelEl);
+      
+      panels.push({ id: providerId, element: panelEl });
+      updateStatus();
+    }
+    
+    function removePanel(providerId) {
+      const index = panels.findIndex(p => p.id === providerId);
+      if (index > -1) {
+        panels[index].element.remove();
+        panels.splice(index, 1);
+        updateStatus();
+      }
+    }
+    
+    function clearAll() {
+      panels.forEach(p => p.element.remove());
+      panels = [];
+      setLayout('1x2');
+      updateStatus();
+    }
+    
+    function updateStatus() {
+      document.getElementById('panel-count').textContent = panels.length;
+    }
+    
+    // Event listeners
+    document.getElementById('add-panel-btn').addEventListener('click', () => {
+      const provider = document.getElementById('provider-select').value;
+      addPanel(provider);
+    });
+    
+    document.getElementById('clear-btn').addEventListener('click', clearAll);
+    
+    // Run unit tests
+    function runTests() {
+      const tests = [];
+      let passed = 0;
+      let failed = 0;
+      
+      function test(name, fn) {
+        try {
+          fn();
+          tests.push({ name, status: 'PASS' });
+          passed++;
+        } catch (e) {
+          tests.push({ name, status: 'FAIL', error: e.message });
+          failed++;
+        }
+      }
+      
+      function assertEqual(actual, expected, msg) {
+        if (actual !== expected) {
+          throw new Error(`${msg}: expected ${expected}, got ${actual}`);
+        }
+      }
+      
+      // Test cases
+      test('1x2 to 1x3 when adding 3rd panel', () => {
+        assertEqual(getAutoAdjustedLayout('1x2', 3), '1x3', 'Should upgrade to 1x3');
+      });
+      
+      test('1x3 to 1x4 when adding 4th panel', () => {
+        assertEqual(getAutoAdjustedLayout('1x3', 4), '1x4', 'Should upgrade to 1x4');
+      });
+      
+      test('1x4 to 1x5 when adding 5th panel', () => {
+        assertEqual(getAutoAdjustedLayout('1x4', 5), '1x5', 'Should upgrade to 1x5');
+      });
+      
+      test('1x5 to 1x6 when adding 6th panel', () => {
+        assertEqual(getAutoAdjustedLayout('1x5', 6), '1x6', 'Should upgrade to 1x6');
+      });
+      
+      test('No upgrade when within capacity', () => {
+        assertEqual(getAutoAdjustedLayout('1x2', 2), null, 'Should not upgrade 1x2 with 2 panels');
+        assertEqual(getAutoAdjustedLayout('1x3', 3), null, 'Should not upgrade 1x3 with 3 panels');
+      });
+      
+      test('No upgrade at 1x6 maximum', () => {
+        assertEqual(getAutoAdjustedLayout('1x6', 7), null, 'Should not upgrade beyond 1x6');
+      });
+      
+      test('No upgrade for non-1xN layouts', () => {
+        assertEqual(getAutoAdjustedLayout('2x2', 5), null, 'Should not upgrade 2x2');
+        assertEqual(getAutoAdjustedLayout('3x1', 4), null, 'Should not upgrade 3x1');
+      });
+      
+      test('1x1 to 1x2 upgrade', () => {
+        assertEqual(getAutoAdjustedLayout('1x1', 2), '1x2', 'Should upgrade from 1x1 to 1x2');
+      });
+      
+      // Display results
+      const resultsDiv = document.getElementById('test-results');
+      const statusSpan = document.getElementById('test-status');
+      const detailsDiv = document.getElementById('test-details');
+      
+      if (failed === 0) {
+        resultsDiv.className = 'pass';
+        statusSpan.textContent = `All ${passed} tests passed!`;
+      } else {
+        resultsDiv.className = 'fail';
+        statusSpan.textContent = `${passed} passed, ${failed} failed`;
+      }
+      
+      detailsDiv.innerHTML = tests.map(t => 
+        `<div style="margin: 5px 0; color: ${t.status === 'PASS' ? '#2e7d32' : '#c62828'}">
+          ${t.status}: ${t.name}${t.error ? ` - ${t.error}` : ''}
+        </div>`
+      ).join('');
+      
+      return { passed, failed, total: tests.length };
+    }
+    
+    // Run tests on page load
+    window.testResults = runTests();
+    
+    // Expose for external testing
+    window.getAutoAdjustedLayout = getAutoAdjustedLayout;
+    window.getCurrentLayout = () => currentLayout;
+    window.getPanelCount = () => panels.length;
+  </script>
+</body>
+</html>

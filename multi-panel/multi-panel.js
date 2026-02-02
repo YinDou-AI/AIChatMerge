@@ -362,10 +362,60 @@ async function initializePanels() {
 }
 
 // ===== Panel Management =====
+
+/**
+ * Calculates whether layout adjustment is needed based on current layout and panel count
+ * Only auto-expands columns in 1xN layout sequence
+ * @param {string} currentLayout - Current layout, e.g., '1x2'
+ * @param {number} newPanelCount - Total panel count after adding
+ * @returns {string|null} - New layout name, or null if no adjustment needed
+ */
+function getAutoAdjustedLayout(currentLayout, newPanelCount) {
+  // 只处理 1xN 布局
+  const match = currentLayout.match(/^1x(\d)$/);
+  if (!match) return null;
+  
+  const currentCols = parseInt(match[1]);
+  const currentCapacity = LAYOUT_PANEL_COUNTS[currentLayout];
+  
+  // 如果新面板数不超过容量，无需调整
+  if (newPanelCount <= currentCapacity) return null;
+  
+  // 计算下一级布局
+  const nextCols = currentCols + 1;
+  const nextLayout = `1x${nextCols}`;
+  
+  // 检查是否存在（1x6 是上限）
+  if (LAYOUT_PANEL_COUNTS[nextLayout]) {
+    return nextLayout;
+  }
+  
+  return null; // 已达上限，无法自动调整
+}
+
 async function addPanel(providerId) {
   if (panels.length >= MAX_PANELS) {
     showToast('Maximum number of panels reached (6)');
     return;
+  }
+
+  // Auto layout adjustment: upgrade from 1xN to 1x(N+1) when adding panel exceeds capacity
+  const newPanelCount = panels.length + 1;
+  const adjustedLayout = getAutoAdjustedLayout(currentLayout, newPanelCount);
+  
+  if (adjustedLayout) {
+    // Apply layout directly without calling setLayout (to avoid recursion from adjustPanelCount)
+    currentLayout = adjustedLayout;
+    const panelGrid = document.getElementById('panel-grid');
+    panelGrid.className = `layout-${adjustedLayout}`;
+    
+    // Update layout button states (if layout modal is open)
+    document.querySelectorAll('.layout-option').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.layout === adjustedLayout);
+    });
+    
+    // Save configuration
+    await saveProviderConfiguration();
   }
 
   const provider = getProviderById(providerId);
