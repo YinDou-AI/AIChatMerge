@@ -5,6 +5,9 @@
   "extensionDescription": {
     "message": "並排比較 AI 聊天機器人。在一個視窗中使用 ChatGPT、Claude、Gemini、Grok 等。"
   },
+  "commandOpenSidebar": {
+    "message": "開啟 Panelize"
+  },
   "commandOpenPromptLibrary": {
     "message": "開啟提示詞庫"
   },
@@ -81,7 +84,7 @@
     "message": "已啟用的提供者"
   },
   "descEnabledProviders": {
-    "message": "選擇在 Panelize 中顯示哪些 AI 提供商"
+    "message": "選擇在側邊欄中顯示哪些 AI 提供者"
   },
   "sectionKeyboardShortcuts": {
     "message": "鍵盤快速鍵"
@@ -112,9 +115,6 @@
   },
   "btnConfigureEdge": {
     "message": "在 Edge 中設定"
-  },
-  "sectionChatHistory": {
-    "message": "聊天記錄"
   },
   "sectionContentSending": {
     "message": "內容傳送"
@@ -212,9 +212,6 @@
   "sectionDataManagement": {
     "message": "資料管理"
   },
-  "statChatHistory": {
-    "message": "聊天記錄"
-  },
   "statPrompts": {
     "message": "提示詞"
   },
@@ -244,12 +241,6 @@
   },
   "descDangerZone": {
     "message": "這些操作無法復原。請謹慎使用。"
-  },
-  "labelClearHistory": {
-    "message": "清空聊天記錄"
-  },
-  "descClearHistory": {
-    "message": "刪除所有儲存的對話"
   },
   "labelClearPrompts": {
     "message": "清空提示詞"
@@ -372,9 +363,6 @@
       }
     }
   },
-  "msgHistoryCleared": {
-    "message": "所有聊天記錄已被刪除"
-  },
   "msgPromptsCleared": {
     "message": "所有提示詞已被刪除"
   },
@@ -436,9 +424,6 @@
   "errImportFailed": {
     "message": "匯入資料失敗。請檢查檔案格式。"
   },
-  "errClearHistoryFailed": {
-    "message": "清空聊天記錄失敗"
-  },
   "errClearPromptsFailed": {
     "message": "清空提示詞失敗"
   },
@@ -482,17 +467,20 @@
       }
     }
   },
-  "confirmClearHistory": {
-    "message": "您確定要刪除所有聊天記錄嗎？\n\n這將永久刪除所有儲存的對話。\n\n此操作無法復原！"
-  },
   "confirmClearPrompts": {
     "message": "您確定要刪除所有提示詞嗎？\n\n這將永久刪除您庫中的所有提示詞。\n\n此操作無法復原！"
   },
   "confirmResetSettings": {
-    "message": "您確定要將所有設定重設為預設值嗎？\n\n這將重設：\n- 主題設定\n- 預設提供者\n- 鍵盤快速鍵\n- 所有其他偏好設定\n\n您的提示詞和聊天記錄不會受到影響。\n\n此操作無法復原！"
+    "message": "您確定要將所有設定重設為預設值嗎？\n\n這將重設：\n- 主題設定\n- 預設提供者\n- 鍵盤快速鍵\n- 所有其他偏好設定\n\n您的提示詞不會受到影響。\n\n此操作無法復原！"
   },
   "contextMenuSendTo": {
     "message": "發送到 Panelize"
+  },
+  "sidebarPromptGenie": {
+    "message": "提示詞精靈"
+  },
+  "sidebarEditingPrompt": {
+    "message": "編輯提示詞"
   },
   "placeholderSearch": {
     "message": "搜尋..."

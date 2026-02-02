@@ -2,9 +2,9 @@
 // Handles CRUD operations for prompts in the Prompt Library
 
 const DB_NAME = 'SmarterPanelDB';
-const DB_VERSION = 4;  // Upgraded to add modifiedAt field for conversations
+const DB_VERSION = 5;  // Upgraded to remove conversations store
 const PROMPTS_STORE = 'prompts';
-const CONVERSATIONS_STORE = 'conversations';
+
 
 // T069: Input validation constants
 const MAX_TITLE_LENGTH = 200;
@@ -106,28 +106,12 @@ export async function initPromptDB() {
         promptsStore.createIndex('isFavorite', 'isFavorite', { unique: false });
       }
 
-      // Create conversations object store (version 2)
-      if (oldVersion < 2) {
-        const conversationsStore = db.createObjectStore(CONVERSATIONS_STORE, {
-          keyPath: 'id',
-          autoIncrement: true
-        });
-
-        // Create indexes for efficient querying
-        conversationsStore.createIndex('provider', 'provider', { unique: false });
-        conversationsStore.createIndex('timestamp', 'timestamp', { unique: false });
-        conversationsStore.createIndex('tags', 'tags', { unique: false, multiEntry: true });
-        conversationsStore.createIndex('isFavorite', 'isFavorite', { unique: false });
-        conversationsStore.createIndex('searchText', 'searchText', { unique: false });
-      }
-
-      // Add conversationId index (version 3)
-      if (oldVersion < 3) {
-        const transaction = event.target.transaction;
-        const conversationsStore = transaction.objectStore(CONVERSATIONS_STORE);
-
-        // Add index for conversationId to enable efficient duplicate checking
-        conversationsStore.createIndex('conversationId', 'conversationId', { unique: false });
+      // Version 5: Remove conversations store (chat history feature removed)
+      if (oldVersion < 5) {
+        // Delete the conversations object store if it exists
+        if (db.objectStoreNames.contains('conversations')) {
+          db.deleteObjectStore('conversations');
+        }
       }
     };
   });

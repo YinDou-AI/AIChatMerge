@@ -5,11 +5,14 @@
   "extensionDescription": {
     "message": "并排比较 AI 聊天机器人。在一个窗口中使用 ChatGPT、Claude、Gemini、Grok 等。"
   },
+  "commandOpenSidebar": {
+    "message": "打开 Panelize"
+  },
   "commandOpenPromptLibrary": {
     "message": "打开提示词库"
   },
   "actionDefaultTitle": {
-    "message": "打开 Panelize"
+    "message": "打开 insidebar.ai"
   },
   "settingsTitle": {
     "message": "设置： Panelize"
@@ -81,7 +84,7 @@
     "message": "已启用的提供商"
   },
   "descEnabledProviders": {
-    "message": "选择在 Panelize 中显示哪些 AI 提供商"
+    "message": "选择在侧边栏中显示哪些 AI 提供商"
   },
   "sectionKeyboardShortcuts": {
     "message": "键盘快捷键"
@@ -112,9 +115,6 @@
   },
   "btnConfigureEdge": {
     "message": "在 Edge 中配置"
-  },
-  "sectionChatHistory": {
-    "message": "聊天历史"
   },
   "sectionContentSending": {
     "message": "内容发送"
@@ -212,9 +212,6 @@
   "sectionDataManagement": {
     "message": "数据管理"
   },
-  "statChatHistory": {
-    "message": "聊天历史"
-  },
   "statPrompts": {
     "message": "提示词"
   },
@@ -244,12 +241,6 @@
   },
   "descDangerZone": {
     "message": "这些操作无法撤销。请谨慎使用。"
-  },
-  "labelClearHistory": {
-    "message": "清空聊天历史"
-  },
-  "descClearHistory": {
-    "message": "删除所有保存的对话"
   },
   "labelClearPrompts": {
     "message": "清空提示词"
@@ -372,9 +363,6 @@
       }
     }
   },
-  "msgHistoryCleared": {
-    "message": "所有聊天历史已被删除"
-  },
   "msgPromptsCleared": {
     "message": "所有提示词已被删除"
   },
@@ -436,9 +424,6 @@
   "errImportFailed": {
     "message": "导入数据失败。请检查文件格式。"
   },
-  "errClearHistoryFailed": {
-    "message": "清空聊天历史失败"
-  },
   "errClearPromptsFailed": {
     "message": "清空提示词失败"
   },
@@ -482,17 +467,20 @@
       }
     }
   },
-  "confirmClearHistory": {
-    "message": "您确定要删除所有聊天历史吗？\n\n这将永久删除所有保存的对话。\n\n此操作无法撤销！"
-  },
   "confirmClearPrompts": {
     "message": "您确定要删除所有提示词吗？\n\n这将永久删除您库中的所有提示词。\n\n此操作无法撤销！"
   },
   "confirmResetSettings": {
-    "message": "您确定要将所有设置重置为默认值吗？\n\n这将重置：\n- 主题设置\n- 默认提供商\n- 键盘快捷键\n- 所有其他首选项\n\n您的提示词和聊天历史不会受到影响。\n\n此操作无法撤销！"
+    "message": "您确定要将所有设置重置为默认值吗？\n\n这将重置：\n- 主题设置\n- 默认提供商\n- 键盘快捷键\n- 所有其他首选项\n\n您的提示词不会受到影响。\n\n此操作无法撤销！"
   },
   "contextMenuSendTo": {
     "message": "发送到 Panelize"
+  },
+  "sidebarPromptGenie": {
+    "message": "提示词精灵"
+  },
+  "sidebarEditingPrompt": {
+    "message": "编辑提示词"
   },
   "placeholderSearch": {
     "message": "搜索..."

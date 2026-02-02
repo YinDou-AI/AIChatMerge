@@ -1,12 +1,12 @@
-# Privacy Policy for Panelize
+# Privacy Policy for insidebar.ai
 
-**Last Updated: February 2, 2026**
+**Last Updated: October 19, 2025**
 
 ## Overview
 
-Panelize is committed to protecting your privacy. This privacy policy explains what data the extension collects, how it's used, and your control over it.
+insidebar.ai is committed to protecting your privacy. This privacy policy explains what data the extension collects, how it's used, and your control over it.
 
-**In short:** Panelize stores all data locally on your device. We do not collect, transmit, or sell any of your personal information to third parties or external servers.
+**In short:** insidebar.ai stores all data locally on your device. We do not collect, transmit, or sell any of your personal information to third parties or external servers.
 
 ---
 
@@ -22,13 +22,6 @@ All of the following data is stored **exclusively in your browser's local storag
 - Imported prompt libraries
 
 **Purpose:** To provide prompt management functionality across browser sessions.
-
-#### Chat History Data
-- Conversations you manually save from AI providers
-- Original conversation URLs
-- Provider information and timestamps
-
-**Purpose:** To allow you to save and revisit important AI conversations.
 
 #### User Preferences and Settings
 - Selected theme (Light/Dark/Auto)
@@ -50,14 +43,14 @@ All of the following data is stored **exclusively in your browser's local storag
 
 ### 2. Data We Do NOT Collect
 
-Panelize does **NOT** collect, store, or transmit:
+insidebar.ai does **NOT** collect, store, or transmit:
 
 - ❌ Personal identification information
 - ❌ Browsing history
 - ❌ IP addresses
 - ❌ Analytics or telemetry data
 - ❌ Usage statistics sent to external servers
-- ❌ AI conversation content (unless you manually save it locally)
+- ❌ AI conversation content
 - ❌ Login credentials or API keys
 - ❌ Any data to external servers or third parties
 
@@ -65,14 +58,13 @@ Panelize does **NOT** collect, store, or transmit:
 
 ## How We Use Your Data
 
-All data collected by Panelize is used solely for providing extension functionality on your local device:
+All data collected by insidebar.ai is used solely for providing extension functionality on your local device:
 
 1. **Prompt Library:** Store and organize your saved prompts for reuse
-2. **Chat History:** Save conversations you choose to preserve
-3. **Settings:** Remember your preferences between sessions
+2. **Settings:** Remember your preferences between sessions
 4. **Quick Access:** Show recently used prompts and maintain provider state
 
-**No data is transmitted to Panelize developers or any third-party servers.**
+**No data is transmitted to insidebar.ai developers or any third-party servers.**
 
 ---
 
@@ -80,7 +72,7 @@ All data collected by Panelize is used solely for providing extension functional
 
 ### AI Provider Websites
 
-Panelize loads AI provider websites (ChatGPT, Claude, Gemini, Google AI, Grok, DeepSeek) in iframes within the Panelize multi-panel view. These providers operate under their own privacy policies:
+insidebar.ai loads AI provider websites (ChatGPT, Claude, Gemini, Google AI, Grok, DeepSeek) in an iframe within the sidebar. These providers operate under their own privacy policies:
 
 - **ChatGPT/OpenAI:** https://openai.com/policies/privacy-policy
 - **Claude/Anthropic:** https://www.anthropic.com/privacy
@@ -88,16 +80,16 @@ Panelize loads AI provider websites (ChatGPT, Claude, Gemini, Google AI, Grok, D
 - **Grok/xAI:** https://x.ai/legal/privacy-policy
 - **DeepSeek:** https://www.deepseek.com/privacy-policy
 
-When you interact with these AI providers through Panelize, you are subject to their respective privacy policies. Panelize does not intercept, modify, or access the content of your conversations with these services.
+When you interact with these AI providers through the sidebar, you are subject to their respective privacy policies. insidebar.ai does not intercept, modify, or access the content of your conversations with these services.
 
-### Cookies and Sessions
+### Cookie Access
 
-Panelize does not read or modify cookies directly. AI provider sites run in their own frames and use their own cookies to maintain login sessions, just like normal browser tabs.
+insidebar.ai accesses your existing browser cookies for AI provider websites to maintain login sessions in the sidebar. This allows the extension to load AI providers without requiring separate logins.
 
 **Important:**
-- Panelize does not create, modify, or transmit cookies
+- The extension does not create, modify, or transmit cookies
 - Cookies remain in your browser and are managed by the AI providers
-- Panelize does not access cookies via a dedicated cookies permission
+- The extension only reads existing cookies to maintain authenticated sessions
 
 ---
 
@@ -107,7 +99,7 @@ Panelize does not read or modify cookies directly. AI provider sites run in thei
 
 All extension data is stored in your browser using:
 - **Chrome Storage API:** For settings and preferences
-- **IndexedDB:** For prompts and chat history
+- **IndexedDB:** For prompts
 
 This data:
 - Remains on your device
@@ -118,7 +110,7 @@ This data:
 ### Data Retention
 
 Data is retained locally until you:
-- Manually delete it using extension features (e.g., delete prompts, clear history)
+- Manually delete it using extension features (e.g., delete prompts)
 - Use the "Reset All Data" feature in Settings
 - Clear browser data (which removes all extension data)
 - Uninstall the extension
@@ -130,27 +122,27 @@ Data is retained locally until you:
 You have full control over your data:
 
 ### Export Your Data
-Go to Settings → Data Management → Export to download all your prompts, chat history, and settings as a JSON file.
+Go to Settings → Data Management → Export to download all your prompts and settings as a JSON file.
 
 ### Delete Your Data
-- **Individual Items:** Delete specific prompts or conversations
+- **Individual Items:** Delete specific prompts
 - **Category/Provider:** Clear all data from a specific category or provider
 - **Complete Reset:** Settings → Data Management → Reset All Data
 
 ### No Account Required
-Panelize does not require creating an account. All functionality works without registration, login, or providing any personal information.
+insidebar.ai does not require creating an account. All functionality works without registration, login, or providing any personal information.
 
 ---
 
 ## Children's Privacy
 
-Panelize does not knowingly collect any information from children under 13. The extension is designed for general use and does not target children. If you are under 13, please do not use this extension without parental supervision.
+insidebar.ai does not knowingly collect any information from children under 13. The extension is designed for general use and does not target children. If you are under 13, please do not use this extension without parental supervision.
 
 ---
 
 ## Changes to This Privacy Policy
 
-We may update this privacy policy from time to time. Changes will be reflected in the "Last Updated" date at the top of this document. Continued use of Panelize after changes constitutes acceptance of the updated policy.
+We may update this privacy policy from time to time. Changes will be reflected in the "Last Updated" date at the top of this document. Continued use of insidebar.ai after changes constitutes acceptance of the updated policy.
 
 Significant changes will be announced via:
 - GitHub repository changelog
@@ -160,16 +152,17 @@ Significant changes will be announced via:
 
 ## Permissions Explained
 
-Panelize requests the following Chrome extension permissions:
+insidebar.ai requests the following Chrome extension permissions:
 
 | Permission | Purpose |
 |------------|---------|
-| `storage` | Store your prompts, settings, and chat history locally |
-| `contextMenus` | Add "Send to Panelize" option when right-clicking |
-| `declarativeNetRequest` | Allow AI provider websites to load in Panelize (bypass X-Frame-Options) |
+| `sidePanel` | Display AI providers in the browser sidebar |
+| `storage` | Store your prompts and settings locally |
+| `contextMenus` | Add "Send to insidebar.ai" option when right-clicking |
+| `declarativeNetRequest` | Allow AI provider websites to load in the sidebar (bypass X-Frame-Options) |
 | `declarativeNetRequestWithHostAccess` | Apply header modifications for specific AI provider domains |
-| `downloads` | Export prompts and chat history to JSON files |
-| Host permissions | Access AI provider websites to load them in Panelize |
+| `management` | Detect installation type (Chrome Web Store vs manual) to show/hide update checking |
+| Host permissions | Access AI provider websites to load them in the sidebar |
 
 **None of these permissions are used to collect, transmit, or share your data with external parties.**
 
@@ -177,7 +170,7 @@ Panelize requests the following Chrome extension permissions:
 
 ## Open Source Transparency
 
-Panelize is fully open source. You can review the complete source code at:
+insidebar.ai is fully open source. You can review the complete source code at:
 
 **GitHub Repository:** https://github.com/Manho/Panelize
 
@@ -191,7 +184,7 @@ This allows you to:
 
 ## Contact Information
 
-If you have questions or concerns about this privacy policy or how Panelize handles data:
+If you have questions or concerns about this privacy policy or how insidebar.ai handles data:
 
 - **GitHub Issues:** https://github.com/Manho/Panelize/issues
 - **Project Maintainer:** [Xiaolai](https://github.com/xiaolai)
@@ -219,19 +212,19 @@ If you are a California resident:
 ## Summary
 
 ✅ **What we do:**
-- Store your prompts, settings, and saved conversations locally on your device
+- Store your prompts and settings locally on your device
 - Use local browser storage to remember your preferences
-- Load AI provider websites in the Panelize multi-panel view (providers manage their own sessions)
+- Access AI provider cookies to maintain login sessions in the sidebar
 
 ❌ **What we don't do:**
 - Collect or transmit any data to external servers
 - Track your usage or behavior
 - Sell or share your data with third parties
-- Store your AI conversations (unless you manually save them)
+- Access your AI conversations
 - Require account creation or personal information
 
 **Your privacy is protected because all data stays on your device, under your control.**
 
 ---
 
-*This privacy policy is effective as of February 2, 2026 and applies to Panelize version 1.0.0 and later.*
+*This privacy policy is effective as of October 19, 2025 and applies to insidebar.ai version 1.6.0 and later.*

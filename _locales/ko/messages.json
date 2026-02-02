@@ -5,6 +5,9 @@
   "extensionDescription": {
     "message": "ChatGPT, Claude, Gemini 등에 빠르게 접근할 수 있는 멀티 AI 사이드바 확장 프로그램"
   },
+  "commandOpenSidebar": {
+    "message": "기본 제공자로 Panelize 열기"
+  },
   "commandOpenPromptLibrary": {
     "message": "Panelize 프롬프트 라이브러리 열기"
   },
@@ -81,7 +84,7 @@
     "message": "활성화된 제공자"
   },
   "descEnabledProviders": {
-    "message": "Panelize에 표시할 AI 제공업체를 선택하세요"
+    "message": "사이드바에 표시할 AI 제공자를 선택하세요"
   },
   "sectionKeyboardShortcuts": {
     "message": "키보드 단축키"
@@ -112,9 +115,6 @@
   },
   "btnConfigureEdge": {
     "message": "Edge 에서 구성"
-  },
-  "sectionChatHistory": {
-    "message": "채팅 기록"
   },
   "sectionContentSending": {
     "message": "콘텐츠 전송"
@@ -212,9 +212,6 @@
   "sectionDataManagement": {
     "message": "데이터 관리"
   },
-  "statChatHistory": {
-    "message": "채팅 기록"
-  },
   "statPrompts": {
     "message": "프롬프트"
   },
@@ -244,12 +241,6 @@
   },
   "descDangerZone": {
     "message": "이 작업은 취소할 수 없습니다. 주의해서 사용하세요."
-  },
-  "labelClearHistory": {
-    "message": "채팅 기록 지우기"
-  },
-  "descClearHistory": {
-    "message": "저장된 모든 대화 삭제"
   },
   "labelClearPrompts": {
     "message": "프롬프트 지우기"
@@ -372,9 +363,6 @@
       }
     }
   },
-  "msgHistoryCleared": {
-    "message": "모든 채팅 기록이 삭제되었습니다"
-  },
   "msgPromptsCleared": {
     "message": "모든 프롬프트가 삭제되었습니다"
   },
@@ -442,9 +430,6 @@
   "errImportFailed": {
     "message": "데이터 가져오기 실패. 파일 형식을 확인하세요."
   },
-  "errClearHistoryFailed": {
-    "message": "채팅 기록 지우기 실패"
-  },
   "errClearPromptsFailed": {
     "message": "프롬프트 지우기 실패"
   },
@@ -488,17 +473,20 @@
       }
     }
   },
-  "confirmClearHistory": {
-    "message": "모든 채팅 기록을 삭제하시겠습니까?\n\n저장된 모든 대화가 영구적으로 삭제됩니다.\n\n이 작업은 취소할 수 없습니다!"
-  },
   "confirmClearPrompts": {
     "message": "모든 프롬프트를 삭제하시겠습니까?\n\n라이브러리에서 모든 프롬프트가 영구적으로 삭제됩니다.\n\n이 작업은 취소할 수 없습니다!"
   },
   "confirmResetSettings": {
-    "message": "모든 설정을 기본값으로 재설정하시겠습니까?\n\n다음이 재설정됩니다:\n- 테마 설정\n- 기본 제공자\n- 키보드 단축키\n- 기타 모든 기본 설정\n\n프롬프트 및 채팅 기록은 영향을 받지 않습니다.\n\n이 작업은 취소할 수 없습니다!"
+    "message": "모든 설정을 기본값으로 재설정하시겠습니까?\n\n다음이 재설정됩니다:\n- 테마 설정\n- 기본 제공자\n- 키보드 단축키\n- 기타 모든 기본 설정\n\n프롬프트는 영향을 받지 않습니다.\n\n이 작업은 취소할 수 없습니다!"
   },
   "contextMenuSendTo": {
     "message": "Panelize 로 보내기"
+  },
+  "sidebarPromptGenie": {
+    "message": "프롬프트 지니"
+  },
+  "sidebarEditingPrompt": {
+    "message": "프롬프트 편집"
   },
   "placeholderSearch": {
     "message": "검색..."

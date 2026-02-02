@@ -5,6 +5,9 @@
   "extensionDescription": {
     "message": "Multi-KI-Seitenleisten-Erweiterung für schnellen Zugriff auf ChatGPT, Claude, Gemini und mehr"
   },
+  "commandOpenSidebar": {
+    "message": "Panelize mit Standard-Anbieter öffnen"
+  },
   "commandOpenPromptLibrary": {
     "message": "Panelize Prompt-Bibliothek öffnen"
   },
@@ -81,7 +84,7 @@
     "message": "Aktivierte Anbieter"
   },
   "descEnabledProviders": {
-    "message": "Wählen Sie aus, welche KI-Anbieter in Panelize angezeigt werden"
+    "message": "Wählen Sie aus, welche KI-Anbieter in Ihrer Seitenleiste erscheinen"
   },
   "sectionKeyboardShortcuts": {
     "message": "Tastaturkürzel"
@@ -112,9 +115,6 @@
   },
   "btnConfigureEdge": {
     "message": "In Edge konfigurieren"
-  },
-  "sectionChatHistory": {
-    "message": "Chat-Verlauf"
   },
   "sectionContentSending": {
     "message": "Inhaltsversand"
@@ -212,9 +212,6 @@
   "sectionDataManagement": {
     "message": "Datenverwaltung"
   },
-  "statChatHistory": {
-    "message": "Chat-Verlauf"
-  },
   "statPrompts": {
     "message": "Prompts"
   },
@@ -244,12 +241,6 @@
   },
   "descDangerZone": {
     "message": "Diese Aktionen können nicht rückgängig gemacht werden. Mit Vorsicht verwenden."
-  },
-  "labelClearHistory": {
-    "message": "Chat-Verlauf löschen"
-  },
-  "descClearHistory": {
-    "message": "Alle gespeicherten Unterhaltungen löschen"
   },
   "labelClearPrompts": {
     "message": "Prompts löschen"
@@ -372,9 +363,6 @@
       }
     }
   },
-  "msgHistoryCleared": {
-    "message": "Gesamter Chat-Verlauf wurde gelöscht"
-  },
   "msgPromptsCleared": {
     "message": "Alle Prompts wurden gelöscht"
   },
@@ -442,9 +430,6 @@
   "errImportFailed": {
     "message": "Fehler beim Importieren der Daten. Bitte überprüfen Sie das Dateiformat."
   },
-  "errClearHistoryFailed": {
-    "message": "Fehler beim Löschen des Chat-Verlaufs"
-  },
   "errClearPromptsFailed": {
     "message": "Fehler beim Löschen der Prompts"
   },
@@ -488,17 +473,20 @@
       }
     }
   },
-  "confirmClearHistory": {
-    "message": "Sind Sie sicher, dass Sie den GESAMTEN Chat-Verlauf löschen möchten?\n\nDies löscht dauerhaft alle gespeicherten Unterhaltungen.\n\nDiese Aktion kann NICHT rückgängig gemacht werden!"
-  },
   "confirmClearPrompts": {
     "message": "Sind Sie sicher, dass Sie ALLE Prompts löschen möchten?\n\nDies löscht dauerhaft alle Prompts aus Ihrer Bibliothek.\n\nDiese Aktion kann NICHT rückgängig gemacht werden!"
   },
   "confirmResetSettings": {
-    "message": "Sind Sie sicher, dass Sie ALLE Einstellungen auf Standardwerte zurücksetzen möchten?\n\nDies setzt zurück:\n- Design-Einstellungen\n- Standard-Anbieter\n- Tastaturkürzel\n- Alle anderen Einstellungen\n\nIhre Prompts und Ihr Chat-Verlauf werden NICHT betroffen sein.\n\nDiese Aktion kann NICHT rückgängig gemacht werden!"
+    "message": "Sind Sie sicher, dass Sie ALLE Einstellungen auf Standardwerte zurücksetzen möchten?\n\nDies setzt zurück:\n- Design-Einstellungen\n- Standard-Anbieter\n- Tastaturkürzel\n- Alle anderen Einstellungen\n\nIhre Prompts werden NICHT betroffen sein.\n\nDiese Aktion kann NICHT rückgängig gemacht werden!"
   },
   "contextMenuSendTo": {
     "message": "An Panelize senden"
+  },
+  "sidebarPromptGenie": {
+    "message": "Prompt-Genie"
+  },
+  "sidebarEditingPrompt": {
+    "message": "Prompt bearbeiten"
   },
   "placeholderSearch": {
     "message": "Suchen..."

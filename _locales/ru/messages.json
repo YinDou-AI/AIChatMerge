@@ -5,6 +5,9 @@
   "extensionDescription": {
     "message": "Расширение с боковой панелью для быстрого доступа к ChatGPT, Claude, Gemini и другим ИИ"
   },
+  "commandOpenSidebar": {
+    "message": "Открыть Panelize с провайдером по умолчанию"
+  },
   "commandOpenPromptLibrary": {
     "message": "Открыть библиотеку промптов Panelize"
   },
@@ -81,7 +84,7 @@
     "message": "Включённые провайдеры"
   },
   "descEnabledProviders": {
-    "message": "Выберите, какие поставщики ИИ отображаются в Panelize"
+    "message": "Выберите, какие провайдеры ИИ отображаются в боковой панели"
   },
   "sectionKeyboardShortcuts": {
     "message": "Горячие клавиши"
@@ -112,9 +115,6 @@
   },
   "btnConfigureEdge": {
     "message": "Настроить в Edge"
-  },
-  "sectionChatHistory": {
-    "message": "История чатов"
   },
   "sectionContentSending": {
     "message": "Отправка содержимого"
@@ -212,9 +212,6 @@
   "sectionDataManagement": {
     "message": "Управление данными"
   },
-  "statChatHistory": {
-    "message": "История чатов"
-  },
   "statPrompts": {
     "message": "Промпты"
   },
@@ -244,12 +241,6 @@
   },
   "descDangerZone": {
     "message": "Эти действия нельзя отменить. Используйте с осторожностью."
-  },
-  "labelClearHistory": {
-    "message": "Очистить историю чатов"
-  },
-  "descClearHistory": {
-    "message": "Удалить все сохранённые беседы"
   },
   "labelClearPrompts": {
     "message": "Очистить промпты"
@@ -372,9 +363,6 @@
       }
     }
   },
-  "msgHistoryCleared": {
-    "message": "Вся история чатов удалена"
-  },
   "msgPromptsCleared": {
     "message": "Все промпты удалены"
   },
@@ -442,9 +430,6 @@
   "errImportFailed": {
     "message": "Не удалось импортировать данные. Проверьте формат файла."
   },
-  "errClearHistoryFailed": {
-    "message": "Не удалось очистить историю чатов"
-  },
   "errClearPromptsFailed": {
     "message": "Не удалось очистить промпты"
   },
@@ -488,17 +473,20 @@
       }
     }
   },
-  "confirmClearHistory": {
-    "message": "Вы уверены, что хотите удалить ВСЮ историю чатов?\n\nЭто навсегда удалит все сохранённые беседы.\n\nЭто действие НЕЛЬЗЯ отменить!"
-  },
   "confirmClearPrompts": {
     "message": "Вы уверены, что хотите удалить ВСЕ промпты?\n\nЭто навсегда удалит все промпты из вашей библиотеки.\n\nЭто действие НЕЛЬЗЯ отменить!"
   },
   "confirmResetSettings": {
-    "message": "Вы уверены, что хотите сбросить ВСЕ настройки на значения по умолчанию?\n\nБудет сброшено:\n- Настройки темы\n- Провайдер по умолчанию\n- Горячие клавиши\n- Все остальные параметры\n\nВаши промпты и история чатов НЕ будут затронуты.\n\nЭто действие НЕЛЬЗЯ отменить!"
+    "message": "Вы уверены, что хотите сбросить ВСЕ настройки на значения по умолчанию?\n\nБудет сброшено:\n- Настройки темы\n- Провайдер по умолчанию\n- Горячие клавиши\n- Все остальные параметры\n\nВаши промпты НЕ будут затронуты.\n\nЭто действие НЕЛЬЗЯ отменить!"
   },
   "contextMenuSendTo": {
     "message": "Отправить в Panelize"
+  },
+  "sidebarPromptGenie": {
+    "message": "Мастер промптов"
+  },
+  "sidebarEditingPrompt": {
+    "message": "Редактирование промпта"
   },
   "placeholderSearch": {
     "message": "Поиск..."
