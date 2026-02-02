@@ -406,12 +406,27 @@ async function getDefaultLibraryLanguage() {
   try {
     const settings = await chrome.storage.sync.get({ language: null });
     
-    // Only Simplified Chinese gets Chinese prompts
-    if (settings.language === 'zh_CN') {
+    // If language is set in settings, use it
+    if (settings.language) {
+      // zh_TW falls back to zh_CN for prompts (only Simplified Chinese is available)
+      if (settings.language === 'zh_TW') {
+        return 'zh_CN';
+      }
+      if (settings.language === 'zh_CN') {
+        return 'zh_CN';
+      }
+      return 'en';
+    }
+    
+    // Fall back to browser language detection
+    const browserLang = getCurrentBrowserLanguage();
+    
+    // Map browser language to prompt library language
+    // zh_CN and zh_TW both use Simplified Chinese prompts
+    if (browserLang === 'zh_CN' || browserLang === 'zh_TW') {
       return 'zh_CN';
     }
     
-    // All other languages (including zh_TW) fall back to English
     return 'en';
   } catch (error) {
     return 'en';
