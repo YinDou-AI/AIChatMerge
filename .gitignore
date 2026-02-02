@@ -71,3 +71,6 @@ docs/
 .worktrees/
 .security-key
 logs/security/
+
+# Review reports
+.reviews/
