@@ -834,5 +834,13 @@
   },
   "msgLayoutUpdated": {
     "message": "Diseño actualizado"
+  },
+  "msgDataImportedWithCount": {
+    "message": "Importadas $COUNT$ indicaciones",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
   }
 }

@@ -834,5 +834,13 @@
   },
   "msgLayoutUpdated": {
     "message": "Disposition mise à jour"
+  },
+  "msgDataImportedWithCount": {
+    "message": "$COUNT$ prompts importés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
   }
 }

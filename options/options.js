@@ -406,12 +406,27 @@ async function getDefaultLibraryLanguage() {
   try {
     const settings = await chrome.storage.sync.get({ language: null });
     
-    // Only Simplified Chinese gets Chinese prompts
-    if (settings.language === 'zh_CN') {
+    // If language is set in settings, use it
+    if (settings.language) {
+      // zh_TW falls back to zh_CN for prompts (only Simplified Chinese is available)
+      if (settings.language === 'zh_TW') {
+        return 'zh_CN';
+      }
+      if (settings.language === 'zh_CN') {
+        return 'zh_CN';
+      }
+      return 'en';
+    }
+    
+    // Fall back to browser language detection
+    const browserLang = getCurrentBrowserLanguage();
+    
+    // Map browser language to prompt library language
+    // zh_CN and zh_TW both use Simplified Chinese prompts
+    if (browserLang === 'zh_CN' || browserLang === 'zh_TW') {
       return 'zh_CN';
     }
     
-    // All other languages (including zh_TW) fall back to English
     return 'en';
   } catch (error) {
     return 'en';
@@ -467,14 +482,15 @@ function setupEventListeners() {
 
   // Import data
   document.getElementById('import-btn').addEventListener('click', () => {
-    document.getElementById('import-file').click();
+    const fileInput = document.getElementById('import-file');
+    fileInput.value = ''; // Reset file input before opening to allow re-importing same file
+    fileInput.click();
   });
 
   document.getElementById('import-file').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
       await importData(file);
-      e.target.value = ''; // Reset file input
     }
   });
 
@@ -487,14 +503,15 @@ function setupEventListeners() {
 
   // Custom library import button
   document.getElementById('import-custom-library')?.addEventListener('click', () => {
-    document.getElementById('import-custom-library-file').click();
+    const fileInput = document.getElementById('import-custom-library-file');
+    fileInput.value = ''; // Reset file input before opening to allow re-importing same file
+    fileInput.click();
   });
 
   document.getElementById('import-custom-library-file')?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
       await importCustomLibraryHandler(file);
-      e.target.value = ''; // Reset file input
     }
   });
 
@@ -650,17 +667,11 @@ async function importData(file) {
     await loadSettings();
     await loadDataStats();
 
-    // Build success message
-    const messages = [];
-    if (promptImportSummary) {
-      const { imported = 0, skipped = 0 } = promptImportSummary;
-      messages.push(t('msgPromptsImported', [imported.toString(), skipped.toString()]));
-    }
-
-    if (messages.length > 0) {
-      showStatus('success', t('msgDataImported') + ' — ' + messages.join('; ') + '.');
+    // Show success toast
+    if (promptImportSummary && promptImportSummary.imported > 0) {
+      showToast('success', 'msgDataImportedWithCount', [promptImportSummary.imported.toString()]);
     } else {
-      showStatus('success', t('msgDataImported'));
+      showToast('success', 'msgDataImported');
     }
   } catch (error) {
     showStatus('error', t('msgDataImportFailed'));
@@ -708,6 +719,41 @@ function showStatus(type, message) {
 
   setTimeout(() => {
     element.classList.remove('show');
+  }, 3000);
+}
+
+// Toast notification helper - lightweight, non-intrusive notifications
+function showToast(type, messageKey, params = []) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  // Get translated message
+  const message = t(messageKey, params);
+
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+
+  // Icon based on type
+  const icons = {
+    success: '✓',
+    error: '✕',
+    info: 'ℹ'
+  };
+
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type] || '•'}</span>
+    <span class="toast-message">${message}</span>
+  `;
+
+  container.appendChild(toast);
+
+  // Auto remove after 3 seconds
+  setTimeout(() => {
+    toast.classList.add('hiding');
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
   }, 3000);
 }
 
@@ -828,11 +874,11 @@ async function importCustomLibraryHandler(file) {
     // Import using the prompt manager
     const result = await importDefaultLibrary(libraryData);
 
-    // Show results
+    // Show results with toast notification
     if (result.imported > 0) {
-      showStatus('success', t('msgCustomPromptsImported', [result.imported.toString(), result.skipped.toString()]));
+      showToast('success', 'msgCustomPromptsImported', [result.imported.toString(), result.skipped.toString()]);
     } else {
-      showStatus('success', t('msgAllPromptsExist'));
+      showToast('info', 'msgAllPromptsExist');
     }
 
     // Refresh stats
@@ -878,11 +924,11 @@ async function importDefaultLibraryHandler() {
       button.textContent = t('msgImported');
       button.style.background = '#4caf50';
       button.style.color = 'white';
-      showStatus('success', t('msgDefaultPromptsImported', [result.imported.toString(), result.skipped.toString()]));
+      showToast('success', 'msgDefaultPromptsImported', [result.imported.toString(), result.skipped.toString()]);
     } else {
       button.textContent = t('msgAlreadyImported');
       button.disabled = true;
-      showStatus('success', t('msgAllPromptsExist'));
+      showToast('info', 'msgAllPromptsExist');
     }
 
     // Refresh stats

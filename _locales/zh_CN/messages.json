@@ -834,5 +834,13 @@
   },
   "msgLayoutUpdated": {
     "message": "布局已更新"
+  },
+  "msgDataImportedWithCount": {
+    "message": "成功导入 $COUNT$ 个提示词",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
   }
 }

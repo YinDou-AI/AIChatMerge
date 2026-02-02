@@ -16,6 +16,7 @@
     "test:ui": "vitest --ui"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.1",
     "@vitest/ui": "^3.2.4",
     "happy-dom": "^20.0.2",
     "vitest": "^3.2.4",

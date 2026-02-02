@@ -834,5 +834,13 @@
   },
   "msgLayoutUpdated": {
     "message": "Layout aktualisiert"
+  },
+  "msgDataImportedWithCount": {
+    "message": "$COUNT$ Prompts importiert",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
   }
 }
