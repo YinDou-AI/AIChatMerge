@@ -86,38 +86,6 @@ describe('service-worker', () => {
       expect(chrome.runtime.onMessage.addListener).toBeDefined();
     });
 
-    it('should handle saveConversationFromPage message', async () => {
-      const { chrome } = global;
-      const mockSendResponse = vi.fn();
-      const mockSender = { tab: { id: 1, windowId: 1 } };
-
-      const message = {
-        action: 'saveConversationFromPage',
-        payload: {
-          title: 'Test Conversation',
-          content: 'Test content',
-          provider: 'chatgpt'
-        }
-      };
-
-      // Verify message structure
-      expect(message.action).toBe('saveConversationFromPage');
-      expect(message.payload).toBeDefined();
-      expect(message.payload.provider).toBe('chatgpt');
-    });
-
-    it('should handle checkDuplicateConversation message', async () => {
-      const message = {
-        action: 'checkDuplicateConversation',
-        payload: {
-          conversationId: 'test-123'
-        }
-      };
-
-      expect(message.action).toBe('checkDuplicateConversation');
-      expect(message.payload.conversationId).toBe('test-123');
-    });
-
     it('should handle fetchLatestCommit message', async () => {
       const message = {
         action: 'fetchLatestCommit'
@@ -128,17 +96,10 @@ describe('service-worker', () => {
 
     it('should validate message payload structure', () => {
       const validMessage = {
-        action: 'saveConversationFromPage',
-        payload: {
-          title: 'Test',
-          content: 'Content',
-          provider: 'chatgpt'
-        }
+        action: 'fetchLatestCommit'
       };
 
       expect(validMessage.action).toBeTruthy();
-      expect(validMessage.payload).toBeTruthy();
-      expect(typeof validMessage.payload).toBe('object');
     });
   });
 

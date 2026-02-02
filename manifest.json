@@ -86,12 +86,9 @@
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-chatgpt.js",
         "content-scripts/text-injection-all-providers.js",
-        "content-scripts/conversation-extractor-utils.js",
-        "content-scripts/language-detector.js",
-        "content-scripts/chatgpt-history-extractor.js",
         "content-scripts/focus-toggle.js"
       ],
-      "css": ["content-scripts/chatgpt-save-button.css"],
+      
       "run_at": "document_end",
       "all_frames": true
     },
@@ -101,12 +98,9 @@
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-claude.js",
         "content-scripts/text-injection-all-providers.js",
-        "content-scripts/conversation-extractor-utils.js",
-        "content-scripts/language-detector.js",
-        "content-scripts/claude-history-extractor.js",
         "content-scripts/focus-toggle.js"
       ],
-      "css": ["content-scripts/claude-save-button.css"],
+      
       "run_at": "document_end",
       "all_frames": true
     },
@@ -116,12 +110,9 @@
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-gemini.js",
         "content-scripts/text-injection-all-providers.js",
-        "content-scripts/conversation-extractor-utils.js",
-        "content-scripts/language-detector.js",
-        "content-scripts/gemini-history-extractor.js",
         "content-scripts/focus-toggle.js"
       ],
-      "css": ["content-scripts/gemini-save-button.css"],
+      
       "run_at": "document_start",
       "all_frames": true
     },
@@ -132,12 +123,9 @@
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-grok.js",
         "content-scripts/text-injection-all-providers.js",
-        "content-scripts/conversation-extractor-utils.js",
-        "content-scripts/language-detector.js",
-        "content-scripts/grok-history-extractor.js",
         "content-scripts/focus-toggle.js"
       ],
-      "css": ["content-scripts/grok-save-button.css"],
+      
       "run_at": "document_start",
       "all_frames": true
     },
@@ -148,12 +136,9 @@
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-deepseek.js",
         "content-scripts/text-injection-all-providers.js",
-        "content-scripts/conversation-extractor-utils.js",
-        "content-scripts/language-detector.js",
-        "content-scripts/deepseek-history-extractor.js",
         "content-scripts/focus-toggle.js"
       ],
-      "css": ["content-scripts/deepseek-save-button.css"],
+      
       "run_at": "document_start",
       "all_frames": true
     },
@@ -162,12 +147,9 @@
       "js": [
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-perplexity.js",
-        "content-scripts/conversation-extractor-utils.js",
-        "content-scripts/language-detector.js",
-        "content-scripts/perplexity-history-extractor.js",
         "content-scripts/focus-toggle.js"
       ],
-      "css": ["content-scripts/perplexity-save-button.css"],
+      
       "run_at": "document_end",
       "all_frames": true
     },
@@ -177,12 +159,9 @@
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-google.js",
         "content-scripts/text-injection-all-providers.js",
-        "content-scripts/conversation-extractor-utils.js",
-        "content-scripts/language-detector.js",
-        "content-scripts/google-history-extractor.js",
         "content-scripts/focus-toggle.js"
       ],
-      "css": ["content-scripts/google-save-button.css"],
+      
       "run_at": "document_end",
       "all_frames": true
     },
@@ -192,12 +171,9 @@
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-copilot.js",
         "content-scripts/text-injection-all-providers.js",
-        "content-scripts/conversation-extractor-utils.js",
-        "content-scripts/language-detector.js",
-        "content-scripts/copilot-history-extractor.js",
         "content-scripts/focus-toggle.js"
       ],
-      "css": ["content-scripts/copilot-save-button.css"],
+      
       "run_at": "document_end",
       "all_frames": true
     },
