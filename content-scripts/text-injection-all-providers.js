@@ -121,11 +121,15 @@
       'button[type="submit"]'
     ],
     kimi: [
+      // Priority: clickable send button containers that are not disabled
       '.send-button-container:not(.disabled)',
+      'div[class*="send"]:not([class*="disabled"])',
+      // Backup: look for send icon and click its parent
       'svg[name="Send"]',
       '.send-icon',
-      'button:not(.disabled):has(svg[name="Send"])',
-      'button:not(.disabled):has(.send-icon)'
+      // Try to find button by aria-label
+      'button[aria-label*="Send"]',
+      'button[aria-label*="发送"]'
     ],
     google: [
       'button[aria-label="Google Search"]',
@@ -275,13 +279,36 @@
     // Try each selector
     for (const selector of selectors) {
       try {
-        const buttons = document.querySelectorAll(selector);
-        console.log(`[Text Injection] Found ${buttons.length} buttons with selector:`, selector);
+        const elements = document.querySelectorAll(selector);
+        console.log(`[Text Injection] Found ${elements.length} elements with selector:`, selector);
 
-        for (const button of buttons) {
-          if (!button.disabled) {
-            console.log('[Text Injection] Clicking send button:', selector, button);
-            button.click();
+        for (const element of elements) {
+          // Handle SVG elements - try to find parent button
+          let targetElement = element;
+          if (element.tagName === 'svg' || element.tagName === 'SVG') {
+            // Look for parent button or clickable container
+            let parent = element.parentElement;
+            while (parent && parent !== document.body) {
+              if (parent.tagName === 'BUTTON' || 
+                  parent.role === 'button' || 
+                  parent.classList.contains('send-button-container') ||
+                  parent.onclick ||
+                  parent.getAttribute('role') === 'button') {
+                targetElement = parent;
+                break;
+              }
+              parent = parent.parentElement;
+            }
+          }
+          
+          // Check if element or its parent is disabled
+          const isDisabled = targetElement.disabled || 
+                            targetElement.getAttribute('aria-disabled') === 'true' ||
+                            targetElement.classList.contains('disabled');
+          
+          if (!isDisabled) {
+            console.log('[Text Injection] Clicking send button:', selector, targetElement);
+            targetElement.click();
             return true;
           } else {
             console.log('[Text Injection] Button found but disabled:', selector);
@@ -362,6 +389,33 @@
         }
       } catch (error) {
         console.warn('[Text Injection] Error in DeepSeek Enter key fallback:', error);
+      }
+    }
+
+    // Special handling for Kimi - trigger Enter key if button not found
+    if (provider === 'kimi') {
+      console.log('[Text Injection] Kimi send button not found, trying Enter key on input');
+      try {
+        const inputSelectors = PROVIDER_SELECTORS.kimi;
+        for (const selector of inputSelectors) {
+          const input = document.querySelector(selector);
+          if (input) {
+            console.log('[Text Injection] Triggering Enter key on Kimi input');
+            // Focus first
+            input.focus();
+            // Trigger multiple events for better compatibility
+            const events = [
+              new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }),
+              new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }),
+              new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true })
+            ];
+
+            events.forEach(event => input.dispatchEvent(event));
+            return true;
+          }
+        }
+      } catch (error) {
+        console.warn('[Text Injection] Error in Kimi Enter key fallback:', error);
       }
     }
 
@@ -476,14 +530,30 @@
         // Move cursor to end (without focusing to avoid cross-origin error)
         element.selectionStart = element.selectionEnd = element.value.length;
       } else {
-        // For contenteditable elements
-        const currentText = element.textContent || '';
-        element.textContent = currentText + text;
-
-        // Trigger input event
+        // For contenteditable elements - use more robust method
+        // Focus the element first
+        element.focus();
+        
+        // Clear existing content and insert new text
+        element.innerHTML = '';
+        
+        // Create a text node and append it
+        const textNode = document.createTextNode(text);
+        element.appendChild(textNode);
+        
+        // Trigger multiple events for better React/Vue compatibility
         element.dispatchEvent(new Event('input', { bubbles: true }));
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+        
+        // Also try beforeinput event for modern frameworks
+        element.dispatchEvent(new InputEvent('beforeinput', {
+          bubbles: true,
+          cancelable: true,
+          inputType: 'insertText',
+          data: text
+        }));
 
-        // Move cursor to end for contenteditable (without focusing)
+        // Move cursor to end for contenteditable
         try {
           const range = document.createRange();
           const selection = window.getSelection();
