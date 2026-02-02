@@ -22,6 +22,12 @@
       'textarea',
       'div[contenteditable="true"]'
     ],
+    kimi: [
+      '.chat-input-editor',
+      'div[contenteditable="true"].chat-input-editor',
+      'div.chat-input-editor[contenteditable]',
+      'div[contenteditable="true"]'
+    ],
     google: [
       'textarea[name="q"]',
       'input[name="q"]',
@@ -50,6 +56,7 @@
     gemini: true,
     grok: true,
     deepseek: true,
+    kimi: true,  // Kimi supports images
     google: true,  // Google AI Mode supports images
     copilot: true,
     perplexity: true
@@ -62,6 +69,7 @@
     gemini: ['input[type="file"]'],
     grok: ['input[type="file"]'],
     deepseek: ['input[type="file"]'],
+    kimi: ['input[type="file"]'],
     google: ['input[type="file"]'],
     copilot: ['input[type="file"]'],
     perplexity: ['input[type="file"]']
@@ -74,6 +82,7 @@
     gemini: ['button[aria-label="Upload file"]', 'button[mattooltip="Upload file"]', '.add-button', 'button:has(mat-icon)'],
     grok: [],
     deepseek: [],
+    kimi: [],  // Kimi supports drag-drop for images
     google: ['button[aria-label="Add image"]'],
     copilot: ['button[aria-label="Attach file"]'],
     perplexity: ['button[aria-label*="Attach"]', 'button[aria-label*="Upload"]']
@@ -110,6 +119,13 @@
     deepseek: [
       'button[aria-label="Send"]',
       'button[type="submit"]'
+    ],
+    kimi: [
+      '.send-button-container:not(.disabled)',
+      'svg[name="Send"]',
+      '.send-icon',
+      'button:not(.disabled):has(svg[name="Send"])',
+      'button:not(.disabled):has(.send-icon)'
     ],
     google: [
       'button[aria-label="Google Search"]',
@@ -164,6 +180,13 @@
       'a[href="/"]',
       'div[class*="new-chat"]'
     ],
+    kimi: [
+      'a.new-chat-btn',
+      'a[href="/"]',
+      '.sidebar a[href="/"]',
+      'button:has-text("新建会话")',
+      'a:has-text("新建会话")'
+    ],
     google: [
       'button[aria-label="New search"]',
       'a[aria-label="Google"]',
@@ -188,6 +211,7 @@
     gemini: 'https://gemini.google.com/app',
     grok: 'https://grok.com/',
     deepseek: 'https://chat.deepseek.com/',
+    kimi: 'https://www.kimi.com/',
     google: 'https://www.google.com/search?udm=50',
     copilot: 'https://copilot.microsoft.com/',
     perplexity: 'https://www.perplexity.ai/'
@@ -209,6 +233,8 @@
       return 'grok';
     } else if (hostname.includes('deepseek.com')) {
       return 'deepseek';
+    } else if (hostname.includes('kimi.com')) {
+      return 'kimi';
     } else if (hostname.includes('google.com') || hostname.includes('google.') || hostname === 'www.google.com') {
       // Google Search / AI Mode
       // Always return 'google' for any google.com page

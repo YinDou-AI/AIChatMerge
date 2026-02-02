@@ -34,8 +34,8 @@ let currentOpenMode = 'tab'; // 'tab' 或 'popup'
 let isPopupWindow = false;   // 当前窗口是否为弹出窗口
 
 // Default panel configuration
-const DEFAULT_PROVIDERS = ['chatgpt', 'claude', 'gemini', 'grok'];
-const MAX_PANELS = 6;
+const DEFAULT_PROVIDERS = ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi'];
+const MAX_PANELS = 9;
 const PENDING_MULTI_PANEL_ACTION_KEY = 'pendingMultiPanelAction';
 const LAYOUT_PANEL_COUNTS = {
   '1x1': 1,
@@ -44,11 +44,15 @@ const LAYOUT_PANEL_COUNTS = {
   '1x4': 4,
   '1x5': 5,
   '1x6': 6,
+  '1x7': 7,
   '2x1': 2,
   '2x2': 4,
   '2x3': 6,
+  '2x4': 8,
   '3x1': 3,
-  '3x2': 6
+  '3x2': 6,
+  '3x3': 9,
+  '4x2': 8
 };
 let isInitialized = false;
 
@@ -364,7 +368,7 @@ async function initializePanels() {
 // ===== Panel Management =====
 async function addPanel(providerId) {
   if (panels.length >= MAX_PANELS) {
-    showToast('Maximum number of panels reached (6)');
+    showToast('Maximum number of panels reached (9)');
     return;
   }
 
@@ -1398,7 +1402,7 @@ async function showProviderSwitcher(panelId) {
 
 async function showAddPanelMenu() {
   if (panels.length >= MAX_PANELS) {
-    showToast('Maximum number of panels reached (6)');
+    showToast('Maximum number of panels reached (9)');
     return;
   }
 
