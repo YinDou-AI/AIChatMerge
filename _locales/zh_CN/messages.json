@@ -414,19 +414,13 @@
     }
   },
   "msgUpdateStatusAvailable": {
-    "message": "<strong>有可用更新!</strong><br>最新： $LATEST$ ($DATE$)<br>当前： $CURRENT$<br><small>$MESSAGE$</small>",
+    "message": "<strong>有可用更新!</strong><br>最新版本： $LATEST$<br>当前版本： $CURRENT$",
     "placeholders": {
       "latest": {
         "content": "$1"
       },
-      "date": {
-        "content": "$2"
-      },
       "current": {
-        "content": "$3"
-      },
-      "message": {
-        "content": "$4"
+        "content": "$2"
       }
     }
   },

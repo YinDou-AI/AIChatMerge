@@ -1025,12 +1025,16 @@ async function loadVersionDisplay() {
   const versionInfo = await loadVersionInfo();
   if (!versionInfo) {
     document.getElementById('version').textContent = t('msgVersionUnknown');
-    document.getElementById('commit-hash').textContent = t('msgCommitHashUnavailable');
+    document.getElementById('commit-hash').textContent = '';
     return;
   }
 
   document.getElementById('version').textContent = t('labelVersion', versionInfo.version);
-  document.getElementById('commit-hash').textContent = t('msgBuildInfo', [versionInfo.commitHash, versionInfo.buildDate]);
+  // Hide commit-hash element since we no longer use it
+  const commitHashEl = document.getElementById('commit-hash');
+  if (commitHashEl) {
+    commitHashEl.style.display = 'none';
+  }
 
   // Automatically check for updates on page load
   await performVersionCheck();
@@ -1053,11 +1057,9 @@ async function performVersionCheck() {
       statusDiv.style.display = 'block';
       showStatus('error', result.error);
     } else if (result.updateAvailable) {
-      const latest = result.latestHash;
-      const date = new Date(result.latestDate).toLocaleDateString();
-      const current = result.currentHash;
-      const message = result.latestMessage.split('\n')[0];
-      statusDiv.innerHTML = t('msgUpdateStatusAvailable', [latest, date, current, message]);
+      const latest = result.latestVersion;
+      const current = result.currentVersion;
+      statusDiv.innerHTML = t('msgUpdateStatusAvailable', [latest, current]);
       statusDiv.className = 'update-status update-available';
       statusDiv.style.display = 'block';
       showStatus('success', t('msgUpdateAvailable'));

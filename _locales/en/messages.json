@@ -473,19 +473,13 @@
     }
   },
   "msgUpdateStatusAvailable": {
-    "message": "<strong>Update available!</strong><br>Latest: $LATEST$ ($DATE$)<br>Current: $CURRENT$<br><small>$MESSAGE$</small>",
+    "message": "<strong>Update available!</strong><br>Latest version: $LATEST$<br>Current version: $CURRENT$",
     "placeholders": {
       "latest": {
         "content": "$1"
       },
-      "date": {
-        "content": "$2"
-      },
       "current": {
-        "content": "$3"
-      },
-      "message": {
-        "content": "$4"
+        "content": "$2"
       }
     }
   },

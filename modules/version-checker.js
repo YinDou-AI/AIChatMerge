@@ -1,81 +1,103 @@
 // T073: Version Check Module
-// Checks for updates by comparing commit hash with GitHub
+// Checks for updates by comparing manifest version with GitHub
 
 import { t } from './i18n.js';
 
-const VERSION_INFO_PATH = '/data/version-info.json';
+const GITHUB_MANIFEST_URL = 'https://raw.githubusercontent.com/Manho/Panelize/main/manifest.json';
 
 /**
- * Load bundled version info
- * @returns {Promise<Object>} Version info object {version, commitHash, buildDate}
+ * Load local manifest version
+ * @returns {Promise<Object>} {version, manifest}
  */
 export async function loadVersionInfo() {
   try {
-    const response = await fetch(chrome.runtime.getURL(VERSION_INFO_PATH));
-    if (!response.ok) {
-      throw new Error('Failed to load version info');
-    }
-    return await response.json();
+    const manifest = chrome.runtime.getManifest();
+    return {
+      version: manifest.version,
+      manifest: manifest
+    };
   } catch (error) {
-    console.error('Error loading version info:', error);
+    console.error('Error loading manifest:', error);
     return null;
   }
 }
 
 /**
- * Fetch latest commit from GitHub via background service worker
- * @returns {Promise<Object|null>} Latest commit info {sha, date, message} or null on error
+ * Fetch latest manifest from GitHub
+ * @returns {Promise<Object|null>} Latest manifest or null on error
  */
-export async function fetchLatestCommit() {
+export async function fetchLatestManifest() {
   try {
-    const response = await chrome.runtime.sendMessage({
-      action: 'fetchLatestCommit'
+    const response = await fetch(GITHUB_MANIFEST_URL, {
+      headers: {
+        'Accept': 'application/json'
+      }
     });
 
-    if (response && response.success) {
-      return response.data;
-    } else {
-      console.error('Error fetching latest commit:', response?.error || 'Unknown error');
-      return null;
+    if (!response.ok) {
+      throw new Error(`GitHub fetch error: ${response.status}`);
     }
+
+    const manifest = await response.json();
+    return manifest;
   } catch (error) {
-    console.error('Error fetching latest commit:', error);
+    console.error('Error fetching latest manifest:', error);
     return null;
   }
+}
+
+/**
+ * Compare two version strings (e.g., "1.0.0" vs "1.1.0")
+ * @param {string} current - Current version
+ * @param {string} latest - Latest version
+ * @returns {number} -1 if current < latest, 0 if equal, 1 if current > latest
+ */
+function compareVersions(current, latest) {
+  const currentParts = current.split('.').map(Number);
+  const latestParts = latest.split('.').map(Number);
+  
+  const maxLength = Math.max(currentParts.length, latestParts.length);
+  
+  for (let i = 0; i < maxLength; i++) {
+    const currentPart = currentParts[i] || 0;
+    const latestPart = latestParts[i] || 0;
+    
+    if (currentPart < latestPart) return -1;
+    if (currentPart > latestPart) return 1;
+  }
+  
+  return 0;
 }
 
 /**
  * Check if an update is available
- * @returns {Promise<Object>} Update status {updateAvailable, currentHash, latestHash, latestDate, error}
+ * @returns {Promise<Object>} Update status
  */
 export async function checkForUpdates() {
-  const versionInfo = await loadVersionInfo();
-  if (!versionInfo) {
+  const localInfo = await loadVersionInfo();
+  if (!localInfo) {
     return {
       updateAvailable: false,
       error: t('errVersionInfoFailed')
     };
   }
 
-  const latestCommit = await fetchLatestCommit();
-  if (!latestCommit) {
+  const latestManifest = await fetchLatestManifest();
+  if (!latestManifest) {
     return {
       updateAvailable: false,
-      currentHash: versionInfo.commitHash,
+      currentVersion: localInfo.version,
       error: t('errGitHubFetchFailed')
     };
   }
 
-  const updateAvailable = versionInfo.commitHash !== latestCommit.shortSha;
+  const comparison = compareVersions(localInfo.version, latestManifest.version);
+  const updateAvailable = comparison < 0;
 
   return {
     updateAvailable,
-    currentVersion: versionInfo.version,
-    currentHash: versionInfo.commitHash,
-    currentBuildDate: versionInfo.buildDate,
-    latestHash: latestCommit.shortSha,
-    latestDate: latestCommit.date,
-    latestMessage: latestCommit.message,
+    currentVersion: localInfo.version,
+    latestVersion: latestManifest.version,
     error: null
   };
 }
