@@ -412,14 +412,15 @@ function setupEventListeners() {
 
   // Import data
   document.getElementById('import-btn').addEventListener('click', () => {
-    document.getElementById('import-file').click();
+    const fileInput = document.getElementById('import-file');
+    fileInput.value = ''; // Reset file input before opening to allow re-importing same file
+    fileInput.click();
   });
 
   document.getElementById('import-file').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
       await importData(file);
-      e.target.value = ''; // Reset file input
     }
   });
 
@@ -432,14 +433,15 @@ function setupEventListeners() {
 
   // Custom library import button
   document.getElementById('import-custom-library')?.addEventListener('click', () => {
-    document.getElementById('import-custom-library-file').click();
+    const fileInput = document.getElementById('import-custom-library-file');
+    fileInput.value = ''; // Reset file input before opening to allow re-importing same file
+    fileInput.click();
   });
 
   document.getElementById('import-custom-library-file')?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
       await importCustomLibraryHandler(file);
-      e.target.value = ''; // Reset file input
     }
   });
 
