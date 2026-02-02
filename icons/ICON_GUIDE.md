@@ -4,7 +4,7 @@
 
 Export the following from SF Symbols app:
 
-**Symbol**: `sidebar.squares.left` or `rectangle.3.group`
+**Symbol**: `rectangle.3.group`
 
 Export sizes:
 - `icon-16.png` (16x16)

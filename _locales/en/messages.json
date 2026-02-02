@@ -5,9 +5,6 @@
   "extensionDescription": {
     "message": "Compare AI chatbots side-by-side. Use ChatGPT, Claude, Gemini, Grok & more in one window."
   },
-  "commandOpenSidebar": {
-    "message": "Open Panelize"
-  },
   "commandOpenPromptLibrary": {
     "message": "Open Prompt Library"
   },
@@ -135,7 +132,7 @@
     "message": "Enabled Providers"
   },
   "descEnabledProviders": {
-    "message": "Select which AI providers appear in your sidebar"
+    "message": "Select which AI providers appear in Panelize"
   },
   "sectionKeyboardShortcuts": {
     "message": "Keyboard Shortcuts"
@@ -555,15 +552,6 @@
   },
   "contextMenuSendTo": {
     "message": "Send to Panelize"
-  },
-  "sidebarChatHistory": {
-    "message": "Chat History"
-  },
-  "sidebarPromptGenie": {
-    "message": "Prompt Genie"
-  },
-  "sidebarEditingPrompt": {
-    "message": "Editing Prompt"
   },
   "placeholderSearch": {
     "message": "Search..."

@@ -58,10 +58,10 @@
     const { text, tooltip } = window.LanguageDetector.getSaveButtonText(SHARE_BUTTON_SELECTOR);
 
     const button = document.createElement('button');
-    button.id = 'insidebar-save-conversation';
+    button.id = 'panelize-save-conversation';
     button.className = 'mdc-button mat-mdc-button-base gds-referral-button mdc-button--unelevated mat-mdc-unelevated-button mat-unthemed';
     button.setAttribute('mat-flat-button', '');
-    button.setAttribute('data-test-id', 'insidebar-save-button');
+    button.setAttribute('data-test-id', 'panelize-save-button');
     button.type = 'button';
     button.title = tooltip;
 
@@ -82,7 +82,7 @@
   // Insert save button after referral button in buttons-container
   function insertSaveButton() {
     // Check if button already exists
-    if (document.getElementById('insidebar-save-conversation')) {
+    if (document.getElementById('panelize-save-conversation')) {
       console.log('[Gemini Extractor] Save button already exists');
       return;
     }
@@ -116,7 +116,7 @@
     // Create wrapper div matching referral container structure
     const buttonWrapper = document.createElement('div');
     buttonWrapper.className = 'buttons-container ng-star-inserted';
-    buttonWrapper.setAttribute('data-test-id', 'insidebar-save-container');
+    buttonWrapper.setAttribute('data-test-id', 'panelize-save-container');
 
     saveButton = createSaveButton();
     buttonWrapper.appendChild(saveButton);
@@ -141,7 +141,7 @@
       insertSaveButton();
 
       // Remove button wrapper if conversation no longer exists or not on conversation page
-      const existingContainer = document.querySelector('[data-test-id="insidebar-save-container"]');
+      const existingContainer = document.querySelector('[data-test-id="panelize-save-container"]');
       if (existingContainer) {
         if (!detectConversation() || !window.location.href.includes('https://gemini.google.com/app/')) {
           existingContainer.remove();
@@ -157,9 +157,9 @@
     });
   }
 
-  // Extract conversation title from selected conversation in sidebar
+  // Extract conversation title from selected conversation in chat list
   function getConversationTitle() {
-    // Priority 1: Extract conversation ID from URL and find matching sidebar element
+    // Priority 1: Extract conversation ID from URL and find matching chat list element
     const urlMatch = window.location.pathname.match(/\/app\/([^\/]+)/);
 
     if (urlMatch) {
@@ -366,7 +366,7 @@
 
         if (response && response.success) {
           console.log('[Gemini Extractor] Conversation saved successfully');
-          // Success notification now shown in sidebar
+          // Success notification now shown in the page UI
         } else {
           const errorMsg = response?.error || 'Unknown error';
           showNotification('Failed to save: ' + errorMsg, 'error');
@@ -397,7 +397,7 @@
 
     // Remove button container if leaving conversation page
     if (!url.includes('https://gemini.google.com/app/')) {
-      const existingContainer = document.querySelector('[data-test-id="insidebar-save-container"]');
+      const existingContainer = document.querySelector('[data-test-id="panelize-save-container"]');
       if (existingContainer) {
         existingContainer.remove();
         saveButton = null;

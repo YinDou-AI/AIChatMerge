@@ -6,7 +6,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
  * These tests cover critical background script functionality:
  * - Context menu creation and updates
  * - Message handling (save conversation, check duplicates, version check)
- * - Side panel state management
  * - Keyboard shortcut handling
  */
 
@@ -31,10 +30,6 @@ describe('service-worker', () => {
         create: vi.fn(),
         removeAll: vi.fn(() => Promise.resolve()),
         onClicked: { addListener: vi.fn() }
-      },
-      sidePanel: {
-        open: vi.fn(() => Promise.resolve()),
-        setPanelBehavior: vi.fn(() => Promise.resolve())
       },
       action: {
         onClicked: { addListener: vi.fn() }
@@ -142,40 +137,6 @@ describe('service-worker', () => {
     });
   });
 
-  describe('Side Panel State Management', () => {
-    it('should track side panel state per window', () => {
-      const sidePanelState = new Map();
-
-      sidePanelState.set(1, true);
-      sidePanelState.set(2, false);
-
-      expect(sidePanelState.get(1)).toBe(true);
-      expect(sidePanelState.get(2)).toBe(false);
-      expect(sidePanelState.get(3)).toBeUndefined();
-    });
-
-    it('should clean up state when window closes', () => {
-      const sidePanelState = new Map();
-
-      sidePanelState.set(1, true);
-      sidePanelState.set(2, true);
-
-      // Simulate window close
-      sidePanelState.delete(1);
-
-      expect(sidePanelState.has(1)).toBe(false);
-      expect(sidePanelState.has(2)).toBe(true);
-    });
-
-    it('should open side panel for window', async () => {
-      const { chrome } = global;
-      const windowId = 1;
-
-      await chrome.sidePanel.open({ windowId });
-
-      expect(chrome.sidePanel.open).toHaveBeenCalledWith({ windowId: 1 });
-    });
-  });
 
   describe('Settings Management', () => {
     it('should load keyboard shortcut setting', async () => {
@@ -212,14 +173,6 @@ describe('service-worker', () => {
       chrome.storage.sync.get = vi.fn(() => Promise.reject(new Error('Storage error')));
 
       await expect(chrome.storage.sync.get({})).rejects.toThrow('Storage error');
-    });
-
-    it('should handle side panel open errors', async () => {
-      const { chrome } = global;
-
-      chrome.sidePanel.open = vi.fn(() => Promise.reject(new Error('Side panel not available')));
-
-      await expect(chrome.sidePanel.open({ windowId: 1 })).rejects.toThrow();
     });
 
     it('should handle context menu creation errors', async () => {
@@ -264,18 +217,4 @@ describe('service-worker', () => {
     });
   });
 
-  describe('Integration Tests', () => {
-    it('should handle complete flow of opening sidebar and switching provider', async () => {
-      const { chrome } = global;
-      const windowId = 1;
-      const providerId = 'chatgpt';
-
-      // Open side panel
-      await chrome.sidePanel.open({ windowId });
-      expect(chrome.sidePanel.open).toHaveBeenCalledWith({ windowId });
-
-      // Verify the flow can complete without errors
-      expect(true).toBe(true);
-    });
-  });
 });

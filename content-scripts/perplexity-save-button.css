@@ -1,13 +1,13 @@
 /* Perplexity Save Button Styles */
 
-#insidebar-save-conversation {
+#panelize-save-conversation {
   /* Button matches Perplexity's style */
   font-family: inherit;
   cursor: pointer;
   user-select: none;
 }
 
-#insidebar-save-conversation:disabled {
+#panelize-save-conversation:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -35,6 +35,6 @@
   }
 }
 
-.insidebar-notification {
+.panelize-notification {
   transition: all 0.3s ease;
 }

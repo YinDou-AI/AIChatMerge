@@ -125,7 +125,7 @@ Enable only the AI providers you use. Customize which ones appear in your panels
 
 1. **Download and extract** the ZIP file (same as Chrome step 1-2)
 2. **Open Edge** and navigate to `edge://extensions/`
-3. **Enable** "Developer mode" in the left sidebar
+3. **Enable** "Developer mode" in the left menu
 4. **Click** "Load unpacked" button
 5. **Select** the extracted folder
 6. **Done!**

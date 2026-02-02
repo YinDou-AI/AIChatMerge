@@ -57,7 +57,7 @@
     console.log('[DeepSeek Extractor] Creating Save button in language:', lang);
 
     const button = document.createElement('div');
-    button.id = 'insidebar-save-conversation';
+    button.id = 'panelize-save-conversation';
     button.className = 'ds-icon-button _57370c5 _5dedc1e';
     button.setAttribute('tabindex', '0');
     button.setAttribute('role', 'button');
@@ -89,7 +89,7 @@
     }
 
     // Check if button already exists
-    if (document.getElementById('insidebar-save-conversation')) {
+    if (document.getElementById('panelize-save-conversation')) {
       console.log('[DeepSeek Extractor] Save button already exists');
       return;
     }
@@ -165,7 +165,7 @@
     const observer = new MutationObserver(() => {
       insertSaveButton();
 
-      const existingButton = document.getElementById('insidebar-save-conversation');
+      const existingButton = document.getElementById('panelize-save-conversation');
       if (existingButton) {
         if (!window.location.href.startsWith('https://chat.deepseek.com/a/chat/')) {
           existingButton.remove();
@@ -180,7 +180,7 @@
     });
   }
 
-  // Extract conversation title from current chat in sidebar
+  // Extract conversation title from current chat list
   function getConversationTitle() {
     const currentChat = document.querySelector('a._546d736.b64fb9ae');
 
@@ -357,7 +357,7 @@
         }
 
         if (response && response.success) {
-          // Success notification now shown in sidebar
+          // Success notification now shown in the page UI
         } else {
           const errorMsg = response?.error || 'Unknown error';
           showNotification('Failed to save: ' + errorMsg, 'error');
@@ -389,7 +389,7 @@
     console.log('[DeepSeek Extractor] URL changed to:', url);
 
     if (!url.startsWith('https://chat.deepseek.com/a/chat/')) {
-      const existingButton = document.getElementById('insidebar-save-conversation');
+      const existingButton = document.getElementById('panelize-save-conversation');
       if (existingButton) {
         existingButton.remove();
         saveButton = null;

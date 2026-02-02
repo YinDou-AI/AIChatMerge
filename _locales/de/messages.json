@@ -5,9 +5,6 @@
   "extensionDescription": {
     "message": "Multi-KI-Seitenleisten-Erweiterung für schnellen Zugriff auf ChatGPT, Claude, Gemini und mehr"
   },
-  "commandOpenSidebar": {
-    "message": "Panelize mit Standard-Anbieter öffnen"
-  },
   "commandOpenPromptLibrary": {
     "message": "Panelize Prompt-Bibliothek öffnen"
   },
@@ -84,7 +81,7 @@
     "message": "Aktivierte Anbieter"
   },
   "descEnabledProviders": {
-    "message": "Wählen Sie aus, welche KI-Anbieter in Ihrer Seitenleiste erscheinen"
+    "message": "Wählen Sie aus, welche KI-Anbieter in Panelize angezeigt werden"
   },
   "sectionKeyboardShortcuts": {
     "message": "Tastaturkürzel"
@@ -502,15 +499,6 @@
   },
   "contextMenuSendTo": {
     "message": "An Panelize senden"
-  },
-  "sidebarChatHistory": {
-    "message": "Chat-Verlauf"
-  },
-  "sidebarPromptGenie": {
-    "message": "Prompt-Genie"
-  },
-  "sidebarEditingPrompt": {
-    "message": "Prompt bearbeiten"
   },
   "placeholderSearch": {
     "message": "Suchen..."

@@ -1,18 +1,18 @@
 /* Claude Save Button Styles */
 
-#insidebar-save-conversation {
+#panelize-save-conversation {
   /* Button matches Claude's style */
   font-family: inherit;
   cursor: pointer;
   user-select: none;
 }
 
-#insidebar-save-conversation:disabled {
+#panelize-save-conversation:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-#insidebar-save-conversation:hover:not(:disabled) {
+#panelize-save-conversation:hover:not(:disabled) {
   transform: scale(0.985);
 }
 
@@ -39,6 +39,6 @@
   }
 }
 
-.insidebar-notification {
+.panelize-notification {
   transition: all 0.3s ease;
 }

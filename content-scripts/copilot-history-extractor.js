@@ -74,7 +74,7 @@
     const { text, tooltip } = window.LanguageDetector.getSaveButtonText(SHARE_BUTTON_SELECTOR);
 
     const button = document.createElement('button');
-    button.id = 'insidebar-save-conversation';
+    button.id = 'panelize-save-conversation';
     button.setAttribute('type', 'button');
     button.setAttribute('data-spatial-navigation-autofocus', 'false');
 
@@ -112,7 +112,7 @@
   // Insert save button after share button
   function insertSaveButton() {
     // Check if button already exists
-    if (document.getElementById('insidebar-save-conversation')) {
+    if (document.getElementById('panelize-save-conversation')) {
       return;
     }
 
@@ -157,7 +157,7 @@
       insertSaveButton();
 
       // Remove button if conversation no longer exists
-      const existingButton = document.getElementById('insidebar-save-conversation');
+      const existingButton = document.getElementById('panelize-save-conversation');
       if (existingButton && !detectConversation()) {
         existingButton.remove();
         saveButton = null;
@@ -173,7 +173,7 @@
 
   // Extract conversation title
   function getConversationTitle() {
-    // Look for conversation title in the sidebar/chat list
+    // Look for conversation title in the chat list
     // Title appears in <p class="truncate" title="...">
     const titleSelectors = [
       'p.truncate[title]',  // Primary selector for conversation title
@@ -455,7 +455,7 @@
 
         if (response && response.success) {
           console.log('[Copilot Extractor] Conversation saved successfully');
-          // Success notification now shown in sidebar
+          // Success notification now shown in the page UI
         } else {
           console.error('[Copilot Extractor] Save failed. Response:', response);
           const errorMsg = response?.error || 'Unknown error';

@@ -27,10 +27,6 @@ global.chrome = {
       addListener: vi.fn(),
     },
   },
-  sidePanel: {
-    open: vi.fn(() => Promise.resolve()),
-    setPanelBehavior: vi.fn(() => Promise.resolve()),
-  },
   contextMenus: {
     create: vi.fn(),
     removeAll: vi.fn(() => Promise.resolve()),

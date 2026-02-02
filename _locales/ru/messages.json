@@ -5,9 +5,6 @@
   "extensionDescription": {
     "message": "Расширение с боковой панелью для быстрого доступа к ChatGPT, Claude, Gemini и другим ИИ"
   },
-  "commandOpenSidebar": {
-    "message": "Открыть Panelize с провайдером по умолчанию"
-  },
   "commandOpenPromptLibrary": {
     "message": "Открыть библиотеку промптов Panelize"
   },
@@ -84,7 +81,7 @@
     "message": "Включённые провайдеры"
   },
   "descEnabledProviders": {
-    "message": "Выберите, какие провайдеры ИИ отображаются в боковой панели"
+    "message": "Выберите, какие поставщики ИИ отображаются в Panelize"
   },
   "sectionKeyboardShortcuts": {
     "message": "Горячие клавиши"
@@ -502,15 +499,6 @@
   },
   "contextMenuSendTo": {
     "message": "Отправить в Panelize"
-  },
-  "sidebarChatHistory": {
-    "message": "История чатов"
-  },
-  "sidebarPromptGenie": {
-    "message": "Мастер промптов"
-  },
-  "sidebarEditingPrompt": {
-    "message": "Редактирование промпта"
   },
   "placeholderSearch": {
     "message": "Поиск..."

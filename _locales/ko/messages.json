@@ -5,9 +5,6 @@
   "extensionDescription": {
     "message": "ChatGPT, Claude, Gemini 등에 빠르게 접근할 수 있는 멀티 AI 사이드바 확장 프로그램"
   },
-  "commandOpenSidebar": {
-    "message": "기본 제공자로 Panelize 열기"
-  },
   "commandOpenPromptLibrary": {
     "message": "Panelize 프롬프트 라이브러리 열기"
   },
@@ -84,7 +81,7 @@
     "message": "활성화된 제공자"
   },
   "descEnabledProviders": {
-    "message": "사이드바에 표시할 AI 제공자를 선택하세요"
+    "message": "Panelize에 표시할 AI 제공업체를 선택하세요"
   },
   "sectionKeyboardShortcuts": {
     "message": "키보드 단축키"
@@ -502,15 +499,6 @@
   },
   "contextMenuSendTo": {
     "message": "Panelize 로 보내기"
-  },
-  "sidebarChatHistory": {
-    "message": "채팅 기록"
-  },
-  "sidebarPromptGenie": {
-    "message": "프롬프트 지니"
-  },
-  "sidebarEditingPrompt": {
-    "message": "프롬프트 편집"
   },
   "placeholderSearch": {
     "message": "검색..."

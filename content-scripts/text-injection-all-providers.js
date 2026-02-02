@@ -956,7 +956,7 @@
     const context = event.data.context;
 
     // Security check: Only allow autoSubmit from multi-panel context
-    // This prevents sidebar from accidentally auto-submitting when
+    // This prevents other contexts from accidentally auto-submitting when
     // multi-panel sends messages to its iframes
     const shouldAutoSubmit = autoSubmit && context === 'multi-panel';
 
@@ -1045,6 +1045,6 @@
     }
   }
 
-  // Listen for messages from sidebar
+  // Listen for messages from the multi-panel host
   window.addEventListener('message', handleTextInjection);
 })();

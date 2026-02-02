@@ -57,7 +57,7 @@
     const { text, tooltip } = window.LanguageDetector.getSaveButtonText(SHARE_BUTTON_SELECTOR);
 
     const button = document.createElement('button');
-    button.id = 'insidebar-save-conversation';
+    button.id = 'panelize-save-conversation';
     button.setAttribute('data-testid', 'save-button');
     button.type = 'button';
     button.className = 'bg-subtle text-foreground md:hover:text-quiet font-sans focus:outline-none outline-none outline-transparent transition duration-300 ease-out select-none items-center relative group/button font-semimedium justify-center text-center items-center rounded-lg cursor-pointer active:scale-[0.97] active:duration-150 active:ease-outExpo origin-center whitespace-nowrap inline-flex text-sm h-8 px-2.5';
@@ -82,7 +82,7 @@
   // Insert save button after share button
   function insertSaveButton() {
     // Check if button already exists
-    if (document.getElementById('insidebar-save-conversation')) {
+    if (document.getElementById('panelize-save-conversation')) {
       console.log('[Perplexity Extractor] Save button already exists');
       return;
     }
@@ -143,7 +143,7 @@
       insertSaveButton();
 
       // Remove button if conversation no longer exists or not on search page
-      const existingButton = document.getElementById('insidebar-save-conversation');
+      const existingButton = document.getElementById('panelize-save-conversation');
       if (existingButton) {
         if (!window.location.href.includes('https://www.perplexity.ai/search/')) {
           existingButton.parentElement?.remove(); // Remove wrapper span
@@ -159,7 +159,7 @@
     });
   }
 
-  // Extract conversation title from current thread in sidebar
+  // Extract conversation title from current thread in chat list
   function getConversationTitle() {
     // Priority 1: Extract conversation ID from URL and find matching thread
     const urlMatch = window.location.pathname.match(/\/search\/([^\/]+)/);
@@ -363,7 +363,7 @@
 
         if (response && response.success) {
           console.log('[Perplexity Extractor] Conversation saved successfully');
-          // Success notification now shown in sidebar
+          // Success notification now shown in the page UI
         } else {
           const errorMsg = response?.error || 'Unknown error';
           showNotification('Failed to save: ' + errorMsg, 'error');
@@ -394,7 +394,7 @@
 
     // Remove button if leaving search page
     if (!url.includes('https://www.perplexity.ai/search/')) {
-      const existingButton = document.getElementById('insidebar-save-conversation');
+      const existingButton = document.getElementById('panelize-save-conversation');
       if (existingButton) {
         existingButton.parentElement?.remove(); // Remove wrapper span
         saveButton = null;
