@@ -244,7 +244,7 @@ describe('service-worker', () => {
         })
       }));
 
-      const response = await fetch('https://api.github.com/repos/xiaolai/insidebar-ai/commits/main');
+      const response = await fetch('https://api.github.com/repos/Manho/Panelize/commits/main');
       const data = await response.json();
 
       expect(data.sha).toBe('abc123def456');
@@ -257,7 +257,7 @@ describe('service-worker', () => {
         status: 404
       }));
 
-      const response = await fetch('https://api.github.com/repos/xiaolai/insidebar-ai/commits/main');
+      const response = await fetch('https://api.github.com/repos/Manho/Panelize/commits/main');
 
       expect(response.ok).toBe(false);
       expect(response.status).toBe(404);

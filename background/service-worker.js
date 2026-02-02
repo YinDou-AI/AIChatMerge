@@ -227,7 +227,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Handle version check by fetching latest commit from GitHub API
 async function handleFetchLatestCommit() {
   try {
-    const GITHUB_API_URL = 'https://api.github.com/repos/xiaolai/insidebar-ai/commits/main';
+    const GITHUB_API_URL = 'https://api.github.com/repos/Manho/Panelize/commits/main';
 
     const response = await fetch(GITHUB_API_URL, {
       headers: {

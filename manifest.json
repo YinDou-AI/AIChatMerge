@@ -241,7 +241,10 @@
         "data/version-info.json",
         "_locales/en/messages.json",
         "_locales/zh_CN/messages.json",
-        "_locales/zh_TW/messages.json"
+        "_locales/zh_TW/messages.json",
+        "multi-panel/multi-panel.html",
+        "multi-panel/multi-panel.js",
+        "multi-panel/multi-panel.css"
       ],
       "matches": ["<all_urls>"]
     }

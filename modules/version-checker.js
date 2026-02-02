@@ -85,7 +85,7 @@ export async function checkForUpdates() {
  * @returns {string} GitHub zip download URL
  */
 export function getDownloadUrl() {
-  return 'https://github.com/xiaolai/insidebar-ai/archive/refs/heads/main.zip';
+  return 'https://github.com/Manho/Panelize/archive/refs/heads/main.zip';
 }
 
 /**
@@ -93,5 +93,5 @@ export function getDownloadUrl() {
  * @returns {string} GitHub repository URL
  */
 export function getRepositoryUrl() {
-  return 'https://github.com/xiaolai/insidebar-ai';
+  return 'https://github.com/Manho/Panelize';
 }

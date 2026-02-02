@@ -180,7 +180,7 @@ insidebar.ai requests the following Chrome extension permissions:
 
 insidebar.ai is fully open source. You can review the complete source code at:
 
-**GitHub Repository:** https://github.com/xiaolai/insidebar-ai
+**GitHub Repository:** https://github.com/Manho/Panelize
 
 This allows you to:
 - Verify our privacy claims
@@ -194,7 +194,7 @@ This allows you to:
 
 If you have questions or concerns about this privacy policy or how insidebar.ai handles data:
 
-- **GitHub Issues:** https://github.com/xiaolai/insidebar-ai/issues
+- **GitHub Issues:** https://github.com/Manho/Panelize/issues
 - **Project Maintainer:** [Xiaolai](https://github.com/xiaolai)
 
 ---
