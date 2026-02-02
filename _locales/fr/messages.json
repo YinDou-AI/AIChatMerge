@@ -116,9 +116,6 @@
   "btnConfigureEdge": {
     "message": "Configurer dans Edge"
   },
-  "sectionChatHistory": {
-    "message": "Historique des conversations"
-  },
   "sectionContentSending": {
     "message": "Envoi de contenu"
   },
@@ -215,9 +212,6 @@
   "sectionDataManagement": {
     "message": "Gestion des données"
   },
-  "statChatHistory": {
-    "message": "Historique des conversations"
-  },
   "statPrompts": {
     "message": "Prompts"
   },
@@ -247,12 +241,6 @@
   },
   "descDangerZone": {
     "message": "Ces actions ne peuvent pas être annulées. À utiliser avec précaution."
-  },
-  "labelClearHistory": {
-    "message": "Effacer l'historique des conversations"
-  },
-  "descClearHistory": {
-    "message": "Supprimer toutes les conversations enregistrées"
   },
   "labelClearPrompts": {
     "message": "Effacer les prompts"
@@ -375,9 +363,6 @@
       }
     }
   },
-  "msgHistoryCleared": {
-    "message": "Tout l'historique des conversations a été supprimé"
-  },
   "msgPromptsCleared": {
     "message": "Tous les prompts ont été supprimés"
   },
@@ -445,9 +430,6 @@
   "errImportFailed": {
     "message": "Échec de l'importation des données. Veuillez vérifier le format du fichier."
   },
-  "errClearHistoryFailed": {
-    "message": "Échec de l'effacement de l'historique des conversations"
-  },
   "errClearPromptsFailed": {
     "message": "Échec de l'effacement des prompts"
   },
@@ -491,20 +473,14 @@
       }
     }
   },
-  "confirmClearHistory": {
-    "message": "Êtes-vous sûr de vouloir supprimer TOUT l'historique des conversations ?\n\nCela supprimera définitivement toutes les conversations enregistrées.\n\nCette action NE PEUT PAS être annulée !"
-  },
   "confirmClearPrompts": {
     "message": "Êtes-vous sûr de vouloir supprimer TOUS les prompts ?\n\nCela supprimera définitivement tous les prompts de votre bibliothèque.\n\nCette action NE PEUT PAS être annulée !"
   },
   "confirmResetSettings": {
-    "message": "Êtes-vous sûr de vouloir réinitialiser TOUS les paramètres aux valeurs par défaut ?\n\nCela réinitialisera :\n- Les paramètres de thème\n- Le fournisseur par défaut\n- Les raccourcis clavier\n- Toutes les autres préférences\n\nVos prompts et votre historique des conversations NE seront PAS affectés.\n\nCette action NE PEUT PAS être annulée !"
+    "message": "Êtes-vous sûr de vouloir réinitialiser TOUS les paramètres aux valeurs par défaut ?\n\nCela réinitialisera :\n- Les paramètres de thème\n- Le fournisseur par défaut\n- Les raccourcis clavier\n- Toutes les autres préférences\n\nVos prompts NE seront PAS affectés.\n\nCette action NE PEUT PAS être annulée !"
   },
   "contextMenuSendTo": {
     "message": "Envoyer vers Panelize"
-  },
-  "sidebarChatHistory": {
-    "message": "Historique des conversations"
   },
   "sidebarPromptGenie": {
     "message": "Prompt Genie"

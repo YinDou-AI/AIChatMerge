@@ -167,9 +167,6 @@
   "btnConfigureEdge": {
     "message": "Configure in Edge"
   },
-  "sectionChatHistory": {
-    "message": "Chat History"
-  },
   "sectionContentSending": {
     "message": "Content Sending"
   },
@@ -266,9 +263,6 @@
   "sectionDataManagement": {
     "message": "Data Management"
   },
-  "statChatHistory": {
-    "message": "Chat History"
-  },
   "statPrompts": {
     "message": "Prompts"
   },
@@ -298,12 +292,6 @@
   },
   "descDangerZone": {
     "message": "These actions cannot be undone. Use with caution."
-  },
-  "labelClearHistory": {
-    "message": "Clear Chat History"
-  },
-  "descClearHistory": {
-    "message": "Delete all saved conversations"
   },
   "labelClearPrompts": {
     "message": "Clear Prompts"
@@ -434,9 +422,6 @@
       }
     }
   },
-  "msgHistoryCleared": {
-    "message": "All chat history has been deleted"
-  },
   "msgPromptsCleared": {
     "message": "All prompts have been deleted"
   },
@@ -498,9 +483,6 @@
   "errImportFailed": {
     "message": "Failed to import data. Please check the file format."
   },
-  "errClearHistoryFailed": {
-    "message": "Failed to clear chat history"
-  },
   "errClearPromptsFailed": {
     "message": "Failed to clear prompts"
   },
@@ -544,20 +526,14 @@
       }
     }
   },
-  "confirmClearHistory": {
-    "message": "Are you sure you want to delete ALL chat history?\n\nThis will permanently delete all saved conversations.\n\nThis action CANNOT be undone!"
-  },
   "confirmClearPrompts": {
     "message": "Are you sure you want to delete ALL prompts?\n\nThis will permanently delete all prompts from your library.\n\nThis action CANNOT be undone!"
   },
   "confirmResetSettings": {
-    "message": "Are you sure you want to reset ALL settings to defaults?\n\nThis will reset:\n- Theme settings\n- Default provider\n- Keyboard shortcuts\n- All other preferences\n\nYour prompts and chat history will NOT be affected.\n\nThis action CANNOT be undone!"
+    "message": "Are you sure you want to reset ALL settings to defaults?\n\nThis will reset:\n- Theme settings\n- Default provider\n- Keyboard shortcuts\n- All other preferences\n\nYour prompts will NOT be affected.\n\nThis action CANNOT be undone!"
   },
   "contextMenuSendTo": {
     "message": "Send to Panelize"
-  },
-  "sidebarChatHistory": {
-    "message": "Chat History"
   },
   "sidebarPromptGenie": {
     "message": "Prompt Genie"

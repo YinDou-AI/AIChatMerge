@@ -116,9 +116,6 @@
   "btnConfigureEdge": {
     "message": "Configura in Edge"
   },
-  "sectionChatHistory": {
-    "message": "Cronologia chat"
-  },
   "sectionContentSending": {
     "message": "Invio contenuti"
   },
@@ -215,9 +212,6 @@
   "sectionDataManagement": {
     "message": "Gestione dati"
   },
-  "statChatHistory": {
-    "message": "Cronologia chat"
-  },
   "statPrompts": {
     "message": "Prompt"
   },
@@ -247,12 +241,6 @@
   },
   "descDangerZone": {
     "message": "Queste azioni non possono essere annullate. Usa con cautela."
-  },
-  "labelClearHistory": {
-    "message": "Cancella cronologia chat"
-  },
-  "descClearHistory": {
-    "message": "Elimina tutte le conversazioni salvate"
   },
   "labelClearPrompts": {
     "message": "Cancella prompt"
@@ -375,9 +363,6 @@
       }
     }
   },
-  "msgHistoryCleared": {
-    "message": "Tutta la cronologia chat è stata eliminata"
-  },
   "msgPromptsCleared": {
     "message": "Tutti i prompt sono stati eliminati"
   },
@@ -445,9 +430,6 @@
   "errImportFailed": {
     "message": "Importazione dati non riuscita. Controlla il formato del file."
   },
-  "errClearHistoryFailed": {
-    "message": "Cancellazione cronologia chat non riuscita"
-  },
   "errClearPromptsFailed": {
     "message": "Cancellazione prompt non riuscita"
   },
@@ -491,20 +473,14 @@
       }
     }
   },
-  "confirmClearHistory": {
-    "message": "Sei sicuro di voler eliminare TUTTA la cronologia chat?\n\nQuesto eliminerà permanentemente tutte le conversazioni salvate.\n\nQuesta azione NON può essere annullata!"
-  },
   "confirmClearPrompts": {
     "message": "Sei sicuro di voler eliminare TUTTI i prompt?\n\nQuesto eliminerà permanentemente tutti i prompt dalla tua libreria.\n\nQuesta azione NON può essere annullata!"
   },
   "confirmResetSettings": {
-    "message": "Sei sicuro di voler ripristinare TUTTE le impostazioni ai valori predefiniti?\n\nQuesto ripristinerà:\n- Impostazioni tema\n- Provider predefinito\n- Scorciatoie da tastiera\n- Tutte le altre preferenze\n\nI tuoi prompt e la cronologia chat NON saranno interessati.\n\nQuesta azione NON può essere annullata!"
+    "message": "Sei sicuro di voler ripristinare TUTTE le impostazioni ai valori predefiniti?\n\nQuesto ripristinerà:\n- Impostazioni tema\n- Provider predefinito\n- Scorciatoie da tastiera\n- Tutte le altre preferenze\n\nI tuoi prompt NON saranno interessati.\n\nQuesta azione NON può essere annullata!"
   },
   "contextMenuSendTo": {
     "message": "Invia a Panelize"
-  },
-  "sidebarChatHistory": {
-    "message": "Cronologia chat"
   },
   "sidebarPromptGenie": {
     "message": "Genio Prompt"

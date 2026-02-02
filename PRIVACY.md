@@ -23,13 +23,6 @@ All of the following data is stored **exclusively in your browser's local storag
 
 **Purpose:** To provide prompt management functionality across browser sessions.
 
-#### Chat History Data
-- Conversations you manually save from AI providers
-- Original conversation URLs
-- Provider information and timestamps
-
-**Purpose:** To allow you to save and revisit important AI conversations.
-
 #### User Preferences and Settings
 - Selected theme (Light/Dark/Auto)
 - Enabled AI providers
@@ -57,7 +50,7 @@ insidebar.ai does **NOT** collect, store, or transmit:
 - ❌ IP addresses
 - ❌ Analytics or telemetry data
 - ❌ Usage statistics sent to external servers
-- ❌ AI conversation content (unless you manually save it locally)
+- ❌ AI conversation content
 - ❌ Login credentials or API keys
 - ❌ Any data to external servers or third parties
 
@@ -68,8 +61,7 @@ insidebar.ai does **NOT** collect, store, or transmit:
 All data collected by insidebar.ai is used solely for providing extension functionality on your local device:
 
 1. **Prompt Library:** Store and organize your saved prompts for reuse
-2. **Chat History:** Save conversations you choose to preserve
-3. **Settings:** Remember your preferences between sessions
+2. **Settings:** Remember your preferences between sessions
 4. **Quick Access:** Show recently used prompts and maintain provider state
 
 **No data is transmitted to insidebar.ai developers or any third-party servers.**
@@ -107,7 +99,7 @@ insidebar.ai accesses your existing browser cookies for AI provider websites to 
 
 All extension data is stored in your browser using:
 - **Chrome Storage API:** For settings and preferences
-- **IndexedDB:** For prompts and chat history
+- **IndexedDB:** For prompts
 
 This data:
 - Remains on your device
@@ -118,7 +110,7 @@ This data:
 ### Data Retention
 
 Data is retained locally until you:
-- Manually delete it using extension features (e.g., delete prompts, clear history)
+- Manually delete it using extension features (e.g., delete prompts)
 - Use the "Reset All Data" feature in Settings
 - Clear browser data (which removes all extension data)
 - Uninstall the extension
@@ -130,10 +122,10 @@ Data is retained locally until you:
 You have full control over your data:
 
 ### Export Your Data
-Go to Settings → Data Management → Export to download all your prompts, chat history, and settings as a JSON file.
+Go to Settings → Data Management → Export to download all your prompts and settings as a JSON file.
 
 ### Delete Your Data
-- **Individual Items:** Delete specific prompts or conversations
+- **Individual Items:** Delete specific prompts
 - **Category/Provider:** Clear all data from a specific category or provider
 - **Complete Reset:** Settings → Data Management → Reset All Data
 
@@ -165,7 +157,7 @@ insidebar.ai requests the following Chrome extension permissions:
 | Permission | Purpose |
 |------------|---------|
 | `sidePanel` | Display AI providers in the browser sidebar |
-| `storage` | Store your prompts, settings, and chat history locally |
+| `storage` | Store your prompts and settings locally |
 | `contextMenus` | Add "Send to insidebar.ai" option when right-clicking |
 | `declarativeNetRequest` | Allow AI provider websites to load in the sidebar (bypass X-Frame-Options) |
 | `declarativeNetRequestWithHostAccess` | Apply header modifications for specific AI provider domains |
@@ -220,7 +212,7 @@ If you are a California resident:
 ## Summary
 
 ✅ **What we do:**
-- Store your prompts, settings, and saved conversations locally on your device
+- Store your prompts and settings locally on your device
 - Use local browser storage to remember your preferences
 - Access AI provider cookies to maintain login sessions in the sidebar
 
@@ -228,7 +220,7 @@ If you are a California resident:
 - Collect or transmit any data to external servers
 - Track your usage or behavior
 - Sell or share your data with third parties
-- Store your AI conversations (unless you manually save them)
+- Access your AI conversations
 - Require account creation or personal information
 
 **Your privacy is protected because all data stays on your device, under your control.**

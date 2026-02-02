@@ -116,9 +116,6 @@
   "btnConfigureEdge": {
     "message": "Edge で設定"
   },
-  "sectionChatHistory": {
-    "message": "チャット履歴"
-  },
   "sectionContentSending": {
     "message": "コンテンツ送信"
   },
@@ -215,9 +212,6 @@
   "sectionDataManagement": {
     "message": "データ管理"
   },
-  "statChatHistory": {
-    "message": "チャット履歴"
-  },
   "statPrompts": {
     "message": "プロンプト"
   },
@@ -247,12 +241,6 @@
   },
   "descDangerZone": {
     "message": "これらの操作は元に戻せません。注意して使用してください。"
-  },
-  "labelClearHistory": {
-    "message": "チャット履歴をクリア"
-  },
-  "descClearHistory": {
-    "message": "保存されたすべての会話を削除"
   },
   "labelClearPrompts": {
     "message": "プロンプトをクリア"
@@ -375,9 +363,6 @@
       }
     }
   },
-  "msgHistoryCleared": {
-    "message": "すべてのチャット履歴が削除されました"
-  },
   "msgPromptsCleared": {
     "message": "すべてのプロンプトが削除されました"
   },
@@ -445,9 +430,6 @@
   "errImportFailed": {
     "message": "データのインポートに失敗しました。ファイル形式を確認してください。"
   },
-  "errClearHistoryFailed": {
-    "message": "チャット履歴のクリアに失敗しました"
-  },
   "errClearPromptsFailed": {
     "message": "プロンプトのクリアに失敗しました"
   },
@@ -491,20 +473,14 @@
       }
     }
   },
-  "confirmClearHistory": {
-    "message": "すべてのチャット履歴を削除してもよろしいですか？\n\n保存されたすべての会話が完全に削除されます。\n\nこの操作は元に戻せません！"
-  },
   "confirmClearPrompts": {
     "message": "すべてのプロンプトを削除してもよろしいですか？\n\nライブラリからすべてのプロンプトが完全に削除されます。\n\nこの操作は元に戻せません！"
   },
   "confirmResetSettings": {
-    "message": "すべての設定をデフォルトにリセットしてもよろしいですか？\n\n次がリセットされます：\n- テーマ設定\n- デフォルトプロバイダー\n- キーボードショートカット\n- その他すべての設定\n\nプロンプトとチャット履歴は影響を受けません。\n\nこの操作は元に戻せません！"
+    "message": "すべての設定をデフォルトにリセットしてもよろしいですか？\n\n次がリセットされます：\n- テーマ設定\n- デフォルトプロバイダー\n- キーボードショートカット\n- その他すべての設定\n\nプロンプトは影響を受けません。\n\nこの操作は元に戻せません！"
   },
   "contextMenuSendTo": {
     "message": "Panelize に送信"
-  },
-  "sidebarChatHistory": {
-    "message": "チャット履歴"
   },
   "sidebarPromptGenie": {
     "message": "プロンプトジーニー"

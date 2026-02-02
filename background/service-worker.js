@@ -1,8 +1,4 @@
 import { notifyMessage } from '../modules/messaging.js';
-import {
-  saveConversation,
-  findConversationByConversationId
-} from '../modules/history-manager.js';
 import { t, initializeLanguage } from '../modules/i18n.js';
 
 // Install event - setup context menus
@@ -206,17 +202,9 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   }
 });
 
-// Listen for conversation saves, duplicate checks, and version checks
+// Listen for version check requests
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'saveConversationFromPage') {
-    // Handle conversation save from ChatGPT page
-    handleSaveConversation(message.payload, sender).then(sendResponse);
-    return true; // Keep channel open for async response
-  } else if (message.action === 'checkDuplicateConversation') {
-    // Handle duplicate check request
-    handleCheckDuplicate(message.payload).then(sendResponse);
-    return true; // Keep channel open for async response
-  } else if (message.action === 'fetchLatestCommit') {
+  if (message.action === 'fetchLatestCommit') {
     // Handle version check request from options page
     handleFetchLatestCommit().then(sendResponse);
     return true; // Keep channel open for async response
@@ -256,56 +244,6 @@ async function handleFetchLatestCommit() {
       success: false,
       error: error.message
     };
-  }
-}
-
-// Handle duplicate conversation check - now with direct database access
-async function handleCheckDuplicate(payload) {
-  try {
-    const { conversationId } = payload;
-
-    if (!conversationId) {
-      return { isDuplicate: false };
-    }
-
-    // Query IndexedDB directly without requiring sidebar
-    const existingConversation = await findConversationByConversationId(conversationId);
-
-    if (existingConversation) {
-      return {
-        isDuplicate: true,
-        existingConversation: existingConversation
-      };
-    }
-
-    return { isDuplicate: false };
-  } catch (error) {
-    console.error('[Background] Error checking duplicate:', error);
-    // Propagate error instead of silently returning false
-    throw error;
-  }
-}
-
-// Handle saving conversation - now with direct database access
-async function handleSaveConversation(conversationData, sender) {
-  try {
-    // Save directly to IndexedDB without requiring sidebar
-    const savedConversation = await saveConversation(conversationData);
-
-    // Notify multi-panel to refresh chat history if it's open
-    try {
-      await notifyMessage({
-        action: 'refreshChatHistory',
-        payload: { conversationId: savedConversation.id }
-      });
-    } catch (error) {
-      // Multi-Panel may not be open, that's okay
-    }
-
-    return { success: true, data: savedConversation };
-  } catch (error) {
-    console.error('[Background] Error saving conversation:', error);
-    return { success: false, error: error.message };
   }
 }
 

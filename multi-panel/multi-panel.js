@@ -19,13 +19,7 @@ import {
   deletePrompt,
   getPrompt
 } from '../modules/prompt-manager.js';
-import {
-  exportConversationsToFile,
-  importConversationsFromFile,
-  getAutoBackups,
-  restoreFromAutoBackup,
-  deleteAutoBackup
-} from '../modules/history-manager.js';
+
 
 // ===== State Management =====
 let currentLayout = '2x2';
@@ -1159,15 +1153,6 @@ async function searchPromptLibrary(query) {
 
 // ===== Event Listeners =====
 function setupEventListeners() {
-  // Backup manager
-  document.getElementById('backup-manager-btn')?.addEventListener('click', openBackupManager);
-  document.getElementById('close-backup-modal')?.addEventListener('click', closeBackupModal);
-  document.getElementById('export-chat-history-btn')?.addEventListener('click', exportChatHistory);
-  document.getElementById('import-chat-history-btn')?.addEventListener('click', () => {
-    document.getElementById('import-file-input')?.click();
-  });
-  document.getElementById('import-file-input')?.addEventListener('change', importChatHistory);
-
   // Layout button
   document.getElementById('layout-btn').addEventListener('click', openLayoutModal);
   document.getElementById('close-layout-modal').addEventListener('click', closeLayoutModal);
@@ -1350,13 +1335,6 @@ function setupEventListeners() {
   document.getElementById('prompt-modal').addEventListener('click', (e) => {
     if (e.target.id === 'prompt-modal') {
       closePromptModal();
-    }
-  });
-
-  // Backup modal outside click
-  document.getElementById('backup-modal').addEventListener('click', (e) => {
-    if (e.target.id === 'backup-modal') {
-      closeBackupModal();
     }
   });
 
@@ -1587,154 +1565,6 @@ function showToast(message) {
     toast.style.transition = 'opacity 0.3s';
     setTimeout(() => toast.remove(), 300);
   }, 2000);
-}
-
-// ===== Backup Manager Functions =====
-async function openBackupManager() {
-  const modal = document.getElementById('backup-modal');
-  modal.style.display = 'flex';
-  await renderAutoBackupsList();
-}
-
-function closeBackupModal() {
-  document.getElementById('backup-modal').style.display = 'none';
-}
-
-async function exportChatHistory() {
-  try {
-    const result = await exportConversationsToFile();
-    showToast(`Exported ${result.count} conversations successfully!`);
-  } catch (error) {
-    console.error('Error exporting chat history:', error);
-    showToast('Failed to export chat history');
-  }
-}
-
-async function importChatHistory(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  // Reset file input
-  event.target.value = '';
-
-  try {
-    const mergeStrategy = confirm('Overwrite existing conversations?\n\nOK = Overwrite duplicates\nCancel = Skip duplicates')
-      ? 'overwrite'
-      : 'skip';
-
-    const results = await importConversationsFromFile(file, mergeStrategy);
-
-    let message = `Import completed!\n`;
-    message += `Imported: ${results.imported}\n`;
-    message += `Skipped: ${results.skipped}`;
-    if (results.errors.length > 0) {
-      message += `\nErrors: ${results.errors.length}`;
-    }
-
-    alert(message);
-    showToast('Chat history imported successfully!');
-  } catch (error) {
-    console.error('Error importing chat history:', error);
-    showToast('Failed to import chat history');
-  }
-}
-
-async function renderAutoBackupsList() {
-  const backupsList = document.getElementById('auto-backups-list');
-
-  try {
-    const backups = await getAutoBackups();
-
-    if (backups.length === 0) {
-      backupsList.innerHTML = `
-        <div class="backup-empty">
-          <span class="material-symbols-outlined">backup</span>
-          <p>No auto backups yet</p>
-          <p style="font-size: 12px; margin-top: 8px;">Backups are created automatically every hour</p>
-        </div>
-      `;
-      return;
-    }
-
-    backupsList.innerHTML = backups.map(backup => {
-      const date = new Date(backup.timestamp);
-      const dateStr = date.toLocaleString();
-
-      return `
-        <div class="backup-item" data-id="${backup.id}">
-          <div class="backup-item-info">
-            <div class="backup-item-date">${dateStr}</div>
-            <div class="backup-item-meta">${backup.count} conversations</div>
-          </div>
-          <div class="backup-item-actions">
-            <button class="restore-btn" data-id="${backup.id}" title="Restore">
-              <span class="material-symbols-outlined">restore</span>
-            </button>
-            <button class="delete-btn" data-id="${backup.id}" title="Delete">
-              <span class="material-symbols-outlined">delete</span>
-            </button>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    // Add restore handlers
-    backupsList.querySelectorAll('.restore-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const backupId = btn.dataset.id;
-        await restoreBackup(backupId);
-      });
-    });
-
-    // Add delete handlers
-    backupsList.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const backupId = btn.dataset.id;
-        await deleteBackup(backupId);
-      });
-    });
-  } catch (error) {
-    console.error('Error rendering auto backups list:', error);
-    backupsList.innerHTML = '<div class="backup-empty">Failed to load backups</div>';
-  }
-}
-
-async function restoreBackup(backupId) {
-  const mergeStrategy = confirm('Overwrite existing conversations?\n\nOK = Overwrite duplicates\nCancel = Skip duplicates')
-    ? 'overwrite'
-    : 'skip';
-
-  try {
-    const results = await restoreFromAutoBackup(backupId, mergeStrategy);
-
-    let message = `Restore completed!\n`;
-    message += `Imported: ${results.imported}\n`;
-    message += `Skipped: ${results.skipped}`;
-    if (results.errors.length > 0) {
-      message += `\nErrors: ${results.errors.length}`;
-    }
-
-    alert(message);
-    showToast('Chat history restored successfully!');
-  } catch (error) {
-    console.error('Error restoring backup:', error);
-    showToast('Failed to restore backup');
-  }
-}
-
-async function deleteBackup(backupId) {
-  if (!confirm('Delete this backup?')) return;
-
-  try {
-    await deleteAutoBackup(backupId);
-    await renderAutoBackupsList();
-    showToast('Backup deleted');
-  } catch (error) {
-    console.error('Error deleting backup:', error);
-    showToast('Failed to delete backup');
-  }
 }
 
 // ===== Prompt Editor Functions =====

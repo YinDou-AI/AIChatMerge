@@ -57,9 +57,6 @@
         <button id="layout-btn" class="toolbar-btn" title="Change Layout">
           <span class="material-symbols-outlined">grid_view</span>
         </button>
-        <button id="backup-manager-btn" class="toolbar-btn" title="Backup Manager">
-          <span class="material-symbols-outlined">backup</span>
-        </button>
         <button id="settings-btn" class="toolbar-btn" title="Settings">
           <span class="material-symbols-outlined">settings</span>
         </button>
@@ -288,36 +285,6 @@
         <div class="modal-footer">
           <button id="cancel-variable-btn" class="btn-secondary">Cancel</button>
           <button id="apply-variable-btn" class="btn-primary">Apply</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Backup Manager Modal -->
-    <div id="backup-modal" class="modal" style="display: none;">
-      <div class="modal-content modal-large">
-        <div class="modal-header">
-          <h3>Chat History Backup Manager</h3>
-          <button class="close-btn" id="close-backup-modal">
-            <span class="material-symbols-outlined">close</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="backup-actions">
-            <button id="export-chat-history-btn" class="btn-primary">
-              <span class="material-symbols-outlined">download</span>
-              Export to File
-            </button>
-            <button id="import-chat-history-btn" class="btn-secondary">
-              <span class="material-symbols-outlined">upload</span>
-              Import from File
-            </button>
-            <input type="file" id="import-file-input" accept=".json" style="display: none;">
-          </div>
-
-          <h4 class="backup-section-title">Auto Backups (Latest 10)</h4>
-          <div id="auto-backups-list">
-            <!-- Auto backups will be dynamically rendered -->
-          </div>
         </div>
       </div>
     </div>

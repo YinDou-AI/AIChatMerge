@@ -116,9 +116,6 @@
   "btnConfigureEdge": {
     "message": "Configurar en Edge"
   },
-  "sectionChatHistory": {
-    "message": "Historial de Chat"
-  },
   "sectionContentSending": {
     "message": "Envío de Contenido"
   },
@@ -215,9 +212,6 @@
   "sectionDataManagement": {
     "message": "Gestión de Datos"
   },
-  "statChatHistory": {
-    "message": "Historial de Chat"
-  },
   "statPrompts": {
     "message": "Prompts"
   },
@@ -247,12 +241,6 @@
   },
   "descDangerZone": {
     "message": "Estas acciones no se pueden deshacer. Úsalas con precaución."
-  },
-  "labelClearHistory": {
-    "message": "Borrar Historial de Chat"
-  },
-  "descClearHistory": {
-    "message": "Eliminar todas las conversaciones guardadas"
   },
   "labelClearPrompts": {
     "message": "Borrar Prompts"
@@ -375,9 +363,6 @@
       }
     }
   },
-  "msgHistoryCleared": {
-    "message": "Todo el historial de chat ha sido eliminado"
-  },
   "msgPromptsCleared": {
     "message": "Todos los prompts han sido eliminados"
   },
@@ -445,9 +430,6 @@
   "errImportFailed": {
     "message": "Error al importar datos. Por favor verifica el formato del archivo."
   },
-  "errClearHistoryFailed": {
-    "message": "Error al borrar el historial de chat"
-  },
   "errClearPromptsFailed": {
     "message": "Error al borrar los prompts"
   },
@@ -491,20 +473,14 @@
       }
     }
   },
-  "confirmClearHistory": {
-    "message": "¿Estás seguro de que quieres eliminar TODO el historial de chat?\n\nEsto eliminará permanentemente todas las conversaciones guardadas.\n\n¡Esta acción NO se puede deshacer!"
-  },
   "confirmClearPrompts": {
     "message": "¿Estás seguro de que quieres eliminar TODOS los prompts?\n\nEsto eliminará permanentemente todos los prompts de tu biblioteca.\n\n¡Esta acción NO se puede deshacer!"
   },
   "confirmResetSettings": {
-    "message": "¿Estás seguro de que quieres restablecer TODA la configuración a valores predeterminados?\n\nEsto restablecerá:\n- Configuración de tema\n- Proveedor predeterminado\n- Atajos de teclado\n- Todas las demás preferencias\n\nTus prompts e historial de chat NO se verán afectados.\n\n¡Esta acción NO se puede deshacer!"
+    "message": "¿Estás seguro de que quieres restablecer TODA la configuración a valores predeterminados?\n\nEsto restablecerá:\n- Configuración de tema\n- Proveedor predeterminado\n- Atajos de teclado\n- Todas las demás preferencias\n\nTus prompts NO se verán afectados.\n\n¡Esta acción NO se puede deshacer!"
   },
   "contextMenuSendTo": {
     "message": "Enviar a Panelize"
-  },
-  "sidebarChatHistory": {
-    "message": "Historial de Chat"
   },
   "sidebarPromptGenie": {
     "message": "Genio de Prompts"
