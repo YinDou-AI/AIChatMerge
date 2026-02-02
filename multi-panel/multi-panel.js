@@ -362,10 +362,60 @@ async function initializePanels() {
 }
 
 // ===== Panel Management =====
+
+/**
+ * 根据当前布局和即将添加的面板数，计算是否需要调整布局
+ * 仅在 1xN 布局序列中自动扩展列
+ * @param {string} currentLayout - 当前布局，如 '1x2'
+ * @param {number} newPanelCount - 添加后的面板总数
+ * @returns {string|null} - 新布局名称，无需调整返回 null
+ */
+function getAutoAdjustedLayout(currentLayout, newPanelCount) {
+  // 只处理 1xN 布局
+  const match = currentLayout.match(/^1x(\d)$/);
+  if (!match) return null;
+  
+  const currentCols = parseInt(match[1]);
+  const currentCapacity = LAYOUT_PANEL_COUNTS[currentLayout];
+  
+  // 如果新面板数不超过容量，无需调整
+  if (newPanelCount <= currentCapacity) return null;
+  
+  // 计算下一级布局
+  const nextCols = currentCols + 1;
+  const nextLayout = `1x${nextCols}`;
+  
+  // 检查是否存在（1x6 是上限）
+  if (LAYOUT_PANEL_COUNTS[nextLayout]) {
+    return nextLayout;
+  }
+  
+  return null; // 已达上限，无法自动调整
+}
+
 async function addPanel(providerId) {
   if (panels.length >= MAX_PANELS) {
     showToast('Maximum number of panels reached (6)');
     return;
+  }
+
+  // 自动布局调整：如果在 1xN 布局中添加面板会超出容量，自动升级到 1x(N+1)
+  const newPanelCount = panels.length + 1;
+  const adjustedLayout = getAutoAdjustedLayout(currentLayout, newPanelCount);
+  
+  if (adjustedLayout) {
+    // 直接应用新布局，不调用 setLayout（避免 adjustPanelCount 导致的递归）
+    currentLayout = adjustedLayout;
+    const panelGrid = document.getElementById('panel-grid');
+    panelGrid.className = `layout-${adjustedLayout}`;
+    
+    // 更新布局按钮状态（如果布局模态框是打开的）
+    document.querySelectorAll('.layout-option').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.layout === adjustedLayout);
+    });
+    
+    // 保存配置
+    await saveProviderConfiguration();
   }
 
   const provider = getProviderById(providerId);
