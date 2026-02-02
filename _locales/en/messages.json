@@ -385,6 +385,14 @@
   "msgDataImported": {
     "message": "Data imported successfully"
   },
+  "msgDataImportedWithCount": {
+    "message": "Imported $COUNT$ prompts",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
   "msgDataImportedDetails": {
     "message": "Data imported successfully — $DETAILS$.",
     "placeholders": {

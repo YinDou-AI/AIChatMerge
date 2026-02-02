@@ -834,5 +834,13 @@
   },
   "msgLayoutUpdated": {
     "message": "佈局已更新"
+  },
+  "msgDataImportedWithCount": {
+    "message": "成功導入 $COUNT$ 個提示詞",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
   }
 }

@@ -834,5 +834,13 @@
   },
   "msgLayoutUpdated": {
     "message": "Макет обновлен"
+  },
+  "msgDataImportedWithCount": {
+    "message": "Импортировано $COUNT$ подсказок",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
   }
 }

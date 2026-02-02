@@ -834,5 +834,13 @@
   },
   "msgLayoutUpdated": {
     "message": "레이아웃이 업데이트되었습니다"
+  },
+  "msgDataImportedWithCount": {
+    "message": "$COUNT$개 프롬프트 가져옴",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
   }
 }
