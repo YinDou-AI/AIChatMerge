@@ -155,7 +155,7 @@
         return;
       }
       
-      // Auto layout adjustment - 直接应用布局，不调用 setLayout 避免递归
+      // Auto layout adjustment - apply directly without setLayout to avoid recursion
       const newPanelCount = panels.length + 1;
       const adjustedLayout = getAutoAdjustedLayout(currentLayout, newPanelCount);
       

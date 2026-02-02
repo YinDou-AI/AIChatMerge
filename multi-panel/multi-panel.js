@@ -364,11 +364,11 @@ async function initializePanels() {
 // ===== Panel Management =====
 
 /**
- * 根据当前布局和即将添加的面板数，计算是否需要调整布局
- * 仅在 1xN 布局序列中自动扩展列
- * @param {string} currentLayout - 当前布局，如 '1x2'
- * @param {number} newPanelCount - 添加后的面板总数
- * @returns {string|null} - 新布局名称，无需调整返回 null
+ * Calculates whether layout adjustment is needed based on current layout and panel count
+ * Only auto-expands columns in 1xN layout sequence
+ * @param {string} currentLayout - Current layout, e.g., '1x2'
+ * @param {number} newPanelCount - Total panel count after adding
+ * @returns {string|null} - New layout name, or null if no adjustment needed
  */
 function getAutoAdjustedLayout(currentLayout, newPanelCount) {
   // 只处理 1xN 布局
@@ -399,22 +399,22 @@ async function addPanel(providerId) {
     return;
   }
 
-  // 自动布局调整：如果在 1xN 布局中添加面板会超出容量，自动升级到 1x(N+1)
+  // Auto layout adjustment: upgrade from 1xN to 1x(N+1) when adding panel exceeds capacity
   const newPanelCount = panels.length + 1;
   const adjustedLayout = getAutoAdjustedLayout(currentLayout, newPanelCount);
   
   if (adjustedLayout) {
-    // 直接应用新布局，不调用 setLayout（避免 adjustPanelCount 导致的递归）
+    // Apply layout directly without calling setLayout (to avoid recursion from adjustPanelCount)
     currentLayout = adjustedLayout;
     const panelGrid = document.getElementById('panel-grid');
     panelGrid.className = `layout-${adjustedLayout}`;
     
-    // 更新布局按钮状态（如果布局模态框是打开的）
+    // Update layout button states (if layout modal is open)
     document.querySelectorAll('.layout-option').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.layout === adjustedLayout);
     });
     
-    // 保存配置
+    // Save configuration
     await saveProviderConfiguration();
   }
 
