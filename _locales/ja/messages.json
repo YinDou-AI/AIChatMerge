@@ -5,9 +5,6 @@
   "extensionDescription": {
     "message": "ChatGPT、Claude、Gemini などに素早くアクセスできるマルチ AI サイドバー拡張機能"
   },
-  "commandOpenSidebar": {
-    "message": "デフォルトプロバイダーで Panelize を開く"
-  },
   "commandOpenPromptLibrary": {
     "message": "Panelize プロンプトライブラリを開く"
   },
@@ -84,7 +81,7 @@
     "message": "有効なプロバイダー"
   },
   "descEnabledProviders": {
-    "message": "サイドバーに表示する AI プロバイダーを選択してください"
+    "message": "Panelize に表示する AI プロバイダーを選択"
   },
   "sectionKeyboardShortcuts": {
     "message": "キーボードショートカット"
@@ -502,15 +499,6 @@
   },
   "contextMenuSendTo": {
     "message": "Panelize に送信"
-  },
-  "sidebarChatHistory": {
-    "message": "チャット履歴"
-  },
-  "sidebarPromptGenie": {
-    "message": "プロンプトジーニー"
-  },
-  "sidebarEditingPrompt": {
-    "message": "プロンプトを編集"
   },
   "placeholderSearch": {
     "message": "検索..."

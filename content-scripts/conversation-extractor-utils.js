@@ -246,7 +246,7 @@
   return new Promise((resolve) => {
     // Create modal
     const modal = document.createElement('div');
-    modal.id = 'insidebar-duplicate-modal';
+    modal.id = 'panelize-duplicate-modal';
     modal.style.cssText = `
       position: fixed;
       top: 0;
@@ -288,7 +288,7 @@
           ${chrome.i18n.getMessage('dlgDuplicateQuestion')}
         </p>
         <div style="display: flex; gap: 12px;">
-          <button id="insidebar-dup-cancel" style="
+          <button id="panelize-dup-cancel" style="
             flex: 1;
             padding: 10px 16px;
             border: 1px solid #ddd;
@@ -301,7 +301,7 @@
           ">
             ${chrome.i18n.getMessage('btnCancel')}
           </button>
-          <button id="insidebar-dup-overwrite" style="
+          <button id="panelize-dup-overwrite" style="
             flex: 1;
             padding: 10px 16px;
             border: none;
@@ -326,8 +326,8 @@
       resolve(choice);
     };
 
-    document.getElementById('insidebar-dup-cancel').addEventListener('click', () => cleanup('cancel'));
-    document.getElementById('insidebar-dup-overwrite').addEventListener('click', () => cleanup('overwrite'));
+    document.getElementById('panelize-dup-cancel').addEventListener('click', () => cleanup('cancel'));
+    document.getElementById('panelize-dup-overwrite').addEventListener('click', () => cleanup('overwrite'));
 
     // Close on outside click (same as cancel)
     modal.addEventListener('click', (e) => {
@@ -344,14 +344,14 @@
 
   /**
    * Show notification to user on the provider page
-   * NOTE: Success notifications are now shown in sidebar instead
+   * NOTE: Success notifications are now shown in the page UI instead
    * This is primarily for error notifications
    * @param {string} message - Message to display
    * @param {string} type - 'info', 'success', or 'error'
    */
   window.ConversationExtractorUtils.showNotification = function(message, type = 'info') {
   const notification = document.createElement('div');
-  notification.className = `insidebar-notification insidebar-notification-${type}`;
+  notification.className = `panelize-notification panelize-notification-${type}`;
   notification.style.cssText = `
     position: fixed;
     top: 24px;

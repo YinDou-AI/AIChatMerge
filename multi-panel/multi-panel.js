@@ -606,13 +606,10 @@ async function broadcastMessage(text, autoSubmit = true) {
       panels.map(panel => sendToPanel(panel, text, imagesPayload, autoSubmit))
     );
 
-    // Also send to sidebar's current provider
-    const sidebarResult = await sendToSidebar(text, imagesPayload, autoSubmit);
-
-    // Count results (panels + sidebar)
+    // Count results (panels only)
     const panelSuccessful = panelResults.filter(r => r.status === 'fulfilled' && r.value).length;
-    const totalSuccessful = panelSuccessful + (sidebarResult ? 1 : 0);
-    const totalCount = panels.length + 1; // +1 for sidebar
+    const totalSuccessful = panelSuccessful;
+    const totalCount = panels.length;
     const failed = totalCount - totalSuccessful;
 
     // Update status
@@ -642,8 +639,8 @@ async function broadcastMessage(text, autoSubmit = true) {
       document.getElementById('unified-input').value = '';
       resizeTextarea();
 
-      // Clear images after successful send
-      if (autoSubmit) {
+      // Clear images after successful fill/send
+      if (uploadedImages.length > 0) {
         clearAllImages();
       }
     }
@@ -674,7 +671,7 @@ async function sendToPanel(panel, text, images = [], autoSubmit = true) {
       const messageType = images.length > 0 ? 'INJECT_TEXT_WITH_IMAGES' : 'INJECT_TEXT';
 
       // Send message to content script inside iframe with autoSubmit flag
-      // Add context identifier so sidebar won't process this message
+      // Add context identifier so receivers can validate origin
       panel.iframe.contentWindow.postMessage({
         type: messageType,
         text: text,
@@ -692,39 +689,7 @@ async function sendToPanel(panel, text, images = [], autoSubmit = true) {
   });
 }
 
-// Send text to sidebar's current provider
-async function sendToSidebar(text, images = [], autoSubmit) {
-  try {
-    // Add timeout to prevent hanging if sidebar is not responding
-    const timeoutPromise = new Promise((resolve) => {
-      setTimeout(() => resolve({ timeout: true }), 2000);
-    });
-
-    const result = await Promise.race([
-      chrome.runtime.sendMessage({
-        action: 'injectTextToSidebar',
-        payload: {
-          text: text,
-          images: images,
-          autoSubmit: autoSubmit,
-          context: 'multi-panel'
-        }
-      }),
-      timeoutPromise
-    ]);
-
-    if (result?.timeout) {
-      console.warn('Sidebar message timed out');
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.warn('Failed to send to sidebar:', error);
-    return false;
-  }
-}
-
-// Clear all input boxes (unified input + all panels + sidebar)
+// Clear all input boxes (unified input + all panels)
 async function clearAllInputs() {
   // Clear unified input
   document.getElementById('unified-input').value = '';
@@ -743,17 +708,6 @@ async function clearAllInputs() {
       }, '*');
     }
   });
-
-  // Send clear message to sidebar
-  try {
-    await chrome.runtime.sendMessage({
-      action: 'clearSidebarInput',
-      payload: { context: 'multi-panel', clearImages: true }
-    });
-  } catch (error) {
-    console.warn('Failed to clear sidebar input:', error);
-  }
-
   showToast('All inputs cleared');
 }
 
@@ -845,7 +799,7 @@ window.removeImageById = (imageId) => {
   removeImage(imageId);
 };
 
-// Create new chat for all panels and sidebar
+// Create new chat for all panels
 async function newChatAllProviders() {
   const newChatBtn = document.getElementById('new-chat-btn');
 
@@ -861,16 +815,6 @@ async function newChatAllProviders() {
       }, '*');
     }
   });
-
-  // Send new chat message to sidebar
-  try {
-    await chrome.runtime.sendMessage({
-      action: 'newChatInSidebar',
-      payload: { context: 'multi-panel' }
-    });
-  } catch (error) {
-    console.warn('Failed to create new chat in sidebar:', error);
-  }
 
   showToast('New chat created for all AIs');
 
@@ -902,18 +846,8 @@ async function triggerSendButtons() {
       }
     });
 
-    // Send trigger to sidebar
-    try {
-      await chrome.runtime.sendMessage({
-        action: 'triggerSidebarSend',
-        payload: { context: 'multi-panel' }
-      });
-    } catch (error) {
-      console.warn('Failed to trigger sidebar send:', error);
-    }
-
     // Update status
-    statusEl.textContent = `Sent to ${panels.length + 1} AIs`;
+    statusEl.textContent = `Sent to ${panels.length} AIs`;
     statusEl.className = 'send-status success';
 
     setTimeout(() => {

@@ -51,16 +51,16 @@
    * Save button tooltip text in different languages
    */
   const SAVE_TOOLTIP_TEXT = {
-    'en': 'Save this conversation to insidebar.ai',
-    'zh_CN': '保存此对话到 insidebar.ai',
-    'zh_TW': '保存此對話到 insidebar.ai',
-    'ja': 'この会話を insidebar.ai に保存',
-    'ko': '이 대화를 insidebar.ai에 저장',
-    'ru': 'Сохранить этот разговор в insidebar.ai',
-    'es': 'Guardar esta conversación en insidebar.ai',
-    'fr': 'Enregistrer cette conversation dans insidebar.ai',
-    'de': 'Dieses Gespräch in insidebar.ai speichern',
-    'it': 'Salva questa conversazione su insidebar.ai'
+    'en': 'Save this conversation to Panelize',
+    'zh_CN': '保存此对话到 Panelize',
+    'zh_TW': '保存此對話到 Panelize',
+    'ja': 'この会話を Panelize に保存',
+    'ko': '이 대화를 Panelize에 저장',
+    'ru': 'Сохранить этот разговор в Panelize',
+    'es': 'Guardar esta conversación en Panelize',
+    'fr': 'Enregistrer cette conversation dans Panelize',
+    'de': 'Dieses Gespräch in Panelize speichern',
+    'it': 'Salva questa conversazione su Panelize'
   };
 
   /**

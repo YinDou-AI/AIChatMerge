@@ -56,7 +56,7 @@
     const { text, tooltip } = window.LanguageDetector.getSaveButtonText(SHARE_BUTTON_SELECTOR);
 
     const button = document.createElement('button');
-    button.id = 'insidebar-save-conversation';
+    button.id = 'panelize-save-conversation';
     button.className = 'btn relative btn-ghost text-token-text-primary mx-2';
     button.setAttribute('aria-label', text);
     button.innerHTML = `
@@ -82,7 +82,7 @@
     }
 
     // Check if button already exists
-    if (document.getElementById('insidebar-save-conversation')) {
+    if (document.getElementById('panelize-save-conversation')) {
       console.log('[ChatGPT Extractor] Save button already exists');
       return;
     }
@@ -142,7 +142,7 @@
       insertSaveButton();
 
       // Remove button if conversation no longer exists
-      const existingButton = document.getElementById('insidebar-save-conversation');
+      const existingButton = document.getElementById('panelize-save-conversation');
       if (existingButton && !detectConversation()) {
         existingButton.remove();
         saveButton = null;
@@ -158,7 +158,7 @@
 
   // Extract conversation title
   function getConversationTitle() {
-    // Priority 1: Extract conversation ID from URL and find matching sidebar link
+    // Priority 1: Extract conversation ID from URL and find matching chat list link
     const urlMatch = window.location.pathname.match(/\/c\/([^\/]+)/);
 
     if (urlMatch) {
@@ -168,7 +168,7 @@
       if (historyList) {
         console.log('[ChatGPT Extractor] Found #history list, looking for conversation ID:', conversationId);
 
-        // Find the sidebar link that matches this conversation ID
+        // Find the chat list link that matches this conversation ID
         const matchingLink = historyList.querySelector(`a[href*="${conversationId}"]`);
 
         if (matchingLink) {
@@ -176,7 +176,7 @@
           if (titleSpan) {
             const title = titleSpan.textContent.trim();
             if (title && !title.includes('New chat') && title.length > 0) {
-              console.log('[ChatGPT Extractor] Found title from URL-matched sidebar link:', title);
+              console.log('[ChatGPT Extractor] Found title from URL-matched chat list link:', title);
               return title;
             }
           }
@@ -432,7 +432,7 @@
 
         if (response && response.success) {
           console.log('[ChatGPT Extractor] Conversation saved successfully');
-          // Success notification now shown in sidebar
+          // Success notification now shown in the page UI
         } else {
           console.error('[ChatGPT Extractor] Save failed. Response:', response);
           const errorMsg = response?.error || 'Unknown error';

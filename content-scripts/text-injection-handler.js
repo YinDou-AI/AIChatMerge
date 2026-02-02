@@ -1,5 +1,5 @@
 // Common text injection handler for all AI providers
-// Listens for postMessage from sidebar and injects text using the provided selector(s)
+// Listens for postMessage from the extension and injects text using the provided selector(s)
 
 import { findTextInputElement, injectTextIntoElement } from '../modules/text-injector.js';
 

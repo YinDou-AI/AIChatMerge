@@ -125,16 +125,16 @@
     };
 
     const tooltips = {
-      'en': 'Save this conversation to insidebar.ai',
-      'zh_CN': '保存此对话到 insidebar.ai',
-      'zh_TW': '保存此對話到 insidebar.ai',
-      'ja': 'この会話を insidebar.ai に保存',
-      'ko': '이 대화를 insidebar.ai에 저장',
-      'ru': 'Сохранить этот разговор в insidebar.ai',
-      'es': 'Guardar esta conversación en insidebar.ai',
-      'fr': 'Enregistrer cette conversation dans insidebar.ai',
-      'de': 'Dieses Gespräch in insidebar.ai speichern',
-      'it': 'Salva questa conversazione su insidebar.ai'
+      'en': 'Save this conversation to Panelize',
+      'zh_CN': '保存此对话到 Panelize',
+      'zh_TW': '保存此對話到 Panelize',
+      'ja': 'この会話を Panelize に保存',
+      'ko': '이 대화를 Panelize에 저장',
+      'ru': 'Сохранить этот разговор в Panelize',
+      'es': 'Guardar esta conversación en Panelize',
+      'fr': 'Enregistrer cette conversation dans Panelize',
+      'de': 'Dieses Gespräch in Panelize speichern',
+      'it': 'Salva questa conversazione su Panelize'
     };
 
     const text = saveTexts[lang] || saveTexts['en'];
@@ -143,7 +143,7 @@
     console.log('[Grok Extractor] Creating Save button in language:', lang);
 
     const button = document.createElement('button');
-    button.id = 'insidebar-save-conversation';
+    button.id = 'panelize-save-conversation';
     button.className = 'inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-100 [&_svg]:shrink-0 select-none border border-border-l2 text-fg-primary hover:bg-button-ghost-hover [&_svg]:hover:text-fg-primary disabled:hover:bg-transparent h-10 px-3.5 py-1.5 text-sm rounded-full';
     button.type = 'button';
     button.setAttribute('aria-label', text);
@@ -167,7 +167,7 @@
   // Insert save button after share button
   function insertSaveButton() {
     // Check if button already exists
-    if (document.getElementById('insidebar-save-conversation')) {
+    if (document.getElementById('panelize-save-conversation')) {
       console.log('[Grok Extractor] Save button already exists');
       return;
     }
@@ -222,7 +222,7 @@
       insertSaveButton();
 
       // Remove button if conversation no longer exists or not on conversation page
-      const existingButton = document.getElementById('insidebar-save-conversation');
+      const existingButton = document.getElementById('panelize-save-conversation');
       if (existingButton) {
         if (!detectConversation() || !window.location.href.includes('https://grok.com/c/')) {
           existingButton.remove();
@@ -494,7 +494,7 @@
 
         if (response && response.success) {
           console.log('[Grok Extractor] Conversation saved successfully');
-          // Success notification now shown in sidebar
+          // Success notification now shown in the page UI
         } else {
           const errorMsg = response?.error || 'Unknown error';
           showNotification('Failed to save: ' + errorMsg, 'error');
@@ -525,7 +525,7 @@
 
     // Remove button if leaving conversation page
     if (!url.includes('https://grok.com/c/')) {
-      const existingButton = document.getElementById('insidebar-save-conversation');
+      const existingButton = document.getElementById('panelize-save-conversation');
       if (existingButton) {
         existingButton.remove();
         saveButton = null;

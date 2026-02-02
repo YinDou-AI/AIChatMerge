@@ -1,19 +1,19 @@
 /* Gemini Save Button Styles */
 
-[data-test-id="insidebar-save-container"] {
+[data-test-id="panelize-save-container"] {
   /* Match referral container spacing */
   display: flex;
   align-items: center;
 }
 
-#insidebar-save-conversation {
+#panelize-save-conversation {
   /* Button matches Gemini's referral button style */
   font-family: inherit;
   cursor: pointer;
   user-select: none;
 }
 
-#insidebar-save-conversation:disabled {
+#panelize-save-conversation:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -41,6 +41,6 @@
   }
 }
 
-.insidebar-notification {
+.panelize-notification {
   transition: all 0.3s ease;
 }

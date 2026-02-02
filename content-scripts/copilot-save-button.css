@@ -1,23 +1,23 @@
 /* Save conversation button for Microsoft Copilot pages */
 /* Button styling is handled by Copilot's native Tailwind utility classes */
 
-#insidebar-save-conversation:disabled {
+#panelize-save-conversation:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* Ensure safe-hover works correctly */
 @media (hover: hover) {
-  #insidebar-save-conversation.safe-hover\:bg-black\/5:hover {
+  #panelize-save-conversation.safe-hover\:bg-black\/5:hover {
     background-color: rgba(0, 0, 0, 0.05);
   }
-  #insidebar-save-conversation.dark\:safe-hover\:bg-white\/8:hover {
+  #panelize-save-conversation.dark\:safe-hover\:bg-white\/8:hover {
     background-color: rgba(255, 255, 255, 0.08);
   }
 }
 
 /* Notification styles */
-.insidebar-notification {
+.panelize-notification {
   position: fixed;
   top: 24px;
   right: 24px;
@@ -39,26 +39,26 @@
   transition: all 0.3s ease;
 }
 
-.insidebar-notification.show {
+.panelize-notification.show {
   opacity: 1;
   transform: translateX(0);
 }
 
-.insidebar-notification-success {
+.panelize-notification-success {
   background: #0078d4;
 }
 
-.insidebar-notification-error {
+.panelize-notification-error {
   background: #ef4444;
 }
 
-.insidebar-notification-info {
+.panelize-notification-info {
   background: #3b82f6;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .insidebar-notification {
+  .panelize-notification {
     top: 16px;
     right: 16px;
     left: 16px;

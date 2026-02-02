@@ -1,13 +1,13 @@
 /* Save conversation button for ChatGPT pages */
 /* Button styling is handled by ChatGPT's native classes */
 
-#insidebar-save-conversation:disabled {
+#panelize-save-conversation:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* Notification styles */
-.insidebar-notification {
+.panelize-notification {
   position: fixed;
   top: 24px;
   right: 24px;
@@ -29,26 +29,26 @@
   transition: all 0.3s ease;
 }
 
-.insidebar-notification.show {
+.panelize-notification.show {
   opacity: 1;
   transform: translateX(0);
 }
 
-.insidebar-notification-success {
+.panelize-notification-success {
   background: #10a37f;
 }
 
-.insidebar-notification-error {
+.panelize-notification-error {
   background: #ef4444;
 }
 
-.insidebar-notification-info {
+.panelize-notification-info {
   background: #3b82f6;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .insidebar-notification {
+  .panelize-notification {
     top: 16px;
     right: 16px;
     left: 16px;

@@ -58,9 +58,9 @@
     const { tooltip } = window.LanguageDetector.getSaveButtonText(SHARE_BUTTON_SELECTOR);
 
     const button = document.createElement('button');
-    button.id = 'insidebar-google-save-conversation';
+    button.id = 'panelize-google-save-conversation';
     button.className = 'UTNPFf';
-    button.setAttribute('data-test-id', 'insidebar-google-save-button');
+    button.setAttribute('data-test-id', 'panelize-google-save-button');
     button.type = 'button';
     button.title = tooltip;
     button.setAttribute('aria-label', tooltip);
@@ -79,7 +79,7 @@
   // Insert save button after "Open AI Mode history" button
   function insertSaveButton() {
     // Check if button already exists
-    if (document.getElementById('insidebar-google-save-conversation')) {
+    if (document.getElementById('panelize-google-save-conversation')) {
       console.log('[Google Extractor] Save button already exists');
       return;
     }
@@ -100,6 +100,8 @@
       console.log('[Google Extractor] Button container not found yet, will retry');
       return;
     }
+
+    buttonContainer.setAttribute('data-test-id', 'panelize-google-save-container');
 
     // Check if conversation exists
     const hasConversation = detectConversation();
@@ -145,7 +147,7 @@
       insertSaveButton();
 
       // Remove button if conversation no longer exists or not on AI Mode page
-      const existingButton = document.getElementById('insidebar-google-save-conversation');
+      const existingButton = document.getElementById('panelize-google-save-conversation');
       if (existingButton) {
         if (!detectConversation() || !window.location.search.includes('udm=50')) {
           existingButton.remove();
@@ -378,7 +380,7 @@
 
         if (response && response.success) {
           console.log('[Google Extractor] Conversation saved successfully');
-          // Success notification now shown in sidebar
+          // Success notification now shown in the page UI
         } else {
           const errorMsg = response?.error || 'Unknown error';
           showNotification('Failed to save: ' + errorMsg, 'error');
@@ -409,7 +411,7 @@
 
     // Remove button if leaving AI Mode page
     if (!url.includes('udm=50')) {
-      const existingButton = document.getElementById('insidebar-google-save-conversation');
+      const existingButton = document.getElementById('panelize-google-save-conversation');
       if (existingButton) {
         existingButton.remove();
         saveButton = null;

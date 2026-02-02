@@ -1,13 +1,13 @@
 /* Google AI Mode Save Button Styles */
 
-[data-test-id="insidebar-google-save-container"] {
+[data-test-id="panelize-google-save-container"] {
   /* Match OEwhSe container spacing */
   display: inline-flex;
   align-items: center;
   margin-left: 8px;
 }
 
-#insidebar-google-save-conversation {
+#panelize-google-save-conversation {
   /* Button matches Google AI Mode button style */
   font-family: inherit;
   cursor: pointer;
@@ -22,20 +22,20 @@
   transition: background-color 0.2s;
 }
 
-#insidebar-google-save-conversation:hover {
+#panelize-google-save-conversation:hover {
   background-color: rgba(0, 0, 0, 0.04);
 }
 
-#insidebar-google-save-conversation:active {
+#panelize-google-save-conversation:active {
   background-color: rgba(0, 0, 0, 0.08);
 }
 
-#insidebar-google-save-conversation:disabled {
+#panelize-google-save-conversation:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-#insidebar-google-save-conversation svg {
+#panelize-google-save-conversation svg {
   display: block;
 }
 
@@ -62,6 +62,6 @@
   }
 }
 
-.insidebar-notification {
+.panelize-notification {
   transition: all 0.3s ease;
 }

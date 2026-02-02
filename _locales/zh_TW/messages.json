@@ -5,9 +5,6 @@
   "extensionDescription": {
     "message": "並排比較 AI 聊天機器人。在一個視窗中使用 ChatGPT、Claude、Gemini、Grok 等。"
   },
-  "commandOpenSidebar": {
-    "message": "開啟 Panelize"
-  },
   "commandOpenPromptLibrary": {
     "message": "開啟提示詞庫"
   },
@@ -84,7 +81,7 @@
     "message": "已啟用的提供者"
   },
   "descEnabledProviders": {
-    "message": "選擇在側邊欄中顯示哪些 AI 提供者"
+    "message": "選擇在 Panelize 中顯示哪些 AI 提供商"
   },
   "sectionKeyboardShortcuts": {
     "message": "鍵盤快速鍵"
@@ -496,15 +493,6 @@
   },
   "contextMenuSendTo": {
     "message": "發送到 Panelize"
-  },
-  "sidebarChatHistory": {
-    "message": "聊天記錄"
-  },
-  "sidebarPromptGenie": {
-    "message": "提示詞精靈"
-  },
-  "sidebarEditingPrompt": {
-    "message": "編輯提示詞"
   },
   "placeholderSearch": {
     "message": "搜尋..."

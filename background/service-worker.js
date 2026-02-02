@@ -268,7 +268,7 @@ async function handleCheckDuplicate(payload) {
       return { isDuplicate: false };
     }
 
-    // Query IndexedDB directly without requiring sidebar
+    // Query IndexedDB directly without requiring UI
     const existingConversation = await findConversationByConversationId(conversationId);
 
     if (existingConversation) {
@@ -289,7 +289,7 @@ async function handleCheckDuplicate(payload) {
 // Handle saving conversation - now with direct database access
 async function handleSaveConversation(conversationData, sender) {
   try {
-    // Save directly to IndexedDB without requiring sidebar
+    // Save directly to IndexedDB without requiring UI
     const savedConversation = await saveConversation(conversationData);
 
     // Notify multi-panel to refresh chat history if it's open

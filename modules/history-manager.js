@@ -732,7 +732,7 @@ function wrapRequest(request, mapper) {
 export async function exportConversationsToFile() {
   try {
     const exportData = await exportConversations();
-    exportData.source = 'InsideBar AI';
+    exportData.source = 'Panelize';
     exportData.count = exportData.conversations.length;
 
     const jsonString = JSON.stringify(exportData, null, 2);

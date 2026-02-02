@@ -56,7 +56,7 @@
     const { text, tooltip } = window.LanguageDetector.getSaveButtonText(SHARE_BUTTON_SELECTOR);
 
     const button = document.createElement('button');
-    button.id = 'insidebar-save-conversation';
+    button.id = 'panelize-save-conversation';
     button.className = `inline-flex
   items-center
   justify-center
@@ -98,7 +98,7 @@
     }
 
     // Check if button already exists
-    if (document.getElementById('insidebar-save-conversation')) {
+    if (document.getElementById('panelize-save-conversation')) {
       console.log('[Claude Extractor] Save button already exists');
       return;
     }
@@ -144,7 +144,7 @@
       insertSaveButton();
 
       // Remove button if conversation no longer exists
-      const existingButton = document.getElementById('insidebar-save-conversation');
+      const existingButton = document.getElementById('panelize-save-conversation');
       if (existingButton && !detectConversation()) {
         existingButton.remove();
         saveButton = null;
@@ -160,13 +160,13 @@
 
   // Extract conversation title from URL or active chat item
   function getConversationTitle() {
-    // Priority 1: Extract conversation ID from URL and find matching sidebar link
+    // Priority 1: Extract conversation ID from URL and find matching chat list link
     const urlMatch = window.location.pathname.match(/\/chat\/([^\/]+)/);
 
     if (urlMatch) {
       const conversationId = urlMatch[1];
 
-      // Find the sidebar link that matches this conversation ID
+      // Find the chat list link that matches this conversation ID
       const matchingLink = document.querySelector(`a[href*="/chat/${conversationId}"]`);
 
       if (matchingLink) {
@@ -174,7 +174,7 @@
         if (titleSpan) {
           const title = titleSpan.textContent.trim();
           if (title && title.length > 0) {
-            console.log('[Claude Extractor] Found title from URL-matched sidebar link:', title);
+            console.log('[Claude Extractor] Found title from URL-matched chat list link:', title);
             return title;
           }
         }
@@ -367,7 +367,7 @@
 
         if (response && response.success) {
           console.log('[Claude Extractor] Conversation saved successfully');
-          // Success notification now shown in sidebar
+          // Success notification now shown in the page UI
         } else {
           const errorMsg = response?.error || 'Unknown error';
           showNotification('Failed to save: ' + errorMsg, 'error');

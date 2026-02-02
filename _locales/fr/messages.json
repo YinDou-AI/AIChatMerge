@@ -5,9 +5,6 @@
   "extensionDescription": {
     "message": "Extension de barre latérale multi-IA pour un accès rapide à ChatGPT, Claude, Gemini et plus"
   },
-  "commandOpenSidebar": {
-    "message": "Ouvrir Panelize avec le fournisseur par défaut"
-  },
   "commandOpenPromptLibrary": {
     "message": "Ouvrir la bibliothèque de prompts Panelize"
   },
@@ -84,7 +81,7 @@
     "message": "Fournisseurs activés"
   },
   "descEnabledProviders": {
-    "message": "Sélectionnez les fournisseurs IA qui apparaissent dans votre barre latérale"
+    "message": "Sélectionnez quels fournisseurs d'IA apparaissent dans Panelize"
   },
   "sectionKeyboardShortcuts": {
     "message": "Raccourcis clavier"
@@ -502,15 +499,6 @@
   },
   "contextMenuSendTo": {
     "message": "Envoyer vers Panelize"
-  },
-  "sidebarChatHistory": {
-    "message": "Historique des conversations"
-  },
-  "sidebarPromptGenie": {
-    "message": "Prompt Genie"
-  },
-  "sidebarEditingPrompt": {
-    "message": "Modification du prompt"
   },
   "placeholderSearch": {
     "message": "Rechercher..."

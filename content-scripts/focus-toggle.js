@@ -1,5 +1,5 @@
 // Focus toggle content script
-// Handles focus switching between sidebar and main page input
+// Handles focus switching between extension UI and main page input
 
 /**
  * Find the AI provider's input element
