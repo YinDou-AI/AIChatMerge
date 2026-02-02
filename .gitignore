@@ -37,6 +37,12 @@ _metadata/
 # Test files
 coverage/
 .nyc_output/
+test-screenshot-*.png
+
+# Local planning artifacts
+task_plan.md
+findings.md
+progress.md
 
 # User data (don't commit personal data)
 user-data/

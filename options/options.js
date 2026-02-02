@@ -76,6 +76,30 @@ function openShortcutSettings(browserOverride) {
   }
 }
 
+function getExtensionResourceUrl(path) {
+  if (chrome?.runtime?.getURL) {
+    return chrome.runtime.getURL(path);
+  }
+  return new URL(path, `${window.location.origin}/`).href;
+}
+
+function getPromptGuidePath(locale) {
+  const guidePaths = {
+    en: 'data/prompt-libraries/guide.en.html',
+    zh_CN: 'data/prompt-libraries/guide.zh_CN.html',
+    zh_TW: 'data/prompt-libraries/guide.zh_TW.html',
+    ko: 'data/prompt-libraries/guide.ko.html',
+    ja: 'data/prompt-libraries/guide.ja.html',
+    es: 'data/prompt-libraries/guide.es.html',
+    fr: 'data/prompt-libraries/guide.fr.html',
+    de: 'data/prompt-libraries/guide.de.html',
+    it: 'data/prompt-libraries/guide.it.html',
+    ru: 'data/prompt-libraries/guide.ru.html'
+  };
+
+  return guidePaths[locale] || guidePaths.en;
+}
+
 function setupShortcutHelpers() {
   const openShortcutsBtn = document.getElementById('open-shortcuts-btn');
   if (openShortcutsBtn) {
@@ -353,13 +377,44 @@ async function loadLibraryCount() {
   if (!countElement) return;
 
   try {
-    const response = await fetch(chrome.runtime.getURL('data/prompt-libraries/default-prompts.json'));
+    const language = await getDefaultLibraryLanguage();
+    const libraryPath = getDefaultLibraryPath(language);
+    const response = await fetch(chrome.runtime.getURL(libraryPath));
     const promptsArray = await response.json();
     const count = Array.isArray(promptsArray) ? promptsArray.length : 0;
     countElement.textContent = t('msgPromptsCount', count.toString());
   } catch (error) {
     console.error('Failed to load library count:', error);
     countElement.textContent = t('msgUnknownCount');
+  }
+}
+
+// Get the appropriate default library path based on language
+function getDefaultLibraryPath(language) {
+  // Only Simplified Chinese uses translated prompts
+  // All other languages fall back to English
+  if (language === 'zh_CN') {
+    return 'data/prompt-libraries/default-prompts-zh_CN.json';
+  }
+  
+  // Default to English for all other languages (including zh_TW)
+  return 'data/prompt-libraries/default-prompts.json';
+}
+
+// Get user's preferred language for default library
+async function getDefaultLibraryLanguage() {
+  try {
+    const settings = await chrome.storage.sync.get({ language: null });
+    
+    // Only Simplified Chinese gets Chinese prompts
+    if (settings.language === 'zh_CN') {
+      return 'zh_CN';
+    }
+    
+    // All other languages (including zh_TW) fall back to English
+    return 'en';
+  } catch (error) {
+    return 'en';
   }
 }
 
@@ -443,6 +498,25 @@ function setupEventListeners() {
     if (file) {
       await importCustomLibraryHandler(file);
     }
+  });
+
+  // Custom prompt guide and template
+  document.getElementById('open-custom-prompt-guide')?.addEventListener('click', async () => {
+    const settings = await getSettings();
+    const locale = settings.language || getCurrentBrowserLanguage();
+    const guidePath = getPromptGuidePath(locale);
+    const url = getExtensionResourceUrl(guidePath);
+    window.open(url, '_blank', 'noopener');
+  });
+
+  document.getElementById('download-custom-prompt-template')?.addEventListener('click', () => {
+    const url = getExtensionResourceUrl('data/prompt-libraries/custom-prompt-template.json');
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'custom-prompt-template.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   });
 
   // Enter key behavior toggle
@@ -707,7 +781,7 @@ Optional fields:
 - useCount (number, default: 0)
 - lastUsed (number or null, default: null)
 
-See: data/prompt-libraries/Generate_a_Basic_Prompt_Library.md`;
+${t('msgPromptGuideTip')}`;
 }
 
 // Import Custom Prompt Library
@@ -785,8 +859,12 @@ async function importDefaultLibraryHandler() {
     button.disabled = true;
     button.textContent = t('msgImporting');
 
+    // Get user's language preference
+    const language = await getDefaultLibraryLanguage();
+    const libraryPath = getDefaultLibraryPath(language);
+
     // Fetch the default library data
-    const response = await fetch(chrome.runtime.getURL('data/prompt-libraries/default-prompts.json'));
+    const response = await fetch(chrome.runtime.getURL(libraryPath));
     const promptsArray = await response.json();
 
     // Wrap array in expected format { prompts: [...] }

@@ -197,6 +197,18 @@
   "btnImportCustom": {
     "message": "カスタムプロンプトをインポート"
   },
+  "descCustomPromptGuide": {
+    "message": "カスタムプロンプトの形式に困ったら、ガイドを開くか JSON テンプレートをダウンロードしてください。"
+  },
+  "btnOpenPromptGuide": {
+    "message": "ガイドを開く"
+  },
+  "btnDownloadPromptTemplate": {
+    "message": "テンプレートをダウンロード"
+  },
+  "msgPromptGuideTip": {
+    "message": "ヒント：設定 > Prompt Library からガイドを開くか、JSON テンプレートをダウンロードしてください。"
+  },
   "noteCustomImport": {
     "message": "カスタムプロンプトをインポートする前に、次をお読みください： <code style = \"background: #f5f5f5; padding: 2px 6px; border - radius: 3px;\">data/prompt - libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
@@ -643,9 +655,6 @@
   },
   "descDefaultPromptLibrary": {
     "message": "プロンプトの改良、計画、コーディング、テスト、研究、執筆などのためのメタプロンプト。動的テンプレートのための変数サポートが含まれています。"
-  },
-  "descCustomPromptReadme": {
-    "message": "カスタムプロンプトをインポートする前に、次をお読みください： <code style = \"background: #f5f5f5; padding: 2px 6px; border - radius: 3px;\">data/prompt - libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
   "statStorageUsed": {
     "message": "使用中のストレージ"

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>基本プロンプトライブラリを作成</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Avenir", "Noto Sans", "Helvetica Neue", sans-serif;
+      background: #f7f7f9;
+      color: #1f1f24;
+    }
+    main {
+      max-width: 860px;
+      margin: 40px auto 80px;
+      padding: 0 24px;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+    h2 {
+      font-size: 22px;
+      margin-top: 32px;
+    }
+    p {
+      line-height: 1.6;
+      margin: 12px 0;
+    }
+    blockquote {
+      margin: 16px 0;
+      padding: 16px 20px;
+      background: #ffffff;
+      border-left: 4px solid #1a73e8;
+      border-radius: 8px;
+      box-shadow: 0 6px 14px rgba(26, 115, 232, 0.08);
+    }
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    li {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+    code {
+      background: #eef1f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    pre {
+      margin: 12px 0 0;
+      padding: 12px 16px;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      overflow: auto;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #0f1116;
+        color: #e4e7ee;
+      }
+      blockquote {
+        background: #161a22;
+        border-left-color: #7aa6ff;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+      }
+      code {
+        background: #1f2937;
+        color: #e2e8f0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>基本プロンプトライブラリを作成</h1>
+
+    <section>
+      <h2>最強の基礎プロンプト3つ</h2>
+      <blockquote>
+        <ul>
+          <li>以下のプロンプトを明確で自然な日本語に書き直し、AIプロンプト作成のベストプラクティスを用いて、より正確で具体的かつ有用な結果が得られるように改善してください。プロンプト: {draft}</li>
+          <li>次のトピックまたは質問に関連する項目、例、アイデアをできるだけ多く列挙してください。完全性、正確性、明確性を重視します。トピック: {topic}</li>
+          <li>{objective}に最も効果的なフレームワーク、手法、モデルは何ですか？各フレームワークの核となる考え方、利点、最適な適用場面を説明してください。</li>
+        </ul>
+      </blockquote>
+      <p>次のファイルパスでこれらをインポートできます: <code>data/prompt-libraries/three-samples.json</code></p>
+    </section>
+
+    <section>
+      <h2>新しいプロンプトライブラリを生成</h2>
+      <p>以下のプロンプトを使用して、このプラグインに直接インポートできるプロンプトライブラリを生成してください。</p>
+      <blockquote>
+        <p>最近見つけたり作成したりした最も効果的で高品質なプロンプトを20件生成してください。各プロンプトは特に洞察的で、創造的または教育的であり、学習やインスピレーションに役立つものにしてください。</p>
+        <p>各結果を次のJSON構造で提示してください:</p>
+        <pre><code class="language-json">{
+  "title": "Short descriptive title of the prompt",
+  "content": "Full text of the prompt. Use {variables} for any placeholders.",
+  "category": "General theme or purpose of the prompt (e.g., Writing, Analysis, Creativity)",
+  "tags": ["tag1", "tag2"],
+  "variables": ["{variables used}"],
+  "isFavorite": false,
+  "useCount": 0,
+  "lastUsed": null
+}</code></pre>
+        <p>各JSONオブジェクトが自己完結し、明確に書かれ、解析しやすい形式であることを確認してください。</p>
+      </blockquote>
+    </section>
+  </main>
+</body>
+</html>

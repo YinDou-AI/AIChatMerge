@@ -197,6 +197,18 @@
   "btnImportCustom": {
     "message": "Importa prompt personalizzati"
   },
+  "descCustomPromptGuide": {
+    "message": "Hai bisogno di aiuto per formattare prompt personalizzati? Apri la guida o scarica un modello JSON."
+  },
+  "btnOpenPromptGuide": {
+    "message": "Apri guida"
+  },
+  "btnDownloadPromptTemplate": {
+    "message": "Scarica modello"
+  },
+  "msgPromptGuideTip": {
+    "message": "Suggerimento: in Impostazioni > Prompt Library, apri la guida o scarica il modello JSON."
+  },
   "noteCustomImport": {
     "message": "Prima di importare prompt personalizzati, leggi: <code style=\"background: #f5f5f5; padding: 2px 6px; border-radius: 3px;\">data/prompt-libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
@@ -643,9 +655,6 @@
   },
   "descDefaultPromptLibrary": {
     "message": "Meta-prompt per raffinamento prompt, pianificazione, codifica, test, ricerca, scrittura e altro. Include supporto variabili per modelli dinamici."
-  },
-  "descCustomPromptReadme": {
-    "message": "Prima di importare prompt personalizzati, leggi: <code style=\"background: #f5f5f5; padding: 2px 6px; border-radius: 3px;\">data/prompt-libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
   "statStorageUsed": {
     "message": "Archiviazione utilizzata"

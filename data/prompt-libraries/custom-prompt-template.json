@@ -1,0 +1,12 @@
+[
+  {
+    "title": "Summarize a document",
+    "content": "Summarize the following content in 5 bullet points:\\n\\n{content}",
+    "category": "Summarization",
+    "tags": ["summary", "bullets"],
+    "variables": ["content"],
+    "isFavorite": false,
+    "useCount": 0,
+    "lastUsed": null
+  }
+]

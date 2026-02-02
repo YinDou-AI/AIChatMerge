@@ -197,6 +197,18 @@
   "btnImportCustom": {
     "message": "사용자 지정 프롬프트 가져오기"
   },
+  "descCustomPromptGuide": {
+    "message": "사용자 지정 프롬프트 형식이 필요하신가요? 가이드를 열거나 JSON 템플릿을 다운로드하세요."
+  },
+  "btnOpenPromptGuide": {
+    "message": "가이드 열기"
+  },
+  "btnDownloadPromptTemplate": {
+    "message": "템플릿 다운로드"
+  },
+  "msgPromptGuideTip": {
+    "message": "팁: 설정 > Prompt Library에서 가이드를 열거나 JSON 템플릿을 다운로드하세요."
+  },
   "noteCustomImport": {
     "message": "사용자 지정 프롬프트를 가져오기 전에 다음을 읽어보세요: <code style = \"background: #f5f5f5; padding: 2px 6px; border - radius: 3px;\">data/prompt - libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
@@ -643,9 +655,6 @@
   },
   "descDefaultPromptLibrary": {
     "message": "프롬프트 개선, 계획, 코딩, 테스트, 연구, 작성 등을 위한 메타 프롬프트. 동적 템플릿을 위한 변수 지원이 포함됩니다."
-  },
-  "descCustomPromptReadme": {
-    "message": "사용자 지정 프롬프트를 가져오기 전에 다음을 읽어보세요: <code style = \"background: #f5f5f5; padding: 2px 6px; border - radius: 3px;\">data/prompt - libraries/Generate_a_Basic_Prompt_Library.md</code>"
   },
   "statStorageUsed": {
     "message": "사용된 저장 공간"
