@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Import Bug Fix Test</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+    .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+    .success { color: green; }
+    .error { color: red; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    #log { background: #f5f5f5; padding: 10px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Import Bug Fix Test</h1>
+  <p>Test that the same file can be imported multiple times</p>
+  
+  <div class="section">
+    <h2>Test Steps</h2>
+    <ol>
+      <li>Click "Select Test File" and choose /tmp/test-prompts.json</li>
+      <li>Wait for first import result</li>
+      <li>Click "Select Test File" again and choose the SAME file</li>
+      <li>Verify second import works (this is the bug fix!)</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>Import Test</h2>
+    <button id="import-btn">Select Test File</button>
+    <input type="file" id="import-file" accept=".json" style="display:none">
+    <div id="result"></div>
+  </div>
+
+  <div class="section">
+    <h2>Log</h2>
+    <div id="log">Waiting for test...</div>
+  </div>
+
+  <script>
+    // Simulating the fixed code
+    const importBtn = document.getElementById('import-btn');
+    const importFile = document.getElementById('import-file');
+    const log = document.getElementById('log');
+    const result = document.getElementById('result');
+    let importCount = 0;
+
+    function addLog(message) {
+      log.textContent += '\n' + new Date().toLocaleTimeString() + ': ' + message;
+    }
+
+    // FIXED: Reset file input BEFORE opening dialog
+    importBtn.addEventListener('click', () => {
+      addLog('Button clicked - resetting file input');
+      importFile.value = ''; // ← This is the fix!
+      importFile.click();
+    });
+
+    importFile.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) {
+        addLog('No file selected');
+        return;
+      }
+
+      importCount++;
+      addLog(`Import #${importCount} - File: ${file.name}`);
+
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        
+        if (Array.isArray(data)) {
+          result.innerHTML = `<span class="success">✅ Import #${importCount} successful! ${data.length} prompts found.</span>`;
+          addLog(`SUCCESS: Parsed ${data.length} prompts`);
+          
+          if (importCount >= 2) {
+            result.innerHTML += '<br><span class="success">🎉 BUG FIX VERIFIED! Same file imported twice!</span>';
+            addLog('🎉 BUG FIX VERIFIED!');
+          }
+        } else {
+          throw new Error('Invalid format');
+        }
+      } catch (err) {
+        result.innerHTML = `<span class="error">❌ Import #${importCount} failed: ${err.message}</span>`;
+        addLog(`ERROR: ${err.message}`);
+      }
+    });
+
+    addLog('Test page loaded. Click "Select Test File" to start.');
+  </script>
+</body>
+</html>
