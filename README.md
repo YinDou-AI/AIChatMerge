@@ -1,12 +1,12 @@
 # Panelize
 
-> Compare AI chatbots side-by-side. ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Copilot, Perplexity, Google AI Mode—all in one window.
+> Compare AI chatbots side-by-side. ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, and Google AI Mode—all in one window.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Languages](https://img.shields.io/badge/languages-10-brightgreen.svg)
 
-**Compare multiple AI assistants simultaneously without juggling tabs.** Open a dedicated window, choose your layout, and chat with 1-8 AI providers at once with synchronized input.
+**Compare multiple AI assistants simultaneously without juggling tabs.** Open a dedicated window, choose your layout, and chat with 1-7 AI providers at once with synchronized input.
 
 ---
 
@@ -28,9 +28,9 @@
 
 ### Multi-Panel Layout
 
-Use 1-8 AI chatbots side-by-side with flexible grid layouts:
+Use 1-7 AI chatbots side-by-side with flexible grid layouts:
 - 1×1 to 1×7 (single row)
-- 2×1 to 2×4 (two rows)
+- 2×1 to 2×3 (two rows)
 - 3×1 to 3×2 (three rows)
 
 Each panel runs independently, so you can compare responses from different AI providers to the same question.
@@ -42,9 +42,9 @@ Type once, send to all panels simultaneously. The unified input bar at the botto
 - Compare how different AIs respond to identical queries
 - Save time when researching or fact-checking
 
-### 9 AI Providers
+### 7 AI Providers
 
-Access ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Copilot, Perplexity, and Google AI Mode—all from one window.
+Access ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, and Google AI Mode—all from one window.
 
 ### Prompt Library
 
@@ -136,8 +136,6 @@ Enable only the AI providers you use. Customize which ones appear in your panels
 | **Grok** | https://grok.com |
 | **DeepSeek** | https://chat.deepseek.com |
 | **Kimi** | https://www.kimi.com |
-| **Copilot** | https://copilot.microsoft.com |
-| **Perplexity** | https://www.perplexity.ai |
 | **Google AI Mode** | https://www.google.com (AI Mode) |
 
 **No API keys required.** Just log into the providers you want to use in your browser, and Panelize will use those existing sessions.
@@ -155,7 +153,7 @@ Enable only the AI providers you use. Customize which ones appear in your panels
    Click the extension icon in your toolbar, or press `Cmd+Shift+E` (Mac) / `Ctrl+Shift+E` (Windows/Linux).
 
 3. **Choose your layout**
-   Select how many panels you want (1-8) and arrange them in your preferred grid layout.
+   Select how many panels you want (1-7) and arrange them in your preferred grid layout.
 
 4. **Select providers for each panel**
    Click on each panel to choose which AI provider it should display.
@@ -237,7 +235,7 @@ Make sure the panels have fully loaded before using the unified input bar.
 
 ### Found a Bug or Have a Feature Idea?
 
-- **Open an issue**: [GitHub Issues](https://github.com/YOUR_USERNAME/panelize/issues)
+- **Open an issue**: [GitHub Issues](https://github.com/Manho/Panelize/issues)
 
 ### Contributing
 

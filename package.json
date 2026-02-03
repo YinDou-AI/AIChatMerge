@@ -4,7 +4,7 @@
   "description": "Compare AI chatbots side-by-side",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/panelize"
+    "url": "https://github.com/Manho/Panelize"
   },
   "private": true,
   "type": "module",

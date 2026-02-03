@@ -73,7 +73,7 @@ All data collected by Panelize is used solely for providing extension functional
 
 ### AI Provider Websites
 
-Panelize loads AI provider websites (ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Copilot, Perplexity, and Google AI Mode) inside embedded panels. These providers operate under their own privacy policies.
+Panelize loads AI provider websites (ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, and Google AI Mode) inside embedded panels. These providers operate under their own privacy policies.
 
 When you interact with these AI providers through Panelize, you are subject to their respective privacy policies. Panelize does not intercept or store the content of your conversations with these services.
 

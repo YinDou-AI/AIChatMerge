@@ -22,7 +22,7 @@ import {
 
 
 // ===== State Management =====
-let currentLayout = '2x2';
+let currentLayout = '1x3';
 let panels = []; // Array of { id, providerId, iframe, state }
 let uploadedImages = []; // Array of uploaded images { id, name, type, dataUrl }
 
@@ -34,8 +34,8 @@ let currentOpenMode = 'tab'; // 'tab' 或 'popup'
 let isPopupWindow = false;   // 当前窗口是否为弹出窗口
 
 // Default panel configuration
-const DEFAULT_PROVIDERS = ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi'];
-const MAX_PANELS = 9;
+const DEFAULT_PROVIDERS = ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google'];
+const MAX_PANELS = 7;
 const PENDING_MULTI_PANEL_ACTION_KEY = 'pendingMultiPanelAction';
 const LAYOUT_PANEL_COUNTS = {
   '1x1': 1,
@@ -48,13 +48,17 @@ const LAYOUT_PANEL_COUNTS = {
   '2x1': 2,
   '2x2': 4,
   '2x3': 6,
-  '2x4': 8,
   '3x1': 3,
-  '3x2': 6,
-  '3x3': 9,
-  '4x2': 8
+  '3x2': 6
 };
 let isInitialized = false;
+
+function normalizeLayout(layout) {
+  if (LAYOUT_PANEL_COUNTS[layout]) {
+    return layout;
+  }
+  return '1x3';
+}
 
 // ===== Initialization =====
 async function init() {
@@ -178,7 +182,7 @@ async function loadSettings() {
       openMode: 'tab'
     });
 
-    currentLayout = settings.multiPanelLayout;
+    currentLayout = normalizeLayout(settings.multiPanelLayout);
     currentOpenMode = settings.openMode || 'tab';
 
     // Apply layout
@@ -310,7 +314,7 @@ async function restoreStateIfNeeded() {
 
       // 恢复布局
       if (state.currentLayout) {
-        currentLayout = state.currentLayout;
+        currentLayout = normalizeLayout(state.currentLayout);
         const panelGrid = document.getElementById('panel-grid');
         if (panelGrid) {
           panelGrid.className = `layout-${currentLayout}`;

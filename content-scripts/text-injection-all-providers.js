@@ -38,14 +38,6 @@
       'textarea[aria-label*="Search"]',
       'input[aria-label*="Search"]',
       'textarea[maxlength="8192"]'
-    ],
-    // Copilot uses textarea with id="userInput" or data-testid="composer-input"
-    copilot: ['textarea#userInput', 'textarea[data-testid="composer-input"]', 'textarea[placeholder*="Message Copilot"]'],
-    perplexity: [
-      'textarea[placeholder*="Ask"]',
-      'textarea[placeholder*="anything"]',
-      'div[contenteditable="true"]',
-      'textarea'
     ]
   };
 
@@ -57,9 +49,7 @@
     grok: true,
     deepseek: true,
     kimi: true,  // Kimi supports images
-    google: true,  // Google AI Mode supports images
-    copilot: true,
-    perplexity: true
+    google: true  // Google AI Mode supports images
   };
 
   // Provider-specific file input selectors for image upload
@@ -70,9 +60,7 @@
     grok: ['input[type="file"]'],
     deepseek: ['input[type="file"]'],
     kimi: ['input[type="file"]'],
-    google: ['input[type="file"]'],
-    copilot: ['input[type="file"]'],
-    perplexity: ['input[type="file"]']
+    google: ['input[type="file"]']
   };
 
   // Provider-specific upload button selectors (to click before file input)
@@ -83,9 +71,7 @@
     grok: [],
     deepseek: [],
     kimi: [],  // Kimi supports drag-drop for images
-    google: ['button[aria-label="Add image"]'],
-    copilot: ['button[aria-label="Attach file"]'],
-    perplexity: ['button[aria-label*="Attach"]', 'button[aria-label*="Upload"]']
+    google: ['button[aria-label="Add image"]']
   };
 
   // Provider-specific send button selectors
@@ -139,16 +125,6 @@
       'button[aria-label="Send"]',
       'button[type="submit"]',
       'form button[jsname]'
-    ],
-    copilot: [
-      'button[aria-label="Submit"]',
-      'button[aria-label="Send"]',
-      'button[data-testid="send-button"]'
-    ],
-    perplexity: [
-      'button[aria-label="Submit"]',
-      'button[aria-label="Send"]',
-      'button[type="submit"]'
     ]
   };
 
@@ -195,16 +171,6 @@
       'button[aria-label="New search"]',
       'a[aria-label="Google"]',
       'a[href^="/search"][href*="udm="]'
-    ],
-    copilot: [
-      'button[aria-label*="New topic"]',
-      'button[aria-label*="New chat"]',
-      'a[href*="new"]'
-    ],
-    perplexity: [
-      'a[href="/"]',
-      'button[aria-label*="New"]',
-      'a[href*="new"]'
     ]
   };
 
@@ -216,9 +182,7 @@
     grok: 'https://grok.com/',
     deepseek: 'https://chat.deepseek.com/',
     kimi: 'https://www.kimi.com/',
-    google: 'https://www.google.com/search?udm=50',
-    copilot: 'https://copilot.microsoft.com/',
-    perplexity: 'https://www.perplexity.ai/'
+    google: 'https://www.google.com/search?udm=50'
   };
 
   // Detect which provider we're on based on hostname
@@ -244,10 +208,6 @@
       // Always return 'google' for any google.com page
       // The handleGoogleNewSearch will navigate to homepage which works for all cases
       return 'google';
-    } else if (hostname.includes('copilot.microsoft.com') || hostname.includes('bing.com/chat')) {
-      return 'copilot';
-    } else if (hostname.includes('perplexity.ai')) {
-      return 'perplexity';
     }
     return null;
   }
