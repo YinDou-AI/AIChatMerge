@@ -39,6 +39,28 @@ function getAutoAdjustedLayout(currentLayout, newPanelCount) {
   return null; // 已达上限，无法自动调整
 }
 
+// New auto-shrink function (from multi-panel.js)
+function getAutoShrunkLayout(currentLayout, newPanelCount) {
+  // Only handle 1xN layouts (consistent with auto-expand behavior)
+  const match = currentLayout.match(/^1x(\d)$/);
+  if (!match) return null;
+
+  const currentCols = parseInt(match[1]);
+
+  // No need to shrink if panel count already matches or exceeds column count
+  if (newPanelCount >= currentCols) return null;
+
+  // Shrink to match panel count (minimum 1x1)
+  const targetCols = Math.max(newPanelCount, 1);
+  const targetLayout = `1x${targetCols}`;
+
+  if (LAYOUT_PANEL_COUNTS[targetLayout]) {
+    return targetLayout;
+  }
+
+  return null;
+}
+
 describe('Layout Auto-Adjust', () => {
   describe('getAutoAdjustedLayout', () => {
     describe('1xN layout sequence', () => {
@@ -107,6 +129,81 @@ describe('Layout Auto-Adjust', () => {
         expect(getAutoAdjustedLayout('invalid', 3)).toBeNull();
         expect(getAutoAdjustedLayout('', 3)).toBeNull();
         expect(getAutoAdjustedLayout('1x10', 11)).toBeNull();
+      });
+    });
+  });
+
+  describe('getAutoShrunkLayout', () => {
+    describe('1xN layout sequence', () => {
+      it('should shrink from 1x3 to 1x2 when removing panel (3 -> 2)', () => {
+        expect(getAutoShrunkLayout('1x3', 2)).toBe('1x2');
+      });
+
+      it('should shrink from 1x2 to 1x1 when removing panel (2 -> 1)', () => {
+        expect(getAutoShrunkLayout('1x2', 1)).toBe('1x1');
+      });
+
+      it('should shrink from 1x4 to 1x3 when removing panel (3 panels remain)', () => {
+        expect(getAutoShrunkLayout('1x4', 3)).toBe('1x3');
+      });
+
+      it('should shrink from 1x5 to 1x4 when removing panel (4 panels remain)', () => {
+        expect(getAutoShrunkLayout('1x5', 4)).toBe('1x4');
+      });
+
+      it('should shrink from 1x6 to 1x5 when removing panel (5 panels remain)', () => {
+        expect(getAutoShrunkLayout('1x6', 5)).toBe('1x5');
+      });
+
+      it('should shrink from 1x7 to 1x6 when removing panel (6 panels remain)', () => {
+        expect(getAutoShrunkLayout('1x7', 6)).toBe('1x6');
+      });
+    });
+
+    describe('no shrink needed', () => {
+      it('should NOT shrink when panel count matches column count', () => {
+        expect(getAutoShrunkLayout('1x3', 3)).toBeNull();
+        expect(getAutoShrunkLayout('1x2', 2)).toBeNull();
+        expect(getAutoShrunkLayout('1x1', 1)).toBeNull();
+      });
+
+      it('should NOT shrink when panel count exceeds column count', () => {
+        // e.g., in 1x2 layout but has 3 panels (should not happen in practice)
+        expect(getAutoShrunkLayout('1x2', 3)).toBeNull();
+        expect(getAutoShrunkLayout('1x3', 4)).toBeNull();
+      });
+
+      it('should maintain minimum 1x1 layout', () => {
+        // Already at minimum, can't shrink further
+        expect(getAutoShrunkLayout('1x1', 1)).toBeNull();
+      });
+    });
+
+    describe('non-1xN layouts', () => {
+      it('should return null for 2xN layouts (no auto-shrink)', () => {
+        expect(getAutoShrunkLayout('2x2', 2)).toBeNull();
+        expect(getAutoShrunkLayout('2x3', 4)).toBeNull();
+      });
+
+      it('should return null for 3xN layouts (no auto-shrink)', () => {
+        expect(getAutoShrunkLayout('3x1', 2)).toBeNull();
+        expect(getAutoShrunkLayout('3x2', 5)).toBeNull();
+      });
+    });
+
+    describe('edge cases', () => {
+      it('should return null for invalid layouts', () => {
+        expect(getAutoShrunkLayout('invalid', 2)).toBeNull();
+        expect(getAutoShrunkLayout('', 1)).toBeNull();
+        expect(getAutoShrunkLayout('2x1', 1)).toBeNull();
+      });
+
+      it('should shrink to 1x1 when going from 2 panels to 1', () => {
+        expect(getAutoShrunkLayout('1x2', 1)).toBe('1x1');
+      });
+
+      it('should shrink to 1x1 when going from 3 panels to 1', () => {
+        expect(getAutoShrunkLayout('1x3', 1)).toBe('1x1');
       });
     });
   });

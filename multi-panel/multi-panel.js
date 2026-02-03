@@ -397,6 +397,34 @@ function getAutoAdjustedLayout(currentLayout, newPanelCount) {
   return null; // 已达上限，无法自动调整
 }
 
+/**
+ * Calculates whether layout shrink is needed based on current layout and panel count
+ * Only auto-shrinks columns in 1xN layout sequence
+ * @param {string} currentLayout - Current layout, e.g., '1x3'
+ * @param {number} newPanelCount - Total panel count after removing
+ * @returns {string|null} - New layout name, or null if no adjustment needed
+ */
+function getAutoShrunkLayout(currentLayout, newPanelCount) {
+  // Only handle 1xN layouts (consistent with auto-expand behavior)
+  const match = currentLayout.match(/^1x(\d)$/);
+  if (!match) return null;
+
+  const currentCols = parseInt(match[1]);
+
+  // No need to shrink if panel count already matches or exceeds column count
+  if (newPanelCount >= currentCols) return null;
+
+  // Shrink to match panel count (minimum 1x1)
+  const targetCols = Math.max(newPanelCount, 1);
+  const targetLayout = `1x${targetCols}`;
+
+  if (LAYOUT_PANEL_COUNTS[targetLayout]) {
+    return targetLayout;
+  }
+
+  return null;
+}
+
 async function addPanel(providerId) {
   if (panels.length >= MAX_PANELS) {
     showToast('Maximum number of panels reached (9)');
@@ -517,6 +545,22 @@ function removePanel(panelId) {
 
   // Remove from array
   panels.splice(panelIndex, 1);
+
+  // Auto-shrink layout if applicable
+  const shrunkLayout = getAutoShrunkLayout(currentLayout, panels.length);
+  if (shrunkLayout) {
+    currentLayout = shrunkLayout;
+    const panelGrid = document.getElementById('panel-grid');
+    panelGrid.className = `layout-${shrunkLayout}`;
+
+    // Update layout button states
+    document.querySelectorAll('.layout-option').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.layout === shrunkLayout);
+    });
+
+    // Save configuration with the new layout
+    saveProviderConfiguration();
+  }
 
   // Update selectors
   updatePanelSelectors();
