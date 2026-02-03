@@ -264,7 +264,7 @@
     "message": "Informazioni"
   },
   "labelVersion": {
-    "message": "Versione"
+    "message": "Versione $1"
   },
   "labelBuild": {
     "message": "Build"

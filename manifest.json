@@ -9,8 +9,7 @@
     "storage",
     "contextMenus",
     "declarativeNetRequest",
-    "declarativeNetRequestWithHostAccess",
-    "downloads"
+    "declarativeNetRequestWithHostAccess"
   ],
 
   "host_permissions": [
@@ -22,20 +21,10 @@
     "*://chat.deepseek.com/*",
     "*://www.kimi.com/*",
     "*://kimi.com/*",
-    "*://www.perplexity.ai/*",
-    "*://perplexity.ai/*",
     "*://www.google.com/*",
     "*://google.com/*",
-    "*://copilot.microsoft.com/*",
-    "*://www.bing.com/*",
-    "*://bing.com/*",
-    "*://api.github.com/*"
-  ],
-
-  "optional_host_permissions": [
-    "*://localhost/*",
-    "*://127.0.0.1/*",
-    "*://*/*"
+    "*://api.github.com/*",
+    "*://raw.githubusercontent.com/*"
   ],
 
   "background": {
@@ -157,33 +146,10 @@
       "all_frames": true
     },
     {
-      "matches": ["https://www.perplexity.ai/*"],
-      "js": [
-        "content-scripts/enter-behavior-utils.js",
-        "content-scripts/enter-behavior-perplexity.js",
-        "content-scripts/focus-toggle.js"
-      ],
-      
-      "run_at": "document_end",
-      "all_frames": true
-    },
-    {
       "matches": ["https://www.google.com/search*"],
       "js": [
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-google.js",
-        "content-scripts/text-injection-all-providers.js",
-        "content-scripts/focus-toggle.js"
-      ],
-      
-      "run_at": "document_end",
-      "all_frames": true
-    },
-    {
-      "matches": ["https://copilot.microsoft.com/*", "https://www.bing.com/chat*", "https://bing.com/chat*"],
-      "js": [
-        "content-scripts/enter-behavior-utils.js",
-        "content-scripts/enter-behavior-copilot.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],

@@ -12,7 +12,7 @@
     "message": "打开提示词库"
   },
   "actionDefaultTitle": {
-    "message": "打开 insidebar.ai"
+    "message": "打开 Panelize"
   },
   "settingsTitle": {
     "message": "设置： Panelize"
@@ -264,7 +264,7 @@
     "message": "关于"
   },
   "labelVersion": {
-    "message": "版本"
+    "message": "版本 $1"
   },
   "labelBuild": {
     "message": "构建"

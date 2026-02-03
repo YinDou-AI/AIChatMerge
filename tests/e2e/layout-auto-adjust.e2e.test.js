@@ -14,7 +14,7 @@ test.describe('Layout Auto-Adjust E2E', () => {
   test.beforeAll(async () => {
     // Launch Chrome with extension loaded
     const launchOptions = {
-      headless: false,
+      headless: process.env.PLAYWRIGHT_HEADLESS !== 'false',
       args: [
         `--disable-extensions-except=${EXTENSION_PATH}`,
         `--load-extension=${EXTENSION_PATH}`,
@@ -118,7 +118,7 @@ test.describe('Layout Auto-Adjust E2E', () => {
     expect(result.panels).toBe(3);
   });
 
-  test('Test 5: should continue upgrading through 1x4, 1x5, 1x6', async () => {
+  test('Test 5: should continue upgrading through 1x4, 1x5, 1x6, 1x7', async () => {
     // Add 2 panels first (to reach capacity of 1x2)
     for (let i = 0; i < 2; i++) {
       await page.click('#add-panel-btn');
@@ -130,7 +130,8 @@ test.describe('Layout Auto-Adjust E2E', () => {
       { fromLayout: '1x2', toLayout: '1x3' },
       { fromLayout: '1x3', toLayout: '1x4' },
       { fromLayout: '1x4', toLayout: '1x5' },
-      { fromLayout: '1x5', toLayout: '1x6' }
+      { fromLayout: '1x5', toLayout: '1x6' },
+      { fromLayout: '1x6', toLayout: '1x7' }
     ];
     
     for (const expected of expectedUpgrades) {
@@ -147,31 +148,31 @@ test.describe('Layout Auto-Adjust E2E', () => {
       expect(result.layout).toBe(expected.toLayout);
     }
     
-    // Final state should be 1x6 with 6 panels
+    // Final state should be 1x7 with 7 panels
     const finalResult = await page.evaluate(() => ({
       layout: window.getCurrentLayout(),
       panels: window.getPanelCount()
     }));
-    expect(finalResult.layout).toBe('1x6');
-    expect(finalResult.panels).toBe(6);
+    expect(finalResult.layout).toBe('1x7');
+    expect(finalResult.panels).toBe(7);
   });
 
-  test('Test 6: should stop at 1x6 maximum', async () => {
-    // Add 6 panels
-    for (let i = 0; i < 6; i++) {
+  test('Test 6: should stop at 1x7 maximum', async () => {
+    // Add 7 panels
+    for (let i = 0; i < 7; i++) {
       await page.click('#add-panel-btn');
       await page.waitForTimeout(300);
     }
     
-    // Verify at 1x6 with 6 panels
+    // Verify at 1x7 with 7 panels
     let result = await page.evaluate(() => ({
       layout: window.getCurrentLayout(),
       panels: window.getPanelCount()
     }));
-    expect(result.layout).toBe('1x6');
-    expect(result.panels).toBe(6);
+    expect(result.layout).toBe('1x7');
+    expect(result.panels).toBe(7);
     
-    // Try to add 7th panel (should fail with alert)
+    // Try to add 8th panel (should fail with alert)
     page.on('dialog', async dialog => {
       expect(dialog.message()).toContain('Maximum');
       await dialog.accept();
@@ -180,13 +181,13 @@ test.describe('Layout Auto-Adjust E2E', () => {
     await page.click('#add-panel-btn');
     await page.waitForTimeout(500);
     
-    // Should still be 1x6 with 6 panels
+    // Should still be 1x7 with 7 panels
     result = await page.evaluate(() => ({
       layout: window.getCurrentLayout(),
       panels: window.getPanelCount()
     }));
-    expect(result.layout).toBe('1x6');
-    expect(result.panels).toBe(6);
+    expect(result.layout).toBe('1x7');
+    expect(result.panels).toBe(7);
   });
 
   test('Test 7: clear should reset to 1x2', async () => {

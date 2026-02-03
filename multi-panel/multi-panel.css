@@ -346,24 +346,6 @@ body {
   grid-template-rows: 1fr 1fr 1fr;
 }
 
-/* 2x4 网格 - 8 panels */
-.layout-2x4 {
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-/* 3x3 网格 - 9 panels */
-.layout-3x3 {
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
-}
-
-/* 4x2 网格 - 8 panels */
-.layout-4x2 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr 1fr;
-}
-
 .layout-3x2 {
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr;
@@ -955,21 +937,6 @@ body {
 .layout-2x3-preview {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
-}
-
-.layout-2x4-preview {
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-.layout-3x3-preview {
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
-}
-
-.layout-4x2-preview {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr 1fr;
 }
 
 .layout-3x2-preview {

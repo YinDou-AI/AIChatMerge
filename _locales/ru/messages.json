@@ -264,7 +264,7 @@
     "message": "О расширении"
   },
   "labelVersion": {
-    "message": "Версия"
+    "message": "Версия $1"
   },
   "labelBuild": {
     "message": "Сборка"

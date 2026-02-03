@@ -1,12 +1,12 @@
-# Privacy Policy for insidebar.ai
+# Privacy Policy for Panelize
 
-**Last Updated: October 19, 2025**
+**Last Updated: February 3, 2026**
 
 ## Overview
 
-insidebar.ai is committed to protecting your privacy. This privacy policy explains what data the extension collects, how it's used, and your control over it.
+Panelize is committed to protecting your privacy. This privacy policy explains what data the extension collects, how it's used, and your control over it.
 
-**In short:** insidebar.ai stores all data locally on your device. We do not collect, transmit, or sell any of your personal information to third parties or external servers.
+**In short:** Panelize stores all data locally on your device. We do not collect, transmit, or sell any of your personal information to third parties or external servers.
 
 ---
 
@@ -43,7 +43,7 @@ All of the following data is stored **exclusively in your browser's local storag
 
 ### 2. Data We Do NOT Collect
 
-insidebar.ai does **NOT** collect, store, or transmit:
+Panelize does **NOT** collect, store, or transmit:
 
 - ❌ Personal identification information
 - ❌ Browsing history
@@ -58,13 +58,14 @@ insidebar.ai does **NOT** collect, store, or transmit:
 
 ## How We Use Your Data
 
-All data collected by insidebar.ai is used solely for providing extension functionality on your local device:
+All data collected by Panelize is used solely for providing extension functionality on your local device:
 
 1. **Prompt Library:** Store and organize your saved prompts for reuse
 2. **Settings:** Remember your preferences between sessions
-4. **Quick Access:** Show recently used prompts and maintain provider state
+3. **Quick Access:** Show recently used prompts and maintain provider state
+4. **Context Menu Send:** When you use the right-click menu without selecting text, Panelize temporarily extracts page content locally to format the prompt you send. This content is not stored and is only sent to the AI provider you choose.
 
-**No data is transmitted to insidebar.ai developers or any third-party servers.**
+**No data is transmitted to Panelize developers or any third-party servers.**
 
 ---
 
@@ -72,24 +73,21 @@ All data collected by insidebar.ai is used solely for providing extension functi
 
 ### AI Provider Websites
 
-insidebar.ai loads AI provider websites (ChatGPT, Claude, Gemini, Google AI, Grok, DeepSeek) in an iframe within the sidebar. These providers operate under their own privacy policies:
+Panelize loads AI provider websites (ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, and Google AI Mode) inside embedded panels. These providers operate under their own privacy policies.
 
-- **ChatGPT/OpenAI:** https://openai.com/policies/privacy-policy
-- **Claude/Anthropic:** https://www.anthropic.com/privacy
-- **Gemini/Google:** https://policies.google.com/privacy
-- **Grok/xAI:** https://x.ai/legal/privacy-policy
-- **DeepSeek:** https://www.deepseek.com/privacy-policy
-
-When you interact with these AI providers through the sidebar, you are subject to their respective privacy policies. insidebar.ai does not intercept, modify, or access the content of your conversations with these services.
+When you interact with these AI providers through Panelize, you are subject to their respective privacy policies. Panelize does not intercept or store the content of your conversations with these services.
 
 ### Cookie Access
 
-insidebar.ai accesses your existing browser cookies for AI provider websites to maintain login sessions in the sidebar. This allows the extension to load AI providers without requiring separate logins.
+Panelize does not access cookie data directly and does not use the cookies API. Provider websites may use your existing browser session cookies when they load inside panels, just like in a normal tab.
 
-**Important:**
-- The extension does not create, modify, or transmit cookies
-- Cookies remain in your browser and are managed by the AI providers
-- The extension only reads existing cookies to maintain authenticated sessions
+### Update Checks
+
+Panelize can check for updates by requesting version information from GitHub (api.github.com and raw.githubusercontent.com). These requests are made only to GitHub and do not include your prompts, settings, or any content you send to AI providers.
+
+### UI Assets
+
+Panelize loads the Material Symbols font from Google Fonts for UI icons. This request is made directly to Google Fonts.
 
 ---
 
@@ -130,19 +128,19 @@ Go to Settings → Data Management → Export to download all your prompts and s
 - **Complete Reset:** Settings → Data Management → Reset All Data
 
 ### No Account Required
-insidebar.ai does not require creating an account. All functionality works without registration, login, or providing any personal information.
+Panelize does not require creating an account. All functionality works without registration, login, or providing any personal information.
 
 ---
 
 ## Children's Privacy
 
-insidebar.ai does not knowingly collect any information from children under 13. The extension is designed for general use and does not target children. If you are under 13, please do not use this extension without parental supervision.
+Panelize does not knowingly collect any information from children under 13. The extension is designed for general use and does not target children. If you are under 13, please do not use this extension without parental supervision.
 
 ---
 
 ## Changes to This Privacy Policy
 
-We may update this privacy policy from time to time. Changes will be reflected in the "Last Updated" date at the top of this document. Continued use of insidebar.ai after changes constitutes acceptance of the updated policy.
+We may update this privacy policy from time to time. Changes will be reflected in the "Last Updated" date at the top of this document. Continued use of Panelize after changes constitutes acceptance of the updated policy.
 
 Significant changes will be announced via:
 - GitHub repository changelog
@@ -152,25 +150,25 @@ Significant changes will be announced via:
 
 ## Permissions Explained
 
-insidebar.ai requests the following Chrome extension permissions:
+Panelize requests the following Chrome extension permissions:
 
 | Permission | Purpose |
 |------------|---------|
-| `sidePanel` | Display AI providers in the browser sidebar |
 | `storage` | Store your prompts and settings locally |
-| `contextMenus` | Add "Send to insidebar.ai" option when right-clicking |
-| `declarativeNetRequest` | Allow AI provider websites to load in the sidebar (bypass X-Frame-Options) |
+| `contextMenus` | Add "Send to Panelize" option when right-clicking |
+| `declarativeNetRequest` | Allow AI provider websites to load in embedded panels (bypass X-Frame-Options) |
 | `declarativeNetRequestWithHostAccess` | Apply header modifications for specific AI provider domains |
-| `management` | Detect installation type (Chrome Web Store vs manual) to show/hide update checking |
-| Host permissions | Access AI provider websites to load them in the sidebar |
+| Host permissions | Access AI provider websites, and check for updates on GitHub |
 
 **None of these permissions are used to collect, transmit, or share your data with external parties.**
+
+Panelize also exposes a small set of bundled, non-user resources (such as default prompt libraries and UI assets) as web-accessible so content scripts can load them. These resources contain no personal data.
 
 ---
 
 ## Open Source Transparency
 
-insidebar.ai is fully open source. You can review the complete source code at:
+Panelize is fully open source. You can review the complete source code at:
 
 **GitHub Repository:** https://github.com/Manho/Panelize
 
@@ -184,7 +182,7 @@ This allows you to:
 
 ## Contact Information
 
-If you have questions or concerns about this privacy policy or how insidebar.ai handles data:
+If you have questions or concerns about this privacy policy or how Panelize handles data:
 
 - **GitHub Issues:** https://github.com/Manho/Panelize/issues
 - **Project Maintainer:** [Xiaolai](https://github.com/xiaolai)
@@ -214,10 +212,12 @@ If you are a California resident:
 ✅ **What we do:**
 - Store your prompts and settings locally on your device
 - Use local browser storage to remember your preferences
-- Access AI provider cookies to maintain login sessions in the sidebar
+- Temporarily process selected text or page content on-device when you use the context menu
+- Load AI provider websites inside embedded panels
+- Check for updates on GitHub
 
 ❌ **What we don't do:**
-- Collect or transmit any data to external servers
+- Send your prompts or settings to Panelize servers
 - Track your usage or behavior
 - Sell or share your data with third parties
 - Access your AI conversations
@@ -227,4 +227,4 @@ If you are a California resident:
 
 ---
 
-*This privacy policy is effective as of October 19, 2025 and applies to insidebar.ai version 1.6.0 and later.*
+*This privacy policy is effective as of February 3, 2026 and applies to Panelize version 1.0.0 and later.*

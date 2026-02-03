@@ -14,7 +14,7 @@ import {
   checkForUpdates
 } from '../modules/version-checker.js';
 import { t, translatePage, getCurrentLanguage, initializeLanguage } from '../modules/i18n.js';
-const DEFAULT_ENABLED_PROVIDERS = ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'google'];
+const DEFAULT_ENABLED_PROVIDERS = ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google'];
 
 // Helper function to get browser's current language in our supported format
 function getCurrentBrowserLanguage() {
@@ -571,7 +571,9 @@ function setupEventListeners() {
   if (multiPanelLayoutSelect) {
     // Load saved layout
     chrome.storage.sync.get({ multiPanelLayout: '1x3' }, (result) => {
-      multiPanelLayoutSelect.value = result.multiPanelLayout;
+      const storedLayout = result.multiPanelLayout;
+      const hasOption = Array.from(multiPanelLayoutSelect.options).some(option => option.value === storedLayout);
+      multiPanelLayoutSelect.value = hasOption ? storedLayout : '1x3';
     });
 
     multiPanelLayoutSelect.addEventListener('change', async (e) => {

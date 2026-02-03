@@ -32,6 +32,7 @@
     .layout-1x4 { grid-template-columns: repeat(4, 1fr); }
     .layout-1x5 { grid-template-columns: repeat(5, 1fr); }
     .layout-1x6 { grid-template-columns: repeat(6, 1fr); }
+    .layout-1x7 { grid-template-columns: repeat(7, 1fr); }
     .layout-2x1 { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
     .layout-2x2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
     
@@ -100,6 +101,7 @@
       <option value="gemini">Gemini</option>
       <option value="grok">Grok</option>
       <option value="deepseek">DeepSeek</option>
+      <option value="kimi">Kimi</option>
       <option value="google">Google</option>
     </select>
     <button id="add-panel-btn">Add Panel</button>
@@ -108,17 +110,17 @@
   
   <div class="status">
     Current Layout: <span id="current-layout" class="current-layout">1x2</span> | 
-    Panels: <span id="panel-count">0</span>/6
+    Panels: <span id="panel-count">0</span>/7
   </div>
 
   <script>
     // LAYOUT_PANEL_COUNTS constant
     const LAYOUT_PANEL_COUNTS = {
-      '1x1': 1, '1x2': 2, '1x3': 3, '1x4': 4, '1x5': 5, '1x6': 6,
+      '1x1': 1, '1x2': 2, '1x3': 3, '1x4': 4, '1x5': 5, '1x6': 6, '1x7': 7,
       '2x1': 2, '2x2': 4, '2x3': 6, '3x1': 3, '3x2': 6
     };
     
-    const MAX_PANELS = 6;
+    const MAX_PANELS = 7;
     let currentLayout = '1x2';
     let panels = [];
     
@@ -151,7 +153,7 @@
     
     function addPanel(providerId) {
       if (panels.length >= MAX_PANELS) {
-        alert('Maximum number of panels reached (6)');
+        alert('Maximum number of panels reached (7)');
         return;
       }
       

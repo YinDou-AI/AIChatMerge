@@ -264,7 +264,7 @@
     "message": "について"
   },
   "labelVersion": {
-    "message": "バージョン"
+    "message": "バージョン $1"
   },
   "labelBuild": {
     "message": "ビルド"

@@ -47,18 +47,6 @@ function findProviderInput() {
            document.querySelector('textarea.ds-scroll-area');
   }
 
-  // Perplexity
-  if (host.includes('perplexity.ai')) {
-    return document.querySelector('#ask-input[data-lexical-editor="true"]') ||
-           document.querySelector('div[data-lexical-editor="true"][role="textbox"]');
-  }
-
-  // Copilot
-  if (host.includes('copilot.microsoft.com') || host.includes('bing.com')) {
-    return document.querySelector('#userInput') ||
-           document.querySelector('textarea[data-testid="composer-input"]');
-  }
-
   // Generic fallback: find any visible textarea or contenteditable
   const textarea = document.querySelector('textarea:not([hidden])');
   if (textarea && textarea.offsetParent !== null) return textarea;
