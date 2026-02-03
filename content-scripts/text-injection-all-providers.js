@@ -575,6 +575,34 @@
 
   // ===== Image Injection Functions =====
 
+  // Helper function to inject text into provider's input field
+  function injectText(provider, text, autoSubmit) {
+    const selectors = PROVIDER_SELECTORS[provider];
+    if (!selectors) {
+      console.warn('[Text Injection] No selectors for provider:', provider);
+      return false;
+    }
+
+    for (const selector of selectors) {
+      const element = findTextInputElement(selector);
+      if (element) {
+        const success = injectTextIntoElement(element, text);
+        if (success) {
+          console.log('[Text Injection] Text injected via injectText helper for', provider);
+          if (autoSubmit) {
+            // Use longer delay for DeepSeek/Kimi to ensure DOM is ready
+            const delay = (provider === 'deepseek' || provider === 'kimi') ? 800 : 500;
+            setTimeout(() => clickSendButton(provider), delay);
+          }
+          return true;
+        }
+      }
+    }
+
+    console.warn('[Text Injection] No input element found for provider:', provider);
+    return false;
+  }
+
   // Handle image injection message
   async function handleImageInjection(event) {
     const { text, images, autoSubmit } = event.data;
@@ -989,8 +1017,45 @@
               element.dispatchEvent(new Event('input', { bubbles: true }));
             } else {
               // For contenteditable elements
-              element.textContent = '';
-              element.dispatchEvent(new Event('input', { bubbles: true }));
+              element.focus();
+
+              // Special handling for Kimi (Lexical editor): simulate Ctrl+A + Backspace
+              // Lexical maintains internal state, so we must use keyboard events
+              if (provider === 'kimi') {
+                // Dispatch Ctrl+A (Select All)
+                element.dispatchEvent(new KeyboardEvent('keydown', {
+                  key: 'a',
+                  code: 'KeyA',
+                  keyCode: 65,
+                  which: 65,
+                  ctrlKey: true,
+                  metaKey: true,  // For Mac
+                  bubbles: true,
+                  cancelable: true
+                }));
+
+                // Use execCommand to select all (works with Lexical)
+                document.execCommand('selectAll', false, null);
+
+                // Small delay then delete
+                setTimeout(() => {
+                  element.dispatchEvent(new KeyboardEvent('keydown', {
+                    key: 'Backspace',
+                    code: 'Backspace',
+                    keyCode: 8,
+                    which: 8,
+                    bubbles: true,
+                    cancelable: true
+                  }));
+                  document.execCommand('delete', false, null);
+                  element.dispatchEvent(new Event('input', { bubbles: true }));
+                }, 10);
+              } else {
+                element.innerHTML = '';
+                // Trigger multiple events for React/Vue compatibility
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+                element.dispatchEvent(new Event('change', { bubbles: true }));
+              }
             }
             console.log('[Text Injection] Input cleared for', provider);
             break;
