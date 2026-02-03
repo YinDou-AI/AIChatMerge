@@ -1,12 +1,12 @@
 # Panelize
 
-> Compare AI chatbots side-by-side. ChatGPT, Claude, Gemini, Grok, DeepSeek, Google AI Mode—all in one window.
+> Compare AI chatbots side-by-side. ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Copilot, Perplexity, Google AI Mode—all in one window.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Languages](https://img.shields.io/badge/languages-10-brightgreen.svg)
 
-**Compare multiple AI assistants simultaneously without juggling tabs.** Open a dedicated window, choose your layout, and chat with 2-6 AI providers at once with synchronized input.
+**Compare multiple AI assistants simultaneously without juggling tabs.** Open a dedicated window, choose your layout, and chat with 1-8 AI providers at once with synchronized input.
 
 ---
 
@@ -28,9 +28,10 @@
 
 ### Multi-Panel Layout
 
-Use 1-6 AI chatbots side-by-side with flexible grid layouts:
-- 1×1 to 1×6 (single row)
-- 2×1 to 2×3 (two rows)
+Use 1-8 AI chatbots side-by-side with flexible grid layouts:
+- 1×1 to 1×7 (single row)
+- 2×1 to 2×4 (two rows)
+- 3×1 to 3×2 (three rows)
 
 Each panel runs independently, so you can compare responses from different AI providers to the same question.
 
@@ -41,9 +42,9 @@ Type once, send to all panels simultaneously. The unified input bar at the botto
 - Compare how different AIs respond to identical queries
 - Save time when researching or fact-checking
 
-### 6 AI Providers
+### 9 AI Providers
 
-Access ChatGPT, Claude, Gemini, Grok, DeepSeek, and Google AI Mode—all from one window.
+Access ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Copilot, Perplexity, and Google AI Mode—all from one window.
 
 ### Prompt Library
 
@@ -53,15 +54,6 @@ Save, organize, and reuse your best prompts across any AI provider.
 - **Variables Support**: Create dynamic templates with `{placeholders}` for quick customization
 - **Search & Filter**: Find prompts instantly by keyword or favorite status
 - **Import/Export**: Share prompt libraries or back up your collection
-
-### Chat History
-
-Save important conversations from any AI provider. Never lose a valuable discussion.
-
-- **Universal Saving**: Works with all supported providers
-- **Full Markdown Rendering**: Conversations display beautifully with code highlighting
-- **Search & Filter**: Find conversations by provider or content
-- **Original Links**: Access the original conversation URL anytime
 
 ### Keyboard Shortcuts
 
@@ -143,7 +135,10 @@ Enable only the AI providers you use. Customize which ones appear in your panels
 | **Gemini** | https://gemini.google.com |
 | **Grok** | https://grok.com |
 | **DeepSeek** | https://chat.deepseek.com |
-| **Google AI Mode** | https://google.com (AI Mode) |
+| **Kimi** | https://www.kimi.com |
+| **Copilot** | https://copilot.microsoft.com |
+| **Perplexity** | https://www.perplexity.ai |
+| **Google AI Mode** | https://www.google.com (AI Mode) |
 
 **No API keys required.** Just log into the providers you want to use in your browser, and Panelize will use those existing sessions.
 
@@ -160,7 +155,7 @@ Enable only the AI providers you use. Customize which ones appear in your panels
    Click the extension icon in your toolbar, or press `Cmd+Shift+E` (Mac) / `Ctrl+Shift+E` (Windows/Linux).
 
 3. **Choose your layout**
-   Select how many panels you want (2-6) and arrange them in your preferred grid layout.
+   Select how many panels you want (1-8) and arrange them in your preferred grid layout.
 
 4. **Select providers for each panel**
    Click on each panel to choose which AI provider it should display.
@@ -184,12 +179,6 @@ Click "New Prompt", enter a title, content, and optional category/tags. Use `{va
 **Use a prompt:**
 Click any prompt to insert it. If it contains variables, you'll be prompted to fill them in.
 
-### Saving Chat History
-
-While viewing a conversation in any supported AI provider, click the save button that appears at the top of the chat interface.
-
-Access saved conversations anytime through the history panel.
-
 ### Customizing Keyboard Shortcuts
 
 **Chrome:** Navigate to `chrome://extensions/shortcuts`
@@ -202,9 +191,9 @@ After installing, you may need to confirm or assign shortcuts here before they w
 
 ## Privacy & Security
 
-**Your data stays local.** All prompts, settings, and saved conversations are stored in your browser's local storage. Nothing is sent to external servers.
+**Your data stays local.** Prompts and settings are stored in your browser's local storage. Panelize does not send your prompts or settings to its own servers. It may connect to GitHub for update checks and to Google Fonts for UI icons.
 
-**No API keys required.** The extension uses your existing browser login sessions. It loads the real AI websites in iframes using your cookies—just like opening them in new tabs.
+**No API keys required.** The extension uses your existing browser login sessions. It loads the real AI websites in iframes—just like opening them in new tabs.
 
 **No tracking.** The extension doesn't collect analytics, usage data, or any personal information.
 

@@ -9,8 +9,7 @@
     "storage",
     "contextMenus",
     "declarativeNetRequest",
-    "declarativeNetRequestWithHostAccess",
-    "downloads"
+    "declarativeNetRequestWithHostAccess"
   ],
 
   "host_permissions": [
@@ -29,13 +28,8 @@
     "*://copilot.microsoft.com/*",
     "*://www.bing.com/*",
     "*://bing.com/*",
-    "*://api.github.com/*"
-  ],
-
-  "optional_host_permissions": [
-    "*://localhost/*",
-    "*://127.0.0.1/*",
-    "*://*/*"
+    "*://api.github.com/*",
+    "*://raw.githubusercontent.com/*"
   ],
 
   "background": {

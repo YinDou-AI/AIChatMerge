@@ -48,6 +48,22 @@ export const PROVIDERS = [
     enabled: true
   },
   {
+    id: 'copilot',
+    name: 'Copilot',
+    url: 'https://copilot.microsoft.com',
+    icon: '/icons/providers/copilot.png',
+    iconDark: '/icons/providers/dark/copilot.png',
+    enabled: true
+  },
+  {
+    id: 'perplexity',
+    name: 'Perplexity',
+    url: 'https://www.perplexity.ai',
+    icon: '/icons/providers/perplexity.png',
+    iconDark: '/icons/providers/dark/perplexity.png',
+    enabled: true
+  },
+  {
     id: 'google',
     name: 'Google',
     url: 'https://www.google.com/search?udm=50',
