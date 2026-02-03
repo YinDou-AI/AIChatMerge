@@ -624,7 +624,9 @@ async function broadcastMessage(text, autoSubmit = true) {
   const fillBtn = document.getElementById('fill-input-btn');
   const statusEl = document.getElementById('send-status');
 
-  if (!text.trim() && uploadedImages.length === 0) {
+  const hasImages = uploadedImages.length > 0;
+
+  if (!text.trim() && !hasImages) {
     // If input is empty and autoSubmit is true, just trigger send buttons
     // (this happens when user clicks Fill first, then Send All)
     if (autoSubmit) {
@@ -635,11 +637,16 @@ async function broadcastMessage(text, autoSubmit = true) {
     return;
   }
 
+  // When images are present, always fill first without auto-submit
+  // User needs to click "Send All" again to actually send
+  // This gives users a chance to verify content before sending
+  const shouldAutoSubmit = hasImages ? false : autoSubmit;
+
   try {
     // Disable buttons during send
     sendBtn.disabled = true;
     fillBtn.disabled = true;
-    statusEl.textContent = autoSubmit ? 'Sending...' : 'Filling...';
+    statusEl.textContent = shouldAutoSubmit ? 'Sending...' : 'Filling...';
     statusEl.className = 'send-status';
 
     // Prepare images payload
@@ -651,7 +658,7 @@ async function broadcastMessage(text, autoSubmit = true) {
 
     // Send to all panels
     const panelResults = await Promise.allSettled(
-      panels.map(panel => sendToPanel(panel, text, imagesPayload, autoSubmit))
+      panels.map(panel => sendToPanel(panel, text, imagesPayload, shouldAutoSubmit))
     );
 
     // Count results (panels only)
@@ -662,17 +669,17 @@ async function broadcastMessage(text, autoSubmit = true) {
 
     // Update status
     if (failed === 0) {
-      statusEl.textContent = autoSubmit
+      statusEl.textContent = shouldAutoSubmit
         ? `Sent to ${totalSuccessful} AI${totalSuccessful > 1 ? 's' : ''}`
         : `Filled ${totalSuccessful} input${totalSuccessful > 1 ? 's' : ''}`;
       statusEl.className = 'send-status success';
     } else if (totalSuccessful > 0) {
-      statusEl.textContent = autoSubmit
+      statusEl.textContent = shouldAutoSubmit
         ? `Sent to ${totalSuccessful}/${totalCount}`
         : `Filled ${totalSuccessful}/${totalCount}`;
       statusEl.className = 'send-status partial';
     } else {
-      statusEl.textContent = autoSubmit ? 'Failed to send' : 'Failed to fill';
+      statusEl.textContent = shouldAutoSubmit ? 'Failed to send' : 'Failed to fill';
       statusEl.className = 'send-status error';
     }
 
