@@ -264,7 +264,7 @@
     "message": "Acerca de"
   },
   "labelVersion": {
-    "message": "Versión"
+    "message": "Versión $1"
   },
   "labelBuild": {
     "message": "Compilación"

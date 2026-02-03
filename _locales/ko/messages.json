@@ -264,7 +264,7 @@
     "message": "정보"
   },
   "labelVersion": {
-    "message": "버전"
+    "message": "버전 $1"
   },
   "labelBuild": {
     "message": "빌드"

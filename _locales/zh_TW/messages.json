@@ -264,7 +264,7 @@
     "message": "關於"
   },
   "labelVersion": {
-    "message": "版本"
+    "message": "版本 $1"
   },
   "labelBuild": {
     "message": "建置"
