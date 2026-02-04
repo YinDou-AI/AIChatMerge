@@ -30,8 +30,9 @@
 
 Use 1-7 AI chatbots side-by-side with flexible grid layouts:
 - 1×1 to 1×7 (single row)
-- 2×1 to 2×3 (two rows)
-- 3×1 to 3×2 (three rows)
+- 2×1 to 2×4 (two rows)
+- 3×1 to 3×3 (three rows)
+- 4×2 (four rows)
 
 Each panel runs independently, so you can compare responses from different AI providers to the same question.
 

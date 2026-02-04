@@ -48,8 +48,11 @@ const LAYOUT_PANEL_COUNTS = {
   '2x1': 2,
   '2x2': 4,
   '2x3': 6,
+  '2x4': 8,
   '3x1': 3,
-  '3x2': 6
+  '3x2': 6,
+  '3x3': 9,
+  '4x2': 8
 };
 let isInitialized = false;
 
@@ -431,7 +434,7 @@ function getAutoShrunkLayout(currentLayout, newPanelCount) {
 
 async function addPanel(providerId) {
   if (panels.length >= MAX_PANELS) {
-    showToast('Maximum number of panels reached (9)');
+    showToast(`Maximum number of panels reached (${MAX_PANELS})`);
     return;
   }
 
@@ -999,24 +1002,22 @@ function setLayout(layout) {
 
 async function adjustPanelCount(targetCount) {
   const enabledProviders = await getEnabledProviders();
+  const maxAllowedCount = Math.min(targetCount, MAX_PANELS, enabledProviders.length);
 
   // Remove excess panels
-  while (panels.length > targetCount) {
+  while (panels.length > maxAllowedCount) {
     const panel = panels[panels.length - 1];
     removePanel(panel.id);
   }
 
   // Add missing panels
-  while (panels.length < targetCount) {
+  while (panels.length < maxAllowedCount) {
     // Find a provider not already in use
     const usedProviders = panels.map(p => p.providerId);
     const availableProvider = enabledProviders.find(p => !usedProviders.includes(p.id));
 
     if (availableProvider) {
       await addPanel(availableProvider.id);
-    } else if (enabledProviders.length > 0) {
-      // Reuse first provider if all are used
-      await addPanel(enabledProviders[0].id);
     }
   }
 }
@@ -1507,7 +1508,7 @@ async function showProviderSwitcher(panelId) {
 
 async function showAddPanelMenu() {
   if (panels.length >= MAX_PANELS) {
-    showToast('Maximum number of panels reached (9)');
+    showToast(`Maximum number of panels reached (${MAX_PANELS})`);
     return;
   }
 
