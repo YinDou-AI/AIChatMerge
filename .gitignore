@@ -38,6 +38,9 @@ _metadata/
 coverage/
 .nyc_output/
 test-screenshot-*.png
+debug-screenshot.png
+screenshot*.png
+test-results/
 
 # Local planning artifacts
 task_plan.md
