@@ -1,84 +1,84 @@
 # Panelize
 
-> Compare AI chatbots side-by-side. ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, and Google AI Mode—all in one window.
+<p align="center">
+  <img src="assets/screenshots/panelize-marquee.png" alt="Panelize - All Your AI Assistants. One Window." width="700">
+</p>
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Languages](https://img.shields.io/badge/languages-10-brightgreen.svg)
+<p align="center">
+  <strong>Stop switching tabs. Start comparing AI responses side by side.</strong>
+</p>
 
-**Compare multiple AI assistants simultaneously without juggling tabs.** Open a dedicated window, choose your layout, and chat with 1-7 AI providers at once with synchronized input.
-
----
-
-## Quick Navigation
-
-- [Features](#features)
-- [Installation](#installation)
-  - [Chrome Web Store (Recommended)](#chrome-web-store-recommended)
-  - [Manual Installation (Advanced)](#manual-installation-advanced)
-- [Supported AI Providers](#supported-ai-providers)
-- [How to Use](#how-to-use)
-- [Privacy & Security](#privacy--security)
-- [Troubleshooting](#troubleshooting)
-- [Support & Contributing](#support--contributing)
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+  <img src="https://img.shields.io/badge/languages-10-brightgreen.svg" alt="Languages">
+  <img src="https://img.shields.io/badge/Chrome-114+-4285F4.svg" alt="Chrome">
+  <img src="https://img.shields.io/badge/Edge-114+-0078D7.svg" alt="Edge">
+</p>
 
 ---
 
-## Features
+## Why Panelize?
 
-### Multi-Panel Layout
+Ever found yourself copying the same prompt across multiple AI tabs just to compare answers? Panelize eliminates that workflow entirely.
 
-Use 1-7 AI chatbots side-by-side with flexible grid layouts:
-- 1×1 to 1×7 (single row)
-- 2×1 to 2×4 (two rows)
-- 3×1 to 3×3 (three rows)
-- 4×2 (four rows)
+**One window. One prompt. Multiple AI responses—instantly.**
 
-Each panel runs independently, so you can compare responses from different AI providers to the same question.
+<p align="center">
+  <img src="assets/screenshots/main-panel.png" alt="Panelize Main Interface" width="800">
+</p>
 
-### Synced Input
+---
 
-Type once, send to all panels simultaneously. The unified input bar at the bottom lets you:
-- Send the same prompt to all active AI providers at once
-- Compare how different AIs respond to identical queries
-- Save time when researching or fact-checking
+## Features at a Glance
 
-### 7 AI Providers
+### 🎯 Ask Once, Compare All
 
-Access ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, and Google AI Mode—all from one window.
+Type your question once and send it to ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, and Google AI Mode simultaneously. See which AI gives you the best answer—no tab switching required.
 
-### Prompt Library
+### 📐 Flexible Layouts
 
-Save, organize, and reuse your best prompts across any AI provider.
+Choose from 15 different layouts to fit your workflow. Need a quick 2-way comparison? Use 1×2. Deep research across 4 models? Try 2×2. The choice is yours.
 
-- **Categories & Tags**: Organize prompts for easy discovery
-- **Variables Support**: Create dynamic templates with `{placeholders}` for quick customization
-- **Search & Filter**: Find prompts instantly by keyword or favorite status
-- **Import/Export**: Share prompt libraries or back up your collection
+<p align="center">
+  <img src="assets/screenshots/select-layout.png" alt="Layout Selection" width="600">
+</p>
 
-### Keyboard Shortcuts
+### ⚡ Zero Setup
 
-- **`Cmd/Ctrl+Shift+E`**: Open Panelize window
-- **`Cmd/Ctrl+Shift+L`**: Access prompt library
-- **Customizable Enter Behavior**: Configure Enter vs Shift+Enter for each AI provider
+No API keys. No configuration. Just log into your AI accounts normally, and Panelize uses those existing sessions. If you can use ChatGPT in a browser tab, you can use it in Panelize.
 
-### Your Preferences, Your Way
+### 📚 Prompt Library
 
-**Theme Customization**
-Auto-detect system theme or set Light/Dark mode manually
+Save your best prompts and reuse them across all providers. Supports variables like `{topic}` for quick customization.
 
-**Language Support**
-Available in 10 languages: English, Chinese (Simplified & Traditional), Japanese, Korean, Spanish, French, German, Italian, and Russian
+### 🔒 Privacy First
 
-**Provider Management**
-Enable only the AI providers you use. Customize which ones appear in your panels.
+- All data stays in your browser—nothing leaves your machine
+- No tracking, no analytics, no data collection
+- Open source—review the code yourself
 
-### Privacy First
+---
 
-- **No API keys required**—uses your existing browser logins
-- **All data stays local** in your browser's storage
-- **Zero tracking, zero analytics**—we don't collect anything
-- **Fully open source**—review the code before installing
+## Supported AI Providers
+
+<table align="center">
+  <tr>
+    <td align="center"><strong>ChatGPT</strong></td>
+    <td align="center"><strong>Claude</strong></td>
+    <td align="center"><strong>Gemini</strong></td>
+    <td align="center"><strong>Grok</strong></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>DeepSeek</strong></td>
+    <td align="center"><strong>Kimi</strong></td>
+    <td align="center" colspan="2"><strong>Google AI Mode</strong></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="assets/screenshots/settings.png" alt="Settings & Providers" width="700">
+</p>
 
 ---
 
@@ -86,173 +86,80 @@ Enable only the AI providers you use. Customize which ones appear in your panels
 
 ### Chrome Web Store (Recommended)
 
-**One-click installation. Automatic updates. No developer mode needed.**
-
-1. Visit the Chrome Web Store page (link coming soon)
+1. Visit the [Chrome Web Store](link-coming-soon) page
 2. Click **"Add to Chrome"**
-3. Click **"Add Extension"** in the popup
-4. Done! Click the extension icon or press `Cmd/Ctrl+Shift+E`
+3. Done! Press `Cmd/Ctrl + Shift + E` to open Panelize
 
-**Also works on Microsoft Edge:** Install from Chrome Web Store using Edge browser.
-
----
-
-### Manual Installation (Advanced)
-
-**For developers or users who prefer manual control.**
+> **Works on Edge too:** Install directly from the Chrome Web Store.
 
 <details>
-<summary><b>Click to expand: Manual installation instructions</b></summary>
+<summary><strong>Manual Installation (for developers)</strong></summary>
 
-#### Chrome Installation
-
-1. **Download** the source code from this repository (Code → Download ZIP)
-2. **Extract** the ZIP file to a permanent location
-3. **Open Chrome** and navigate to `chrome://extensions/`
-4. **Enable** "Developer mode" using the toggle in the top right corner
-5. **Click** "Load unpacked" button
-6. **Select** the extracted folder containing `manifest.json`
-7. **Done!** The extension icon appears in your toolbar
-
-#### Microsoft Edge Installation
-
-1. **Download and extract** the ZIP file (same as Chrome step 1-2)
-2. **Open Edge** and navigate to `edge://extensions/`
-3. **Enable** "Developer mode" in the left menu
-4. **Click** "Load unpacked" button
-5. **Select** the extracted folder
-6. **Done!**
+1. Download the source code from this repository
+2. Go to `chrome://extensions/` (or `edge://extensions/`)
+3. Enable "Developer mode"
+4. Click "Load unpacked" and select the extracted folder
 
 </details>
 
 ---
 
-## Supported AI Providers
+## Quick Start
 
-| Provider | Website |
-|----------|---------|
-| **ChatGPT** | https://chatgpt.com |
-| **Claude** | https://claude.ai |
-| **Gemini** | https://gemini.google.com |
-| **Grok** | https://grok.com |
-| **DeepSeek** | https://chat.deepseek.com |
-| **Kimi** | https://www.kimi.com |
-| **Google AI Mode** | https://www.google.com (AI Mode) |
+1. **Log into your AI accounts** — Visit ChatGPT, Claude, etc. and log in as usual
+2. **Press `Cmd/Ctrl + Shift + E`** — Opens the Panelize window
+3. **Pick a layout** — Choose how many AI panels you want
+4. **Type and send** — Your prompt goes to all panels at once
 
-**No API keys required.** Just log into the providers you want to use in your browser, and Panelize will use those existing sessions.
+That's it. No accounts to create, no API keys to configure.
 
 ---
 
-## How to Use
+## Keyboard Shortcuts
 
-### Getting Started
+| Action | Shortcut |
+|--------|----------|
+| Open Panelize | `Cmd/Ctrl + Shift + E` |
+| Open Prompt Library | `Cmd/Ctrl + Shift + L` |
 
-1. **Log into your AI providers**
-   Visit the websites of the AI providers you want to use (ChatGPT, Claude, etc.) and log in normally. The extension uses these existing sessions.
-
-2. **Open Panelize**
-   Click the extension icon in your toolbar, or press `Cmd+Shift+E` (Mac) / `Ctrl+Shift+E` (Windows/Linux).
-
-3. **Choose your layout**
-   Select how many panels you want (1-7) and arrange them in your preferred grid layout.
-
-4. **Select providers for each panel**
-   Click on each panel to choose which AI provider it should display.
-
-5. **Start comparing**
-   Use the unified input bar at the bottom to send the same prompt to all panels simultaneously, or interact with each panel individually.
-
-### Opening Panelize
-
-- **Keyboard shortcut:** `Cmd/Ctrl+Shift+E`
-- **Extension icon:** Click the icon in your browser toolbar
-- **Right-click menu:** Right-click on any webpage → choose a provider to send selected text
-
-### Using the Prompt Library
-
-Press `Cmd/Ctrl+Shift+L` to open the Prompt Library.
-
-**Create a prompt:**
-Click "New Prompt", enter a title, content, and optional category/tags. Use `{variable}` syntax for dynamic placeholders.
-
-**Use a prompt:**
-Click any prompt to insert it. If it contains variables, you'll be prompted to fill them in.
-
-### Customizing Keyboard Shortcuts
-
-**Chrome:** Navigate to `chrome://extensions/shortcuts`
-**Edge:** Navigate to `edge://extensions/shortcuts`
-
-Find "Panelize" in the list and customize your shortcuts.
-After installing, you may need to confirm or assign shortcuts here before they work.
-
----
-
-## Privacy & Security
-
-**Your data stays local.** Prompts and settings are stored in your browser's local storage. Panelize does not send your prompts or settings to its own servers. It may connect to GitHub for update checks and to Google Fonts for UI icons.
-
-**No API keys required.** The extension uses your existing browser login sessions. It loads the real AI websites in iframes—just like opening them in new tabs.
-
-**No tracking.** The extension doesn't collect analytics, usage data, or any personal information.
-
-**How it works technically:** The extension uses Chrome's `declarativeNetRequest` API to bypass X-Frame-Options headers, allowing AI provider websites to load in panel iframes. All code is open source and available for review.
+Customize shortcuts at `chrome://extensions/shortcuts`
 
 ---
 
 ## Troubleshooting
 
-### Extension Issues
+**AI provider shows login page?**
+→ Log into that provider in a regular browser tab first, then refresh Panelize.
 
-**The extension won't load**
-Make sure you're using a recent version of Chrome (114+) or Edge (114+).
+**Shortcuts not working?**
+→ Check for conflicts at `chrome://extensions/shortcuts`
 
-**Extension icon doesn't appear in toolbar**
-Click the puzzle piece icon in Chrome/Edge toolbar and pin "Panelize" to make it always visible.
-
-### AI Provider Issues
-
-**An AI provider won't load in a panel**
-1. Visit that provider's website in a regular browser tab and log in
-2. The extension needs an active login session to work
-3. If still not working, try clearing your browser cache and cookies for that specific provider
-
-**Provider loads but shows login page**
-Your session may have expired. Open the provider in a regular tab, log in again, then refresh Panelize.
-
-### Feature Issues
-
-**Keyboard shortcuts don't work**
-1. Check if another extension is using the same shortcut
-2. Go to `chrome://extensions/shortcuts` (or `edge://extensions/shortcuts`)
-3. Change Panelize shortcuts if there are conflicts
-
-**Synced input not working**
-Make sure the panels have fully loaded before using the unified input bar.
+**Need more help?**
+→ [Open an issue](https://github.com/Manho/Panelize/issues)
 
 ---
 
-## Support & Contributing
+## Contributing
 
-### Found a Bug or Have a Feature Idea?
-
-- **Open an issue**: [GitHub Issues](https://github.com/Manho/Panelize/issues)
-
-### Contributing
-
-Contributions are welcome! Whether it's:
-- Reporting bugs
-- Suggesting features
-- Improving documentation
-- Translating to new languages
-- Submitting pull requests
+Found a bug? Have an idea? Contributions are welcome:
+- 🐛 Report bugs via [GitHub Issues](https://github.com/Manho/Panelize/issues)
+- 💡 Suggest features
+- 🌍 Help translate to more languages
+- 🔧 Submit pull requests
 
 ---
 
 ## License
 
-MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-**Open source & privacy-focused** • Available in 10 languages
+<p align="center">
+  <strong>Open source & privacy-focused</strong><br>
+  Available in 10 languages
+</p>
+
+<p align="center">
+  <sub>Made for everyone who's tired of tab-switching between AI assistants.</sub>
+</p>
