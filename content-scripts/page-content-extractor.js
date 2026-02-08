@@ -2,11 +2,16 @@
 // Extracts clean page content using Mozilla Readability.js
 // Used when context menu is invoked without text selection
 //
-// This content script runs on all pages and listens for extraction requests
+// This content script is injected on demand and listens for extraction requests
 // from the service worker (context menu handler)
 
 (function() {
   'use strict';
+
+  if (window.__panelizePageExtractorLoaded) {
+    return;
+  }
+  window.__panelizePageExtractorLoaded = true;
 
   /**
    * Extract page content using Readability.js

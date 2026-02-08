@@ -2,12 +2,14 @@
   "manifest_version": 3,
   "name": "Panelize",
   "version": "1.0.0",
-  "description": "Compare AI chatbots side-by-side. Use ChatGPT, Claude, Gemini, Grok & more in one window.",
+  "description": "Compare AI assistants side by side in one window. Send one prompt and review responses faster.",
   "default_locale": "en",
 
   "permissions": [
     "storage",
     "contextMenus",
+    "activeTab",
+    "scripting",
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess"
   ],
@@ -156,15 +158,6 @@
       
       "run_at": "document_end",
       "all_frames": true
-    },
-    {
-      "matches": ["<all_urls>"],
-      "js": [
-        "libs/Readability.js",
-        "content-scripts/page-content-extractor.js"
-      ],
-      "run_at": "document_idle",
-      "all_frames": false
     }
   ],
 

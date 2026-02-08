@@ -3,7 +3,7 @@
     "message": "Panelize"
   },
   "extensionDescription": {
-    "message": "Compare AI chatbots side-by-side. Use ChatGPT, Claude, Gemini, Grok & more in one window."
+    "message": "Compare AI assistants side by side in one window. Send one prompt and review responses faster."
   },
   "commandOpenSidebar": {
     "message": "Open Panelize"

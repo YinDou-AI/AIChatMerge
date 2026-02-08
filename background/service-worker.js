@@ -7,6 +7,10 @@ const DEFAULT_OPEN_MODE = { openMode: 'tab' };
 let keyboardShortcutEnabled = true;
 let openMode = 'tab';
 const PENDING_MULTI_PANEL_ACTION_KEY = 'pendingMultiPanelAction';
+const PAGE_EXTRACTOR_SCRIPTS = [
+  'libs/Readability.js',
+  'content-scripts/page-content-extractor.js'
+];
 
 async function loadShortcutSetting() {
   try {
@@ -140,6 +144,8 @@ async function getContentFromContext(info, tab) {
   }
 
   try {
+    await ensurePageExtractorInjected(tab);
+
     const response = await chrome.tabs.sendMessage(tab.id, {
       action: 'extractPageContent'
     });
@@ -152,6 +158,24 @@ async function getContentFromContext(info, tab) {
   }
 
   return '';
+}
+
+function canInjectIntoTab(tab) {
+  if (!tab || tab.id === undefined || tab.id === null || !tab.url) {
+    return false;
+  }
+  return tab.url.startsWith('http://') || tab.url.startsWith('https://');
+}
+
+async function ensurePageExtractorInjected(tab) {
+  if (!canInjectIntoTab(tab)) {
+    return;
+  }
+
+  await chrome.scripting.executeScript({
+    target: { tabId: tab.id, allFrames: false },
+    files: PAGE_EXTRACTOR_SCRIPTS
+  });
 }
 
 function dispatchToMultiPanel(action, payload) {
