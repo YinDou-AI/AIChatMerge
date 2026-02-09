@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Focus Protection Test</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    textarea { width: 400px; padding: 8px; font-size: 16px; }
+    iframe { width: 400px; height: 150px; border: 1px solid #999; margin-top: 10px; display: block; }
+  </style>
+</head>
+<body>
+  <h1>Focus Protection Test Harness</h1>
+
+  <label for="unified-input"><strong>Unified Input:</strong></label><br>
+  <textarea id="unified-input" rows="2" placeholder="Type here..."></textarea>
+
+  <div id="iframe-container">
+    <!-- Iframes will be added dynamically by test -->
+  </div>
+
+  <script>
+    const inputTextarea = document.getElementById('unified-input');
+
+    // === Loading counter (same as multi-panel.js) ===
+    let loadingIframeCount = 0;
+
+    // === Focus protection logic (identical to multi-panel.js) ===
+    inputTextarea.addEventListener('blur', () => {
+      if (loadingIframeCount > 0) {
+        requestAnimationFrame(() => {
+          const active = document.activeElement;
+          if (!active || active.tagName === 'IFRAME' || active === document.body) {
+            inputTextarea.focus();
+          }
+        });
+      }
+    });
+    // === End focus protection logic ===
+
+    // Expose functions for Playwright test
+    window.addFocusStealingIframe = function(delayMs) {
+      loadingIframeCount++;
+      const iframe = document.createElement('iframe');
+      iframe.srcdoc = `<html><body>
+        <input id="ai-input" type="text">
+        <script>
+          setTimeout(function() {
+            document.getElementById('ai-input').focus();
+          }, ${delayMs || 100});
+        <\/script>
+      </body></html>`;
+      iframe.addEventListener('load', () => {
+        // Grace period after load (same as multi-panel.js LOAD_GRACE_PERIOD)
+        setTimeout(() => {
+          loadingIframeCount = Math.max(0, loadingIframeCount - 1);
+        }, 3000);
+      });
+      iframe.addEventListener('error', () => {
+        loadingIframeCount = Math.max(0, loadingIframeCount - 1);
+      });
+      document.getElementById('iframe-container').appendChild(iframe);
+      return iframe;
+    };
+
+    window.getActiveElementTag = function() {
+      return document.activeElement ? document.activeElement.tagName : 'null';
+    };
+
+    window.getActiveElementId = function() {
+      return document.activeElement ? document.activeElement.id : 'null';
+    };
+
+    window.getLoadingCount = function() {
+      return loadingIframeCount;
+    };
+
+    window.clearIframes = function() {
+      document.getElementById('iframe-container').innerHTML = '';
+      loadingIframeCount = 0;
+    };
+  </script>
+</body>
+</html>

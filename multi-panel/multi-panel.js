@@ -25,6 +25,7 @@ import {
 let currentLayout = '1x3';
 let panels = []; // Array of { id, providerId, iframe, state }
 let uploadedImages = []; // Array of uploaded images { id, name, type, dataUrl }
+let loadingIframeCount = 0; // Track iframes still loading, used for focus protection
 
 // 提示词编辑器状态
 let currentEditingPromptId = null;
@@ -504,12 +505,19 @@ async function addPanel(providerId) {
   const loadingEl = panelEl.querySelector('.panel-loading');
 
   // Handle iframe load
+  // Grace period after load to catch AI pages that auto-focus after JS init
+  const LOAD_GRACE_PERIOD = 3000;
+  loadingIframeCount++;
   iframe.addEventListener('load', () => {
     loadingEl.classList.add('hidden');
+    setTimeout(() => {
+      loadingIframeCount = Math.max(0, loadingIframeCount - 1);
+    }, LOAD_GRACE_PERIOD);
   });
 
   iframe.addEventListener('error', () => {
     loadingEl.textContent = `Failed to load ${provider.name}`;
+    loadingIframeCount = Math.max(0, loadingIframeCount - 1);
   });
 
   // Setup panel button handlers
@@ -517,6 +525,7 @@ async function addPanel(providerId) {
   refreshBtn.addEventListener('click', () => {
     loadingEl.classList.remove('hidden');
     loadingEl.textContent = `Loading ${provider.name}...`;
+    loadingIframeCount++;
     iframe.src = provider.url;
   });
 
@@ -1365,6 +1374,20 @@ function setupEventListeners() {
           await addImage(file);
         }
       }
+    }
+  });
+
+  // Prevent iframes from stealing focus from unified input during page load.
+  // Only active while iframes are still loading. Once all panels are loaded,
+  // the user can freely click into any AI page's input field.
+  inputTextarea.addEventListener('blur', () => {
+    if (loadingIframeCount > 0) {
+      requestAnimationFrame(() => {
+        const active = document.activeElement;
+        if (!active || active.tagName === 'IFRAME' || active === document.body) {
+          inputTextarea.focus();
+        }
+      });
     }
   });
 
