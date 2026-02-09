@@ -77,3 +77,5 @@ logs/security/
 
 # Review reports
 .reviews/
+TRANSLATION_REVIEW_SUMMARY.md
+VERIFICATION_REPORT.md
