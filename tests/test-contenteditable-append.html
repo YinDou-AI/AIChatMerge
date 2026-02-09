@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test: Contenteditable Append Fix</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #1a1a2e; color: #eee; }
+    h1 { color: #e94560; }
+    .test-case { margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 8px; background: #16213e; }
+    .test-case h3 { margin-top: 0; color: #0f3460; color: #a8d8ea; }
+    .input-box {
+      min-height: 60px; padding: 10px; border: 2px solid #555; border-radius: 6px;
+      background: #0f3460; color: #fff; margin: 10px 0; font-size: 14px;
+    }
+    .input-box:focus { border-color: #e94560; outline: none; }
+    button {
+      padding: 8px 16px; margin: 5px; border: none; border-radius: 4px;
+      cursor: pointer; font-size: 14px; color: #fff;
+    }
+    .btn-fill { background: #e94560; }
+    .btn-fill:hover { background: #c81e45; }
+    .btn-reset { background: #555; }
+    #results { margin-top: 20px; padding: 15px; background: #0f3460; border-radius: 8px; font-family: monospace; white-space: pre-wrap; }
+    .pass { color: #4ecca3; font-weight: bold; }
+    .fail { color: #e94560; font-weight: bold; }
+    textarea.input-box { width: 95%; resize: vertical; }
+  </style>
+</head>
+<body>
+  <h1>Contenteditable Append Fix - Test Page</h1>
+
+  <!-- Test 1: Contenteditable (simulates ChatGPT ProseMirror) -->
+  <div class="test-case">
+    <h3>Test 1: Contenteditable div (ChatGPT-like ProseMirror)</h3>
+    <div id="ce-input" class="input-box ProseMirror" contenteditable="true" role="textbox"></div>
+    <button class="btn-fill" onclick="fillContentEditable('Hello from fill #1. ')">Fill #1</button>
+    <button class="btn-fill" onclick="fillContentEditable('And fill #2 appended!')">Fill #2 (should append)</button>
+    <button class="btn-reset" onclick="resetCE()">Reset</button>
+    <button class="btn-fill" onclick="runTestCE()" style="background:#4ecca3">Run Auto Test</button>
+  </div>
+
+  <!-- Test 2: Textarea (simulates DeepSeek) -->
+  <div class="test-case">
+    <h3>Test 2: Textarea (DeepSeek-like)</h3>
+    <textarea id="ta-input" class="input-box" placeholder="Type here..."></textarea>
+    <br>
+    <button class="btn-fill" onclick="fillTextarea('Hello from fill #1. ')">Fill #1</button>
+    <button class="btn-fill" onclick="fillTextarea('And fill #2 appended!')">Fill #2 (should append)</button>
+    <button class="btn-reset" onclick="resetTA()">Reset</button>
+    <button class="btn-fill" onclick="runTestTA()" style="background:#4ecca3">Run Auto Test</button>
+  </div>
+
+  <!-- Results -->
+  <div id="results">Waiting for tests...</div>
+
+  <script>
+    // ===== Inject logic copied from the fixed text-injection-all-providers.js =====
+    function injectTextIntoElement(element, text) {
+      if (!element || !text || typeof text !== 'string' || text.trim() === '') {
+        return false;
+      }
+
+      try {
+        const isTextarea = element.tagName === 'TEXTAREA' || element.tagName === 'INPUT';
+        const isContentEditable = element.isContentEditable || element.getAttribute('contenteditable') === 'true';
+
+        if (!isTextarea && !isContentEditable) {
+          return false;
+        }
+
+        if (isTextarea) {
+          const currentValue = element.value || '';
+          const newValue = currentValue + text;
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+          nativeInputValueSetter.call(element, newValue);
+          element.dispatchEvent(new Event('input', { bubbles: true }));
+          element.selectionStart = element.selectionEnd = element.value.length;
+        } else {
+          // FIXED: append text without clearing existing content
+          element.focus();
+
+          // Move cursor to end first
+          try {
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          } catch (e) {}
+
+          // Use execCommand insertText to append
+          let inserted = false;
+          try {
+            inserted = document.execCommand('insertText', false, text);
+          } catch (e) {}
+
+          if (!inserted) {
+            const textNode = document.createTextNode(text);
+            element.appendChild(textNode);
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+
+          // Ensure cursor is at the end
+          try {
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          } catch (e) {}
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Error injecting text:', error);
+        return false;
+      }
+    }
+
+    // ===== UI helpers =====
+    const ceInput = document.getElementById('ce-input');
+    const taInput = document.getElementById('ta-input');
+    const results = document.getElementById('results');
+
+    function fillContentEditable(text) {
+      injectTextIntoElement(ceInput, text);
+    }
+    function fillTextarea(text) {
+      injectTextIntoElement(taInput, text);
+    }
+    function resetCE() { ceInput.innerHTML = ''; }
+    function resetTA() { taInput.value = ''; }
+
+    function log(msg) {
+      results.innerHTML += msg + '\n';
+    }
+
+    // ===== Automated tests =====
+    function runTestCE() {
+      results.innerHTML = '';
+      log('=== Test: Contenteditable Append ===');
+
+      // Reset
+      ceInput.innerHTML = '';
+
+      // Fill #1
+      const r1 = injectTextIntoElement(ceInput, 'First. ');
+      const after1 = ceInput.textContent;
+      log(`Fill #1 result: ${r1}, content: "${after1}"`);
+
+      // Fill #2 - should APPEND
+      const r2 = injectTextIntoElement(ceInput, 'Second.');
+      const after2 = ceInput.textContent;
+      log(`Fill #2 result: ${r2}, content: "${after2}"`);
+
+      const expected = 'First. Second.';
+      if (after2 === expected) {
+        log(`\n<span class="pass">PASS: Content is "${after2}" (appended correctly)</span>`);
+      } else {
+        log(`\n<span class="fail">FAIL: Expected "${expected}" but got "${after2}"</span>`);
+      }
+    }
+
+    function runTestTA() {
+      log('\n=== Test: Textarea Append ===');
+
+      // Reset
+      taInput.value = '';
+
+      // Fill #1
+      injectTextIntoElement(taInput, 'First. ');
+      const after1 = taInput.value;
+      log(`Fill #1 content: "${after1}"`);
+
+      // Fill #2
+      injectTextIntoElement(taInput, 'Second.');
+      const after2 = taInput.value;
+      log(`Fill #2 content: "${after2}"`);
+
+      const expected = 'First. Second.';
+      if (after2 === expected) {
+        log(`\n<span class="pass">PASS: Content is "${after2}" (appended correctly)</span>`);
+      } else {
+        log(`\n<span class="fail">FAIL: Expected "${expected}" but got "${after2}"</span>`);
+      }
+    }
+  </script>
+</body>
+</html>

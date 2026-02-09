@@ -14,7 +14,7 @@
       'div[contenteditable="true"]'
     ],
     gemini: ['.ql-editor'],
-    grok: ['textarea', '.tiptap', '.ProseMirror'],
+    grok: ['.tiptap', '.ProseMirror', 'textarea'],
     deepseek: [
       'textarea[placeholder="How can I help you?"]',
       'textarea.ds-scroll-area',
@@ -490,35 +490,42 @@
         // Move cursor to end (without focusing to avoid cross-origin error)
         element.selectionStart = element.selectionEnd = element.value.length;
       } else {
-        // For contenteditable elements - use more robust method
-        // Focus the element first
+        // For contenteditable elements - append text without clearing existing content
         element.focus();
-        
-        // Clear existing content and insert new text
-        element.innerHTML = '';
-        
-        // Create a text node and append it
-        const textNode = document.createTextNode(text);
-        element.appendChild(textNode);
-        
-        // Trigger multiple events for better React/Vue compatibility
-        element.dispatchEvent(new Event('input', { bubbles: true }));
-        element.dispatchEvent(new Event('change', { bubbles: true }));
-        
-        // Also try beforeinput event for modern frameworks
-        element.dispatchEvent(new InputEvent('beforeinput', {
-          bubbles: true,
-          cancelable: true,
-          inputType: 'insertText',
-          data: text
-        }));
 
-        // Move cursor to end for contenteditable
+        // Move cursor to end first
         try {
-          const range = document.createRange();
           const selection = window.getSelection();
+          const range = document.createRange();
           range.selectNodeContents(element);
           range.collapse(false); // Collapse to end
+          selection.removeAllRanges();
+          selection.addRange(range);
+        } catch (e) {
+          // Ignore selection errors in cross-origin context
+        }
+
+        // Use execCommand insertText to append - works well with ProseMirror/Lexical/Quill
+        let inserted = false;
+        try {
+          inserted = document.execCommand('insertText', false, text);
+        } catch (e) {
+          // execCommand not available in some contexts
+        }
+
+        if (!inserted) {
+          // Fallback: manually append text node
+          const textNode = document.createTextNode(text);
+          element.appendChild(textNode);
+          element.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
+        // Ensure cursor is at the end after insertion
+        try {
+          const selection = window.getSelection();
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          range.collapse(false);
           selection.removeAllRanges();
           selection.addRange(range);
         } catch (e) {

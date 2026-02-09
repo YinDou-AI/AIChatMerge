@@ -53,23 +53,42 @@ export function injectTextIntoElement(element, text) {
       element.focus();
       element.selectionStart = element.selectionEnd = element.value.length;
     } else {
-      // For contenteditable elements
-      const currentText = element.textContent || '';
-      element.textContent = currentText + text;
-
-      // Trigger input event
-      element.dispatchEvent(new Event('input', { bubbles: true }));
-
-      // Focus and move cursor to end
+      // For contenteditable elements - append without clearing
       element.focus();
 
-      // Move cursor to end for contenteditable
+      // Move cursor to end first
       const range = document.createRange();
       const selection = window.getSelection();
       range.selectNodeContents(element);
-      range.collapse(false); // Collapse to end
+      range.collapse(false);
       selection.removeAllRanges();
       selection.addRange(range);
+
+      // Use execCommand insertText to work with ProseMirror/Lexical/Quill
+      let inserted = false;
+      try {
+        inserted = document.execCommand('insertText', false, text);
+      } catch (e) {
+        // execCommand not available (e.g. in test environments)
+      }
+
+      if (!inserted) {
+        // Fallback: manually append text node
+        const textNode = document.createTextNode(text);
+        element.appendChild(textNode);
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+
+      // Ensure cursor stays at end
+      try {
+        const endRange = document.createRange();
+        endRange.selectNodeContents(element);
+        endRange.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(endRange);
+      } catch (e) {
+        // Ignore selection errors
+      }
     }
 
     return true;

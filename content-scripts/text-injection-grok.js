@@ -10,4 +10,4 @@ const sendButtonSelectors = [
   'form button:has(svg)'
 ];
 
-setupTextInjectionListener(['textarea', '.tiptap', '.ProseMirror'], 'Grok', sendButtonSelectors);
+setupTextInjectionListener(['.tiptap', '.ProseMirror', 'textarea'], 'Grok', sendButtonSelectors);
