@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Panelize",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Compare AI assistants side by side in one window. Send one prompt and review responses faster.",
   "default_locale": "en",
 
