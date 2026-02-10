@@ -360,9 +360,10 @@ async function initializePanels() {
     }
 
     const panelCount = LAYOUT_PANEL_COUNTS[currentLayout] || 4;
+    const count = Math.min(providerIds.length, panelCount);
 
-    // Create panels for each provider
-    for (let i = 0; i < Math.min(providerIds.length, panelCount); i++) {
+    // Create all panels and load in parallel for fastest total time
+    for (let i = 0; i < count; i++) {
       await addPanel(providerIds[i]);
     }
 
@@ -442,18 +443,18 @@ async function addPanel(providerId) {
   // Auto layout adjustment: upgrade from 1xN to 1x(N+1) when adding panel exceeds capacity
   const newPanelCount = panels.length + 1;
   const adjustedLayout = getAutoAdjustedLayout(currentLayout, newPanelCount);
-  
+
   if (adjustedLayout) {
     // Apply layout directly without calling setLayout (to avoid recursion from adjustPanelCount)
     currentLayout = adjustedLayout;
     const panelGrid = document.getElementById('panel-grid');
     panelGrid.className = `layout-${adjustedLayout}`;
-    
+
     // Update layout button states (if layout modal is open)
     document.querySelectorAll('.layout-option').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.layout === adjustedLayout);
     });
-    
+
     // Save configuration
     await saveProviderConfiguration();
   }
@@ -488,12 +489,14 @@ async function addPanel(providerId) {
       </div>
     </div>
     <div class="panel-iframe-container">
-      <div class="panel-loading">Loading ${provider.name}...</div>
+      <div class="panel-loading">
+        <img src="${provider.icon}" alt="${provider.name}" class="loading-icon">
+        <span class="loading-text">Loading ${provider.name}...</span>
+      </div>
       <iframe
         src="${provider.url}"
         sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
         allow="clipboard-read; clipboard-write"
-        loading="eager"
       ></iframe>
     </div>
   `;
@@ -516,7 +519,7 @@ async function addPanel(providerId) {
   });
 
   iframe.addEventListener('error', () => {
-    loadingEl.textContent = `Failed to load ${provider.name}`;
+    loadingEl.innerHTML = `<img src="${provider.icon}" alt="${provider.name}" class="loading-icon"><span class="loading-text">Failed to load ${provider.name}</span>`;
     loadingIframeCount = Math.max(0, loadingIframeCount - 1);
   });
 
@@ -524,7 +527,7 @@ async function addPanel(providerId) {
   const refreshBtn = panelEl.querySelector('.refresh-panel-btn');
   refreshBtn.addEventListener('click', () => {
     loadingEl.classList.remove('hidden');
-    loadingEl.textContent = `Loading ${provider.name}...`;
+    loadingEl.innerHTML = `<img src="${provider.icon}" alt="${provider.name}" class="loading-icon"><span class="loading-text">Loading ${provider.name}...</span>`;
     loadingIframeCount++;
     iframe.src = provider.url;
   });

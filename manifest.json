@@ -83,7 +83,7 @@
       ],
       
       "run_at": "document_end",
-      "all_frames": true
+      "all_frames": false
     },
     {
       "matches": ["https://claude.ai/*"],
@@ -95,7 +95,7 @@
       ],
       
       "run_at": "document_end",
-      "all_frames": true
+      "all_frames": false
     },
     {
       "matches": ["https://gemini.google.com/*"],
@@ -107,7 +107,7 @@
       ],
       
       "run_at": "document_start",
-      "all_frames": true
+      "all_frames": false
     },
     {
       "matches": ["https://grok.com/*"],
@@ -120,7 +120,7 @@
       ],
       
       "run_at": "document_start",
-      "all_frames": true
+      "all_frames": false
     },
     {
       "matches": ["https://chat.deepseek.com/*"],
@@ -133,7 +133,7 @@
       ],
       
       "run_at": "document_start",
-      "all_frames": true
+      "all_frames": false
     },
     {
       "matches": ["https://www.kimi.com/*", "https://kimi.com/*"],
@@ -145,7 +145,7 @@
         "content-scripts/focus-toggle.js"
       ],
       "run_at": "document_start",
-      "all_frames": true
+      "all_frames": false
     },
     {
       "matches": ["https://www.google.com/search*"],
@@ -157,7 +157,7 @@
       ],
       
       "run_at": "document_end",
-      "all_frames": true
+      "all_frames": false
     }
   ],
 
