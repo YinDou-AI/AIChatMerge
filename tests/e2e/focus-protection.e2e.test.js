@@ -37,6 +37,19 @@ test.describe('Focus Protection E2E', () => {
     await browser.close().catch(() => {});
   });
 
+  test('Test 0: Unified input should be focused when page first opens', async () => {
+    await page.waitForTimeout(120);
+
+    let activeId = await page.evaluate(() => window.getActiveElementId());
+    expect(activeId).toBe('unified-input');
+
+    await page.evaluate(() => window.addFocusStealingIframe(100));
+    await page.waitForTimeout(800);
+
+    activeId = await page.evaluate(() => window.getActiveElementId());
+    expect(activeId).toBe('unified-input');
+  });
+
   test('Test 1: Focus should stay on textarea when iframe steals focus during loading', async () => {
     await page.click('#unified-input');
     await page.waitForTimeout(100);

@@ -25,17 +25,30 @@
     // === Loading counter (same as multi-panel.js) ===
     let loadingIframeCount = 0;
 
+    function focusUnifiedInput(options = {}) {
+      const force = Boolean(options.force);
+      const active = document.activeElement;
+      const shouldFocus = force || !active || active.tagName === 'IFRAME' || active === document.body;
+      if (!shouldFocus) {
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        try {
+          inputTextarea.focus({ preventScroll: true });
+        } catch {
+          inputTextarea.focus();
+        }
+      });
+    }
+
     // === Focus protection logic (identical to multi-panel.js) ===
     inputTextarea.addEventListener('blur', () => {
       if (loadingIframeCount > 0) {
-        requestAnimationFrame(() => {
-          const active = document.activeElement;
-          if (!active || active.tagName === 'IFRAME' || active === document.body) {
-            inputTextarea.focus();
-          }
-        });
+        focusUnifiedInput();
       }
     });
+    focusUnifiedInput({ force: true });
     // === End focus protection logic ===
 
     // Expose functions for Playwright test

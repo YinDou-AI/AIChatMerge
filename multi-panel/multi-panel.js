@@ -84,9 +84,31 @@ async function init() {
 
   // Setup event listeners
   setupEventListeners();
+  focusUnifiedInput({ force: true });
 
   isInitialized = true;
   await handlePendingMultiPanelAction();
+}
+
+function focusUnifiedInput({ force = false } = {}) {
+  const inputTextarea = document.getElementById('unified-input');
+  if (!inputTextarea) {
+    return;
+  }
+
+  const active = document.activeElement;
+  const shouldFocus = force || !active || active.tagName === 'IFRAME' || active === document.body;
+  if (!shouldFocus) {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    try {
+      inputTextarea.focus({ preventScroll: true });
+    } catch {
+      inputTextarea.focus();
+    }
+  });
 }
 
 async function getPendingMultiPanelAction() {
@@ -1385,12 +1407,7 @@ function setupEventListeners() {
   // the user can freely click into any AI page's input field.
   inputTextarea.addEventListener('blur', () => {
     if (loadingIframeCount > 0) {
-      requestAnimationFrame(() => {
-        const active = document.activeElement;
-        if (!active || active.tagName === 'IFRAME' || active === document.body) {
-          inputTextarea.focus();
-        }
-      });
+      focusUnifiedInput();
     }
   });
 
