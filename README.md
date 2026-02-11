@@ -1,6 +1,12 @@
 # Panelize
 
 <p align="center">
+  <a href="README.md"><strong>English</strong></a> |
+  <a href="README.zh-CN.md"><strong>简体中文</strong></a> |
+  <a href="README.ja.md"><strong>日本語</strong></a>
+</p>
+
+<p align="center">
   <img src="assets/screenshots/panelize-marquee.png" alt="Panelize - All Your AI Assistants. One Window." width="700">
 </p>
 
@@ -9,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.0.2-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/languages-10-brightgreen.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Chrome-114+-4285F4.svg" alt="Chrome">
@@ -86,7 +92,7 @@ Save your best prompts and reuse them across all providers. Supports variables l
 
 ### Chrome Web Store (Recommended)
 
-1. Visit the [Chrome Web Store](link-coming-soon) page
+1. Visit the [Chrome Web Store](https://chromewebstore.google.com/detail/panelize/iokalaafkmjffolodkkgbbccmofbglii) page
 2. Click **"Add to Chrome"**
 3. Done! Press `Cmd/Ctrl + Shift + E` to open Panelize
 
