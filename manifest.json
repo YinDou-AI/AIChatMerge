@@ -1,10 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Panelize",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Compare AI assistants side by side in one window. Send one prompt and review responses faster.",
   "default_locale": "en",
-
   "permissions": [
     "storage",
     "contextMenus",
@@ -13,7 +12,6 @@
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess"
   ],
-
   "host_permissions": [
     "*://chatgpt.com/*",
     "*://chat.openai.com/*",
@@ -28,15 +26,11 @@
     "*://api.github.com/*",
     "*://raw.githubusercontent.com/*"
   ],
-
   "background": {
     "service_worker": "background/service-worker.js",
     "type": "module"
   },
-
-
   "options_page": "options/options.html",
-
   "action": {
     "default_icon": {
       "16": "icons/icon-16.png",
@@ -46,7 +40,6 @@
     },
     "default_title": "__MSG_actionDefaultTitle__"
   },
-
   "commands": {
     "_execute_action": {
       "suggested_key": {
@@ -63,54 +56,57 @@
       "description": "__MSG_commandOpenPromptLibrary__"
     }
   },
-
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-
-
   "content_scripts": [
     {
-      "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ],
       "js": [
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-chatgpt.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
-      
       "run_at": "document_end",
       "all_frames": true
     },
     {
-      "matches": ["https://claude.ai/*"],
+      "matches": [
+        "https://claude.ai/*"
+      ],
       "js": [
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-claude.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
-      
       "run_at": "document_end",
       "all_frames": true
     },
     {
-      "matches": ["https://gemini.google.com/*"],
+      "matches": [
+        "https://gemini.google.com/*"
+      ],
       "js": [
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-gemini.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
-      
       "run_at": "document_start",
       "all_frames": true
     },
     {
-      "matches": ["https://grok.com/*"],
+      "matches": [
+        "https://grok.com/*"
+      ],
       "js": [
         "content-scripts/button-finder-utils.js",
         "content-scripts/enter-behavior-utils.js",
@@ -118,12 +114,13 @@
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
-      
       "run_at": "document_start",
       "all_frames": true
     },
     {
-      "matches": ["https://chat.deepseek.com/*"],
+      "matches": [
+        "https://chat.deepseek.com/*"
+      ],
       "js": [
         "content-scripts/button-finder-utils.js",
         "content-scripts/enter-behavior-utils.js",
@@ -131,12 +128,14 @@
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
-      
       "run_at": "document_start",
       "all_frames": true
     },
     {
-      "matches": ["https://www.kimi.com/*", "https://kimi.com/*"],
+      "matches": [
+        "https://www.kimi.com/*",
+        "https://kimi.com/*"
+      ],
       "js": [
         "content-scripts/button-finder-utils.js",
         "content-scripts/enter-behavior-utils.js",
@@ -148,19 +147,19 @@
       "all_frames": true
     },
     {
-      "matches": ["https://www.google.com/search*"],
+      "matches": [
+        "https://www.google.com/search*"
+      ],
       "js": [
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-google.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
-      
       "run_at": "document_end",
       "all_frames": true
     }
   ],
-
   "declarative_net_request": {
     "rule_resources": [
       {
@@ -170,7 +169,6 @@
       }
     ]
   },
-
   "web_accessible_resources": [
     {
       "resources": [
@@ -195,10 +193,11 @@
         "multi-panel/multi-panel.js",
         "multi-panel/multi-panel.css"
       ],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
-
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }

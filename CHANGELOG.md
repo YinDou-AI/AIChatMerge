@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.3 - 2026-03-05
+- Fixed: Enter key on standalone Gemini page now works correctly (no longer triggers sidebar menu).
+
 ## 1.0.0 - 2026-02-03
 - Multi-panel workspace with flexible layouts up to 1x7.
 - Unified input bar to send or fill prompts across all panels.
