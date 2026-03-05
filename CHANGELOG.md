@@ -1,7 +1,9 @@
 # Changelog
 
 ## 1.0.3 - 2026-03-05
-- Fixed: Enter key on standalone Gemini page now works correctly (no longer triggers sidebar menu).
+- Fixed: Enter key on standalone Gemini page now works correctly (no longer triggers sidebar menu). (#35)
+- Fixed: IME composition Enter key sending message prematurely in multi-panel. (#31)
+- Docs: Added zh-CN and ja READMEs with updated store link. (#30)
 
 ## 1.0.0 - 2026-02-03
 - Multi-panel workspace with flexible layouts up to 1x7.
