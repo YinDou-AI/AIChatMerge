@@ -30,8 +30,8 @@ function findSendButton(activeElement, isEditingTextarea) {
       const updateButton = Array.from(container.querySelectorAll('button')).find(btn => {
         const text = btn.textContent.trim();
         return text === 'Update' ||
-               btn.classList.contains('update-button') ||
-               (btn.classList.contains('submit') && text !== 'Send');
+          btn.classList.contains('update-button') ||
+          (btn.classList.contains('submit') && text !== 'Send');
       });
 
       if (updateButton) return updateButton;
@@ -42,7 +42,7 @@ function findSendButton(activeElement, isEditingTextarea) {
   // For new messages: search globally for Send button
   // Try by aria-label or class
   const byAriaLabel = document.querySelector('button[aria-label*="Send"]') ||
-                      document.querySelector('button[aria-label*="send"]');
+    document.querySelector('button[aria-label*="send"]');
   if (byAriaLabel) return byAriaLabel;
 
   // Try by class name (Gemini specific)
@@ -53,8 +53,8 @@ function findSendButton(activeElement, isEditingTextarea) {
   return Array.from(document.querySelectorAll('button')).find(btn => {
     const text = btn.textContent.trim();
     return text === 'Send' ||
-           btn.querySelector('mat-icon[fonticon="send"]') ||
-           btn.classList.contains('submit');
+      btn.querySelector('mat-icon[fonticon="send"]') ||
+      btn.classList.contains('submit');
   });
 }
 
@@ -75,7 +75,7 @@ function insertQuillNewline(div) {
 
       // Insert second br if at end (Quill needs this)
       const isAtEnd = !br.nextSibling ||
-                      (br.nextSibling && br.nextSibling.nodeName === 'BR');
+        (br.nextSibling && br.nextSibling.nodeName === 'BR');
       if (isAtEnd) {
         const br2 = document.createElement('br');
         br.parentNode.insertBefore(br2, br.nextSibling);
@@ -123,6 +123,12 @@ function handleEnterSwap(event) {
     return;
   }
 
+  // Default preset matches native Gemini behavior (Enter=send, Shift+Enter=newline)
+  // No interception needed - let native behavior work correctly
+  if (enterKeyConfig.preset === 'default') {
+    return;
+  }
+
   // Get the currently focused element
   const activeElement = document.activeElement;
 
@@ -130,15 +136,15 @@ function handleEnterSwap(event) {
   // 1. Main prompt: Quill editor (contentEditable div with ql-editor class)
   // 2. Editing area: Regular textarea (appears when editing old messages)
   const isQuillEditor = activeElement &&
-                        activeElement.tagName === "DIV" &&
-                        activeElement.contentEditable === "true" &&
-                        (activeElement.classList.contains("ql-editor") ||
-                         (activeElement.classList.contains("textarea") &&
-                          activeElement.getAttribute("role") === "textbox"));
+    activeElement.tagName === "DIV" &&
+    activeElement.contentEditable === "true" &&
+    (activeElement.classList.contains("ql-editor") ||
+      (activeElement.classList.contains("textarea") &&
+        activeElement.getAttribute("role") === "textbox"));
 
   const isEditingTextarea = activeElement &&
-                           activeElement.tagName === "TEXTAREA" &&
-                           activeElement.offsetParent !== null; // visible check
+    activeElement.tagName === "TEXTAREA" &&
+    activeElement.offsetParent !== null; // visible check
 
   if (!isQuillEditor && !isEditingTextarea) {
     return;
