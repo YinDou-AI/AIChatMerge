@@ -8,10 +8,17 @@ import {
   exportSettings,
   importSettings,
 } from '../modules/settings.js';
+import { DEFAULT_GOOGLE_PROVIDER_MODE } from '../modules/google-mode.js';
 
 describe('settings module', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    chrome.storage.sync.get.mockImplementation((keys) => Promise.resolve(typeof keys === 'object' ? keys : {}));
+    chrome.storage.sync.set.mockResolvedValue();
+    chrome.storage.sync.clear.mockResolvedValue();
+    chrome.storage.local.get.mockImplementation((keys) => Promise.resolve(typeof keys === 'object' ? keys : {}));
+    chrome.storage.local.set.mockResolvedValue();
+    chrome.storage.local.clear.mockResolvedValue();
   });
 
   describe('getSettings', () => {
@@ -37,6 +44,14 @@ describe('settings module', () => {
       const result = await getSettings();
 
       expect(chrome.storage.local.get).toHaveBeenCalled();
+    });
+
+    it('should expose the default Google provider mode', async () => {
+      chrome.storage.sync.get.mockImplementation(async (defaults) => defaults);
+
+      const result = await getSettings();
+
+      expect(result.googleProviderMode).toBe(DEFAULT_GOOGLE_PROVIDER_MODE);
     });
   });
 
@@ -67,6 +82,12 @@ describe('settings module', () => {
 
       expect(chrome.storage.local.set).toHaveBeenCalledWith({ theme: 'dark' });
     });
+
+    it('should save the Google provider mode', async () => {
+      await saveSetting('googleProviderMode', 'search');
+
+      expect(chrome.storage.sync.set).toHaveBeenCalledWith({ googleProviderMode: 'search' });
+    });
   });
 
   describe('saveSettings', () => {
@@ -90,6 +111,7 @@ describe('settings module', () => {
       expect(chrome.storage.sync.set).toHaveBeenCalledWith(
         expect.objectContaining({
           enabledProviders: expect.any(Array),
+          googleProviderMode: DEFAULT_GOOGLE_PROVIDER_MODE,
           defaultProvider: 'chatgpt',
           theme: 'auto',
         })

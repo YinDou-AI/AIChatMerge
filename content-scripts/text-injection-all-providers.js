@@ -4,6 +4,10 @@
 (function() {
   'use strict';
 
+  const GOOGLE_PROVIDER_MODE_AI = 'ai';
+  const GOOGLE_PROVIDER_MODE_SEARCH = 'search';
+  let googleSearchReplaceOnNextFill = true;
+
   // Provider-specific selectors
   const PROVIDER_SELECTORS = {
     chatgpt: ['#prompt-textarea'],
@@ -29,17 +33,24 @@
       'div[contenteditable="true"]'
     ],
     google: [
-      'textarea[name="q"]',
-      'input[name="q"]',
-      'textarea.gLFyf',
-      'input.gLFyf',
       'textarea.ITIRGe',
       'textarea[aria-label="Ask anything"]',
-      'textarea[aria-label*="Search"]',
-      'input[aria-label*="Search"]',
       'textarea[maxlength="8192"]'
     ]
   };
+
+  const GOOGLE_AI_INPUT_SELECTORS = [
+    'textarea.ITIRGe',
+    'textarea[aria-label="Ask anything"]',
+    'textarea[maxlength="8192"]'
+  ];
+
+  const GOOGLE_SEARCH_INPUT_SELECTORS = [
+    'input[name="q"]',
+    'textarea[name="q"]',
+    'input.gLFyf',
+    'textarea.gLFyf'
+  ];
 
   // Provider image support configuration
   const PROVIDER_IMAGE_SUPPORT = {
@@ -71,7 +82,19 @@
     grok: [],
     deepseek: [],
     kimi: [],  // Kimi supports drag-drop for images
-    google: ['button[aria-label="Add image"]']
+    google: [
+      'button[aria-label="更多输入项"]',
+      'button[aria-label="Upload image"]',
+      'button[aria-label="上传图片"]',
+      'button[aria-label="上传文件"]',
+      'button[aria-label="Add image"]',
+      'button[aria-label="Upload image"]',
+      'button[aria-label="Add"]',
+      'button[title="Add image"]',
+      'button[title="Upload image"]',
+      'button[data-xid*="image"]',
+      'button[data-xid*="upload"]'
+    ]
   };
 
   // Provider-specific send button selectors
@@ -118,13 +141,9 @@
       'button[aria-label*="发送"]'
     ],
     google: [
-      'button[aria-label="Google Search"]',
-      'button[name="btnK"]',
-      'button[aria-label="Search"]',
-      'button[aria-label="Submit"]',
+      'button[data-xid="input-plate-send-button"]',
       'button[aria-label="Send"]',
-      'button[type="submit"]',
-      'form button[jsname]'
+      'button.OEueve'
     ]
   };
 
@@ -212,6 +231,265 @@
     return null;
   }
 
+  function normalizeGoogleProviderMode(mode) {
+    return mode === GOOGLE_PROVIDER_MODE_SEARCH
+      ? GOOGLE_PROVIDER_MODE_SEARCH
+      : GOOGLE_PROVIDER_MODE_AI;
+  }
+
+  function resetGoogleSearchFillSession() {
+    googleSearchReplaceOnNextFill = true;
+  }
+
+  function isVisibleElement(element) {
+    return Boolean(
+      element &&
+      element.offsetParent !== null &&
+      element.getAttribute('aria-hidden') !== 'true'
+    );
+  }
+
+  function findFirstVisibleElement(selectors) {
+    for (const selector of selectors) {
+      try {
+        const elements = document.querySelectorAll(selector);
+        for (const element of elements) {
+          if (isVisibleElement(element)) {
+            return element;
+          }
+        }
+      } catch (error) {
+        console.warn('[Text Injection] Error finding visible element with selector:', selector, error);
+      }
+    }
+
+    return null;
+  }
+
+  function getElementAccessibleText(element) {
+    return [
+      element?.getAttribute?.('aria-label') || '',
+      element?.getAttribute?.('title') || '',
+      element?.textContent || ''
+    ]
+      .join(' ')
+      .trim()
+      .toLowerCase();
+  }
+
+  function findDeepFirstVisibleElement(selectors) {
+    for (const selector of selectors) {
+      try {
+        const elements = querySelectorAllDeep(selector);
+        for (const element of elements) {
+          if (isVisibleElement(element)) {
+            return element;
+          }
+        }
+      } catch (error) {
+        console.warn('[Text Injection] Error finding deep visible element with selector:', selector, error);
+      }
+    }
+
+    return null;
+  }
+
+  function findDeepClickableElementByKeywords(keywords) {
+    const loweredKeywords = keywords.map(keyword => keyword.toLowerCase());
+    const candidates = querySelectorAllDeep('button, [role="button"], [role="menuitem"], label');
+
+    for (const candidate of candidates) {
+      if (!isVisibleElement(candidate)) {
+        continue;
+      }
+
+      const searchableText = getElementAccessibleText(candidate);
+      if (loweredKeywords.some(keyword => searchableText.includes(keyword))) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
+  function getGoogleInputSelectors(mode) {
+    return normalizeGoogleProviderMode(mode) === GOOGLE_PROVIDER_MODE_SEARCH
+      ? GOOGLE_SEARCH_INPUT_SELECTORS
+      : GOOGLE_AI_INPUT_SELECTORS;
+  }
+
+  function findGoogleInput(mode) {
+    return findFirstVisibleElement(getGoogleInputSelectors(mode));
+  }
+
+  function setFormControlValue(element, value) {
+    const prototype = element.tagName === 'INPUT'
+      ? window.HTMLInputElement.prototype
+      : window.HTMLTextAreaElement.prototype;
+    const nativeSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
+
+    if (nativeSetter) {
+      nativeSetter.call(element, value);
+    } else {
+      element.value = value;
+    }
+
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+
+    if (typeof element.value === 'string') {
+      element.selectionStart = element.selectionEnd = element.value.length;
+    }
+  }
+
+  function buildGoogleSearchFillValue(currentValue, nextText) {
+    const normalizedCurrent = (currentValue || '').trim();
+    const normalizedNext = (nextText || '').trim();
+
+    if (!normalizedNext) {
+      return normalizedCurrent;
+    }
+
+    if (googleSearchReplaceOnNextFill || !normalizedCurrent) {
+      return normalizedNext;
+    }
+
+    return `${normalizedCurrent}${normalizedNext}`.trim();
+  }
+
+  function clearGoogleInput(mode) {
+    const input = findGoogleInput(mode);
+    if (!input) {
+      return false;
+    }
+
+    setFormControlValue(input, '');
+
+    if (normalizeGoogleProviderMode(mode) === GOOGLE_PROVIDER_MODE_SEARCH) {
+      resetGoogleSearchFillSession();
+    }
+
+    return true;
+  }
+
+  function fillGoogleSearchInput(text) {
+    const input = findGoogleInput(GOOGLE_PROVIDER_MODE_SEARCH);
+    if (!input || !text || typeof text !== 'string') {
+      return false;
+    }
+
+    const nextValue = buildGoogleSearchFillValue(input.value || '', text);
+    setFormControlValue(input, nextValue);
+    googleSearchReplaceOnNextFill = false;
+    return true;
+  }
+
+  function navigateToGoogleSearchResults(query) {
+    const normalizedQuery = (query || '').trim();
+    if (!normalizedQuery) {
+      return false;
+    }
+
+    const searchUrl = new URL('/search', window.location.origin);
+    searchUrl.searchParams.set('q', normalizedQuery);
+    window.location.assign(searchUrl.toString());
+    return true;
+  }
+
+  function findGoogleFileInput() {
+    const fileInputs = querySelectorAllDeep('input[type="file"]');
+    let fallbackInput = null;
+
+    for (const input of fileInputs) {
+      const accept = (input.getAttribute('accept') || '').toLowerCase();
+      if (accept && accept.includes('image') && !accept.includes('.pdf') && !accept.includes('application/pdf')) {
+        return input;
+      }
+
+      if (!fallbackInput && (!accept || accept.includes('image') || accept.includes('*'))) {
+        fallbackInput = input;
+      }
+    }
+
+    return fallbackInput;
+  }
+
+  async function openGoogleImagePicker() {
+    const uploadButton = findDeepFirstVisibleElement(UPLOAD_BUTTON_SELECTORS.google);
+    if (uploadButton) {
+      uploadButton.click();
+      await sleep(150);
+    }
+
+    let fileInput = findGoogleFileInput();
+    if (fileInput) {
+      return fileInput;
+    }
+
+    const imageMenuAction = findDeepClickableElementByKeywords([
+      '更多输入项',
+      'add image',
+      'upload image',
+      'upload file',
+      'image',
+      'photo',
+      '上传图片',
+      '上传文件',
+      '图片',
+      '照片',
+      '图像'
+    ]);
+
+    if (imageMenuAction) {
+      imageMenuAction.click();
+      await sleep(150);
+    }
+
+    fileInput = findGoogleFileInput();
+    if (fileInput) {
+      return fileInput;
+    }
+
+    const addAction = findDeepClickableElementByKeywords([
+      'add',
+      'attach',
+      'plus',
+      '添加',
+      '附件'
+    ]);
+
+    if (addAction) {
+      addAction.click();
+      await sleep(150);
+    }
+
+    return findGoogleFileInput();
+  }
+
+  function assignFilesToInput(fileInput, files) {
+    if (!fileInput || !files || files.length === 0) {
+      return false;
+    }
+
+    try {
+      const dataTransfer = new DataTransfer();
+      files.forEach(file => dataTransfer.items.add(file));
+      fileInput.files = dataTransfer.files;
+      return true;
+    } catch (error) {
+      try {
+        Object.defineProperty(fileInput, 'files', {
+          configurable: true,
+          value: files
+        });
+        return true;
+      } catch (fallbackError) {
+        console.error('[Image Injection] Failed to assign files to input:', fallbackError);
+        return false;
+      }
+    }
+  }
+
   // Find text input element by selector
   function findTextInputElement(selector) {
     if (!selector || typeof selector !== 'string') {
@@ -226,8 +504,55 @@
     }
   }
 
+  function clickGoogleSendButton(mode) {
+    const normalizedMode = normalizeGoogleProviderMode(mode);
+
+    if (normalizedMode === GOOGLE_PROVIDER_MODE_SEARCH) {
+      const input = findGoogleInput(normalizedMode);
+      if (!input) {
+        console.warn('[Text Injection] Google Search input not found');
+        return false;
+      }
+      const query = (input.value || '').trim();
+      if (!query) {
+        return false;
+      }
+
+      console.log('[Text Injection] Navigating Google Search mode to results page');
+      resetGoogleSearchFillSession();
+      return navigateToGoogleSearchResults(query);
+    }
+
+    const sendButton = findFirstVisibleElement(SEND_BUTTON_SELECTORS.google);
+    if (sendButton && !sendButton.disabled && sendButton.getAttribute('aria-disabled') !== 'true') {
+      sendButton.click();
+      return true;
+    }
+
+    const input = findGoogleInput(normalizedMode);
+    if (!input) {
+      return false;
+    }
+
+    input.focus();
+    const enterEvent = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      code: 'Enter',
+      keyCode: 13,
+      which: 13,
+      bubbles: true,
+      cancelable: true
+    });
+    input.dispatchEvent(enterEvent);
+    return true;
+  }
+
   // Find and click send button
-  function clickSendButton(provider) {
+  function clickSendButton(provider, providerMode = null) {
+    if (provider === 'google') {
+      return clickGoogleSendButton(providerMode);
+    }
+
     const selectors = SEND_BUTTON_SELECTORS[provider];
     if (!selectors) {
       console.warn('[Text Injection] No send button selectors for provider:', provider);
@@ -276,54 +601,6 @@
         }
       } catch (error) {
         console.warn('[Text Injection] Error finding button with selector:', selector, error);
-      }
-    }
-
-    // Special handling for Google - submit the search form if button not found
-    if (provider === 'google') {
-      console.log('[Text Injection] Google send button not found, trying form submit');
-      try {
-        // Try to find the search form and submit it
-        const searchForm = document.querySelector('form[action="/search"]') ||
-                          document.querySelector('form[role="search"]') ||
-                          document.querySelector('form');
-        if (searchForm) {
-          console.log('[Text Injection] Submitting Google search form');
-          searchForm.submit();
-          return true;
-        }
-
-        // Fallback: trigger Enter key on the search input
-        const inputSelectors = PROVIDER_SELECTORS.google;
-        for (const selector of inputSelectors) {
-          const input = document.querySelector(selector);
-          if (input && input.value && input.value.trim().length > 0) {
-            console.log('[Text Injection] Triggering Enter key on Google search input');
-            const enterEvent = new KeyboardEvent('keydown', {
-              key: 'Enter',
-              code: 'Enter',
-              keyCode: 13,
-              which: 13,
-              bubbles: true,
-              cancelable: true
-            });
-            input.dispatchEvent(enterEvent);
-
-            // Also dispatch keyup event for better compatibility
-            const enterUpEvent = new KeyboardEvent('keyup', {
-              key: 'Enter',
-              code: 'Enter',
-              keyCode: 13,
-              which: 13,
-              bubbles: true,
-              cancelable: true
-            });
-            input.dispatchEvent(enterUpEvent);
-            return true;
-          }
-        }
-      } catch (error) {
-        console.warn('[Text Injection] Error in Google form submit fallback:', error);
       }
     }
 
@@ -385,20 +662,21 @@
   }
 
   // Special handler for Google to create "new search"
-  function handleGoogleNewSearch() {
-    console.log('[Text Injection] Handling Google new search - navigating to AI Mode');
-
-    // For Google, navigate to AI Mode (udm=50) with empty search
-    // This ensures text injection will work in AI Mode context
-    window.location.href = 'https://www.google.com/search?udm=50';
+  function handleGoogleNewSearch(mode) {
+    const normalizedMode = normalizeGoogleProviderMode(mode);
+    console.log('[Text Injection] Handling Google new search for mode:', normalizedMode);
+    resetGoogleSearchFillSession();
+    window.location.href = normalizedMode === GOOGLE_PROVIDER_MODE_SEARCH
+      ? 'https://www.google.com/'
+      : 'https://www.google.com/search?udm=50';
     return true;
   }
 
   // Find and click new chat button
-  function clickNewChatButton(provider) {
+  function clickNewChatButton(provider, providerMode = null) {
     // Special handling for Google
     if (provider === 'google') {
-      return handleGoogleNewSearch();
+      return handleGoogleNewSearch(providerMode);
     }
 
     const selectors = NEW_CHAT_BUTTON_SELECTORS[provider];
@@ -479,16 +757,7 @@
         const currentValue = element.value || '';
         const newValue = currentValue + text;
 
-        // For React - use native setter to bypass React's control
-        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
-        nativeInputValueSetter.call(element, newValue);
-
-        // Trigger multiple events to notify React/Vue/etc
-        element.dispatchEvent(new Event('input', { bubbles: true }));
-        element.dispatchEvent(new Event('change', { bubbles: true }));
-
-        // Move cursor to end (without focusing to avoid cross-origin error)
-        element.selectionStart = element.selectionEnd = element.value.length;
+        setFormControlValue(element, newValue);
       } else {
         // For contenteditable elements - append text without clearing existing content
         element.focus();
@@ -540,10 +809,37 @@
     }
   }
 
+  function handleGoogleTextInjection(text, autoSubmit, providerMode) {
+    const normalizedMode = normalizeGoogleProviderMode(providerMode);
+
+    if (normalizedMode === GOOGLE_PROVIDER_MODE_SEARCH) {
+      const success = fillGoogleSearchInput(text);
+      if (success && autoSubmit) {
+        setTimeout(() => clickGoogleSendButton(normalizedMode), 100);
+      }
+      return success;
+    }
+
+    const input = findGoogleInput(normalizedMode);
+    if (!input) {
+      return false;
+    }
+
+    const success = injectTextIntoElement(input, text);
+    if (success && autoSubmit) {
+      setTimeout(() => clickGoogleSendButton(normalizedMode), 500);
+    }
+    return success;
+  }
+
   // ===== Image Injection Functions =====
 
   // Helper function to inject text into provider's input field
-  function injectText(provider, text, autoSubmit) {
+  function injectText(provider, text, autoSubmit, providerMode = null) {
+    if (provider === 'google') {
+      return handleGoogleTextInjection(text, autoSubmit, providerMode);
+    }
+
     const selectors = PROVIDER_SELECTORS[provider];
     if (!selectors) {
       console.warn('[Text Injection] No selectors for provider:', provider);
@@ -559,7 +855,7 @@
           if (autoSubmit) {
             // Use longer delay for DeepSeek/Kimi to ensure DOM is ready
             const delay = (provider === 'deepseek' || provider === 'kimi') ? 800 : 500;
-            setTimeout(() => clickSendButton(provider), delay);
+            setTimeout(() => clickSendButton(provider, providerMode), delay);
           }
           return true;
         }
@@ -574,9 +870,20 @@
   async function handleImageInjection(event) {
     const { text, images, autoSubmit } = event.data;
     const provider = detectProvider();
+    const providerMode = provider === 'google'
+      ? normalizeGoogleProviderMode(event.data.providerMode)
+      : null;
 
     if (!provider) {
       console.warn('[Image Injection] Provider not detected');
+      return;
+    }
+
+    if (provider === 'google' && providerMode === GOOGLE_PROVIDER_MODE_SEARCH) {
+      console.warn('[Image Injection] Google Search mode does not support image injection, falling back to text only');
+      if (text && text.trim()) {
+        handleGoogleTextInjection(text, autoSubmit, providerMode);
+      }
       return;
     }
 
@@ -584,7 +891,7 @@
       console.warn('[Image Injection] Provider does not support images:', provider);
       // For providers that don't support images, just inject text
       if (text) {
-        injectText(provider, text, autoSubmit);
+        injectText(provider, text, autoSubmit, providerMode);
       }
       return;
     }
@@ -610,11 +917,11 @@
       // Then inject text if provided
       if (text && text.trim()) {
         await sleep(300);
-        injectText(provider, text, autoSubmit);
+        injectText(provider, text, autoSubmit, providerMode);
       } else if (autoSubmit) {
         // If no text but autoSubmit is true, click send button
         await sleep(300);
-        clickSendButton(provider);
+        clickSendButton(provider, providerMode);
       }
     } catch (error) {
       console.error('[Image Injection] Error:', error);
@@ -781,14 +1088,18 @@
   // Google AI Mode image injection
   async function injectImageToGoogle(imageData) {
     try {
-      // Google AI Mode: find file input
-      const fileInput = document.querySelector('input[type="file"]');
+      let fileInput = findGoogleFileInput();
+      if (!fileInput) {
+        fileInput = await openGoogleImagePicker();
+      }
+
       if (fileInput) {
         const blob = await dataUrlToBlob(imageData.dataUrl);
         const file = new File([blob], imageData.name, { type: imageData.type });
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        fileInput.files = dataTransfer.files;
+        const assigned = assignFilesToInput(fileInput, [file]);
+        if (!assigned) {
+          return false;
+        }
         fileInput.dispatchEvent(new Event('change', { bubbles: true }));
         console.log('[Image Injection] Google: File input triggered');
         return true;
@@ -972,16 +1283,23 @@
     if (event.data.type === 'CLEAR_INPUT' && event.data.context === 'multi-panel') {
       const provider = detectProvider();
       if (provider) {
+        const providerMode = provider === 'google'
+          ? normalizeGoogleProviderMode(event.data.providerMode)
+          : null;
+
+        if (provider === 'google') {
+          clearGoogleInput(providerMode);
+          console.log('[Text Injection] Input cleared for', provider, 'mode:', providerMode);
+          return;
+        }
+
         const selectors = PROVIDER_SELECTORS[provider];
         for (const selector of selectors) {
           const element = findTextInputElement(selector);
           if (element) {
             const isTextarea = element.tagName === 'TEXTAREA' || element.tagName === 'INPUT';
             if (isTextarea) {
-              // For textarea/input elements - use native setter
-              const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
-              nativeInputValueSetter.call(element, '');
-              element.dispatchEvent(new Event('input', { bubbles: true }));
+              setFormControlValue(element, '');
             } else {
               // For contenteditable elements
               element.focus();
@@ -1036,8 +1354,11 @@
     if (event.data.type === 'TRIGGER_SEND' && event.data.context === 'multi-panel') {
       const provider = detectProvider();
       if (provider) {
+        const providerMode = provider === 'google'
+          ? normalizeGoogleProviderMode(event.data.providerMode)
+          : null;
         console.log('[Text Injection] Triggering send for', provider);
-        clickSendButton(provider);
+        clickSendButton(provider, providerMode);
       }
       return;
     }
@@ -1045,11 +1366,14 @@
     // Handle NEW_CHAT messages (create new chat)
     if (event.data.type === 'NEW_CHAT' && event.data.context === 'multi-panel') {
       const provider = detectProvider();
+      const providerMode = provider === 'google'
+        ? normalizeGoogleProviderMode(event.data.providerMode)
+        : null;
       console.log('[Text Injection] NEW_CHAT message received, provider:', provider);
       console.log('[Text Injection] Current URL:', window.location.href);
       if (provider) {
         console.log('[Text Injection] Creating new chat for', provider);
-        clickNewChatButton(provider);
+        clickNewChatButton(provider, providerMode);
       } else {
         console.warn('[Text Injection] Provider not detected for NEW_CHAT');
       }
@@ -1094,6 +1418,29 @@
       return;
     }
 
+    const providerMode = provider === 'google'
+      ? normalizeGoogleProviderMode(event.data.providerMode)
+      : null;
+
+    if (provider === 'google') {
+      const success = handleGoogleTextInjection(text, shouldAutoSubmit, providerMode);
+      if (success) {
+        console.log('[Text Injection] Text injected into Google using mode:', providerMode);
+        return;
+      }
+
+      console.warn('[Text Injection] Google editor not found on first try, retrying...');
+      [500, 1000].forEach((delay, index, delays) => {
+        setTimeout(() => {
+          const retried = handleGoogleTextInjection(text, shouldAutoSubmit, providerMode);
+          if (!retried && index === delays.length - 1) {
+            console.error('[Text Injection] Google editor not found after retries');
+          }
+        }, delay);
+      });
+      return;
+    }
+
     const selectors = PROVIDER_SELECTORS[provider];
     if (!selectors) {
       console.warn('No selectors configured for provider:', provider);
@@ -1124,7 +1471,7 @@
           const delay = provider === 'deepseek' ? 800 : 500;
           setTimeout(() => {
             console.log('[Text Injection] Attempting to click send button for', provider);
-            const clicked = clickSendButton(provider);
+            const clicked = clickSendButton(provider, providerMode);
             if (!clicked) {
               console.warn('[Text Injection] Failed to click send button for', provider);
             }
@@ -1159,7 +1506,7 @@
                 const submitDelay = provider === 'deepseek' ? 800 : 500;
                 setTimeout(() => {
                   console.log('[Text Injection] Attempting to click send button for', provider, 'after retry');
-                  clickSendButton(provider);
+                  clickSendButton(provider, providerMode);
                 }, submitDelay);
               }
             }

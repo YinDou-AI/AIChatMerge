@@ -6,6 +6,14 @@
  */
 
 import { PROVIDERS, getProviderById, getEnabledProviders } from '../modules/providers.js';
+import {
+  DEFAULT_GOOGLE_PROVIDER_MODE,
+  GOOGLE_PROVIDER_MODE_AI,
+  GOOGLE_PROVIDER_MODE_SEARCH,
+  getGoogleProviderUrl,
+  normalizeGoogleProviderMode
+} from '../modules/google-mode.js';
+import { saveSetting } from '../modules/settings.js';
 import { applyTheme } from '../modules/theme-manager.js';
 import { t, initializeLanguage } from '../modules/i18n.js';
 import {
@@ -28,6 +36,7 @@ let uploadedImages = []; // Array of uploaded images { id, name, type, dataUrl }
 let loadingIframeCount = 0; // Track iframes still loading, used for focus protection
 let newChatFocusRestoreTimerIds = [];
 let isRestoringFocusAfterNewChat = false;
+let currentGoogleProviderMode = DEFAULT_GOOGLE_PROVIDER_MODE;
 
 // 提示词编辑器状态
 let currentEditingPromptId = null;
@@ -71,6 +80,7 @@ async function init() {
   await applyTheme();
   await initializeLanguage();
   registerRuntimeMessageListener();
+  registerStorageChangeListener();
 
   // Detect window type and load mode
   await detectWindowType();
@@ -110,6 +120,203 @@ function focusUnifiedInput({ force = false } = {}) {
     } catch {
       inputTextarea.focus();
     }
+  });
+}
+
+function isGoogleProvider(providerId) {
+  return providerId === 'google';
+}
+
+function getPanelProviderMode(panel) {
+  return isGoogleProvider(panel.providerId) ? currentGoogleProviderMode : null;
+}
+
+function getProviderFrameUrl(providerId) {
+  const provider = getProviderById(providerId);
+  if (!provider) {
+    return '';
+  }
+
+  return isGoogleProvider(providerId)
+    ? getGoogleProviderUrl(currentGoogleProviderMode)
+    : provider.url;
+}
+
+function getGoogleModeSelectHtml(mode = currentGoogleProviderMode) {
+  const normalizedMode = normalizeGoogleProviderMode(mode);
+  return `
+    <select class="panel-google-mode-select" title="Google mode">
+      <option value="${GOOGLE_PROVIDER_MODE_AI}" ${normalizedMode === GOOGLE_PROVIDER_MODE_AI ? 'selected' : ''}>AI Mode</option>
+      <option value="${GOOGLE_PROVIDER_MODE_SEARCH}" ${normalizedMode === GOOGLE_PROVIDER_MODE_SEARCH ? 'selected' : ''}>Search</option>
+    </select>
+  `;
+}
+
+function fitPanelSelectWidth(select) {
+  if (!(select instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  const selectedOption = select.options[select.selectedIndex];
+  const text = selectedOption?.textContent || select.value || '';
+  const sizingProbe = document.createElement('span');
+  const computedStyle = window.getComputedStyle(select);
+
+  sizingProbe.textContent = text;
+  sizingProbe.style.position = 'absolute';
+  sizingProbe.style.visibility = 'hidden';
+  sizingProbe.style.whiteSpace = 'pre';
+  sizingProbe.style.font = computedStyle.font;
+  sizingProbe.style.fontSize = computedStyle.fontSize;
+  sizingProbe.style.fontWeight = computedStyle.fontWeight;
+  sizingProbe.style.letterSpacing = computedStyle.letterSpacing;
+
+  document.body.appendChild(sizingProbe);
+  const measuredWidth = Math.ceil(sizingProbe.getBoundingClientRect().width);
+  sizingProbe.remove();
+
+  const horizontalPadding = (parseFloat(computedStyle.paddingLeft) || 0) +
+    (parseFloat(computedStyle.paddingRight) || 0);
+  const horizontalBorder = (parseFloat(computedStyle.borderLeftWidth) || 0) +
+    (parseFloat(computedStyle.borderRightWidth) || 0);
+  const safetyAllowance = 6;
+
+  select.style.width = `${Math.max(
+    72,
+    Math.ceil(measuredWidth + horizontalPadding + horizontalBorder + safetyAllowance)
+  )}px`;
+}
+
+function getPanelHeaderRightHtml(providerId) {
+  const googleModeSelect = isGoogleProvider(providerId)
+    ? getGoogleModeSelectHtml()
+    : '';
+
+  return `
+    ${googleModeSelect}
+    <button class="refresh-panel-btn" title="Refresh">
+      <span class="material-symbols-outlined">refresh</span>
+    </button>
+    <button class="switch-provider-btn" title="Switch Provider">
+      <span class="material-symbols-outlined">swap_horiz</span>
+    </button>
+  `;
+}
+
+function syncGoogleModeControls() {
+  document.querySelectorAll('.panel-google-mode-select').forEach((select) => {
+    if (select.value !== currentGoogleProviderMode) {
+      select.value = currentGoogleProviderMode;
+    }
+    fitPanelSelectWidth(select);
+  });
+}
+
+function showPanelLoadingState(panelEl, provider) {
+  const loadingEl = panelEl.querySelector('.panel-loading');
+  if (!loadingEl || !provider) {
+    return;
+  }
+
+  loadingEl.classList.remove('hidden');
+  loadingEl.innerHTML = `<img src="${provider.icon}" alt="${provider.name}" class="loading-icon"><span class="loading-text">Loading ${provider.name}...</span>`;
+}
+
+function reloadPanelIframe(panel) {
+  const panelEl = document.getElementById(panel.id);
+  const provider = getProviderById(panel.providerId);
+  if (!panelEl || !provider) {
+    return;
+  }
+
+  const iframe = panelEl.querySelector('iframe');
+  if (!iframe) {
+    return;
+  }
+
+  showPanelLoadingState(panelEl, provider);
+  loadingIframeCount++;
+  iframe.src = getProviderFrameUrl(panel.providerId);
+  panel.iframe = iframe;
+}
+
+function bindPanelHeaderActions(panelId) {
+  const panel = panels.find(p => p.id === panelId);
+  const panelEl = document.getElementById(panelId);
+  if (!panel || !panelEl) {
+    return;
+  }
+
+  const refreshBtn = panelEl.querySelector('.refresh-panel-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      reloadPanelIframe(panel);
+    });
+  }
+
+  const switchBtn = panelEl.querySelector('.switch-provider-btn');
+  if (switchBtn) {
+    switchBtn.addEventListener('click', () => {
+      showProviderSwitcher(panelId);
+    });
+  }
+
+  const googleModeSelect = panelEl.querySelector('.panel-google-mode-select');
+  if (googleModeSelect) {
+    fitPanelSelectWidth(googleModeSelect);
+    googleModeSelect.addEventListener('click', (event) => {
+      event.stopPropagation();
+    });
+    googleModeSelect.addEventListener('mousedown', (event) => {
+      event.stopPropagation();
+    });
+    googleModeSelect.addEventListener('change', async (event) => {
+      fitPanelSelectWidth(event.target);
+      await updateGoogleProviderMode(event.target.value, { persist: true, reloadPanels: true });
+    });
+  }
+}
+
+async function updateGoogleProviderMode(mode, { persist = false, reloadPanels = false } = {}) {
+  const normalizedMode = normalizeGoogleProviderMode(mode);
+  const modeChanged = currentGoogleProviderMode !== normalizedMode;
+  currentGoogleProviderMode = normalizedMode;
+  syncGoogleModeControls();
+
+  if (reloadPanels && modeChanged) {
+    panels
+      .filter(panel => isGoogleProvider(panel.providerId))
+      .forEach(panel => reloadPanelIframe(panel));
+  }
+
+  if (persist) {
+    await saveSetting('googleProviderMode', normalizedMode);
+  }
+}
+
+function registerStorageChangeListener() {
+  if (!chrome?.storage?.onChanged?.addListener) {
+    return;
+  }
+
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== 'sync' && areaName !== 'local') {
+      return;
+    }
+
+    if (!changes.googleProviderMode || !changes.googleProviderMode.newValue) {
+      return;
+    }
+
+    const nextMode = normalizeGoogleProviderMode(changes.googleProviderMode.newValue);
+    if (nextMode === currentGoogleProviderMode) {
+      syncGoogleModeControls();
+      return;
+    }
+
+    updateGoogleProviderMode(nextMode, { reloadPanels: true }).catch((error) => {
+      console.error('Error syncing Google provider mode:', error);
+    });
   });
 }
 
@@ -243,11 +450,13 @@ async function loadSettings() {
     const settings = await chrome.storage.sync.get({
       multiPanelLayout: '1x3',
       multiPanelProviders: DEFAULT_PROVIDERS,
-      openMode: 'tab'
+      openMode: 'tab',
+      googleProviderMode: DEFAULT_GOOGLE_PROVIDER_MODE
     });
 
     currentLayout = normalizeLayout(settings.multiPanelLayout);
     currentOpenMode = settings.openMode || 'tab';
+    currentGoogleProviderMode = normalizeGoogleProviderMode(settings.googleProviderMode);
 
     // Apply layout
     const panelGrid = document.getElementById('panel-grid');
@@ -302,6 +511,7 @@ function collectCurrentState() {
     panels: panels.map(p => ({
       providerId: p.providerId
     })),
+    googleProviderMode: currentGoogleProviderMode,
     timestamp: Date.now()
   };
   return state;
@@ -389,6 +599,12 @@ async function restoreStateIfNeeded() {
       if (state.panels && state.panels.length > 0) {
         const providerIds = state.panels.map(p => p.providerId);
         await chrome.storage.sync.set({ multiPanelProviders: providerIds });
+      }
+
+      if (state.googleProviderMode) {
+        await chrome.storage.sync.set({
+          googleProviderMode: normalizeGoogleProviderMode(state.googleProviderMode)
+        });
       }
 
       // 清除已恢复的状态
@@ -539,14 +755,7 @@ async function addPanel(providerId) {
         <img src="${provider.icon}" alt="${provider.name}" class="provider-icon">
         <span>${provider.name}</span>
       </div>
-      <div class="panel-header-right">
-        <button class="refresh-panel-btn" title="Refresh">
-          <span class="material-symbols-outlined">refresh</span>
-        </button>
-        <button class="switch-provider-btn" title="Switch Provider">
-          <span class="material-symbols-outlined">swap_horiz</span>
-        </button>
-      </div>
+      <div class="panel-header-right">${getPanelHeaderRightHtml(providerId)}</div>
     </div>
     <div class="panel-iframe-container">
       <div class="panel-loading">
@@ -554,7 +763,7 @@ async function addPanel(providerId) {
         <span class="loading-text">Loading ${provider.name}...</span>
       </div>
       <iframe
-        src="${provider.url}"
+        src="${getProviderFrameUrl(providerId)}"
         sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
         allow="clipboard-read; clipboard-write"
       ></iframe>
@@ -583,20 +792,6 @@ async function addPanel(providerId) {
     loadingIframeCount = Math.max(0, loadingIframeCount - 1);
   });
 
-  // Setup panel button handlers
-  const refreshBtn = panelEl.querySelector('.refresh-panel-btn');
-  refreshBtn.addEventListener('click', () => {
-    loadingEl.classList.remove('hidden');
-    loadingEl.innerHTML = `<img src="${provider.icon}" alt="${provider.name}" class="loading-icon"><span class="loading-text">Loading ${provider.name}...</span>`;
-    loadingIframeCount++;
-    iframe.src = provider.url;
-  });
-
-  const switchBtn = panelEl.querySelector('.switch-provider-btn');
-  switchBtn.addEventListener('click', () => {
-    showProviderSwitcher(panelId);
-  });
-
   // Add to panels array
   panels.push({
     id: panelId,
@@ -604,6 +799,8 @@ async function addPanel(providerId) {
     iframe,
     state: 'loading'
   });
+
+  bindPanelHeaderActions(panelId);
 
   // Save provider configuration
   await saveProviderConfiguration();
@@ -658,23 +855,27 @@ async function switchPanelProvider(panelId, newProviderId) {
   const panelEl = document.getElementById(panelId);
   if (!panelEl) return;
 
+  if (isGoogleProvider(newProviderId)) {
+    syncGoogleModeControls();
+  }
+
   // Update panel header
   const headerIcon = panelEl.querySelector('.panel-header-left img');
   const headerName = panelEl.querySelector('.panel-header-left span');
+  const headerRight = panelEl.querySelector('.panel-header-right');
   headerIcon.src = provider.icon;
   headerIcon.alt = provider.name;
   headerName.textContent = provider.name;
+  headerRight.innerHTML = getPanelHeaderRightHtml(newProviderId);
 
   // Update iframe
   const iframe = panelEl.querySelector('iframe');
-  const loadingEl = panelEl.querySelector('.panel-loading');
-  loadingEl.classList.remove('hidden');
-  loadingEl.textContent = `Loading ${provider.name}...`;
-  iframe.src = provider.url;
 
   // Update panel data
   panel.providerId = newProviderId;
   panel.iframe = iframe;
+  bindPanelHeaderActions(panelId);
+  reloadPanelIframe(panel);
 
   // Update selectors and save
   updatePanelSelectors();
@@ -855,6 +1056,7 @@ async function sendToPanel(panel, text, images = [], autoSubmit = true) {
         text: text,
         images: images,
         autoSubmit: autoSubmit,
+        providerMode: getPanelProviderMode(panel),
         context: 'multi-panel'  // Identify this is from multi-panel
       }, '*');
 
@@ -882,6 +1084,7 @@ async function clearAllInputs() {
       panel.iframe.contentWindow.postMessage({
         type: 'CLEAR_INPUT',
         clearImages: true,
+        providerMode: getPanelProviderMode(panel),
         context: 'multi-panel'
       }, '*');
     }
@@ -989,6 +1192,7 @@ async function newChatAllProviders() {
     if (panel.iframe && panel.iframe.contentWindow) {
       panel.iframe.contentWindow.postMessage({
         type: 'NEW_CHAT',
+        providerMode: getPanelProviderMode(panel),
         context: 'multi-panel'
       }, '*');
     }
@@ -1020,6 +1224,7 @@ async function triggerSendButtons() {
       if (panel.iframe && panel.iframe.contentWindow) {
         panel.iframe.contentWindow.postMessage({
           type: 'TRIGGER_SEND',
+          providerMode: getPanelProviderMode(panel),
           context: 'multi-panel'
         }, '*');
       }

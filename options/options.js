@@ -1,6 +1,12 @@
 // T050-T064: Settings Page Implementation
 import { PROVIDERS } from '../modules/providers.js';
 import { getSettings, getSetting, saveSettings, saveSetting, resetSettings, exportSettings, importSettings } from '../modules/settings.js';
+import {
+  DEFAULT_GOOGLE_PROVIDER_MODE,
+  GOOGLE_PROVIDER_MODE_AI,
+  GOOGLE_PROVIDER_MODE_SEARCH,
+  normalizeGoogleProviderMode
+} from '../modules/google-mode.js';
 import { applyTheme } from '../modules/theme-manager.js';
 import {
   getAllPrompts,
@@ -15,6 +21,80 @@ import {
 } from '../modules/version-checker.js';
 import { t, translatePage, getCurrentLanguage, initializeLanguage } from '../modules/i18n.js';
 const DEFAULT_ENABLED_PROVIDERS = ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google'];
+
+function fitSelectWidth(select) {
+  if (!(select instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  const selectedOption = select.options[select.selectedIndex];
+  const text = selectedOption?.textContent || select.value || '';
+  const sizingProbe = document.createElement('span');
+  const computedStyle = window.getComputedStyle(select);
+
+  sizingProbe.textContent = text;
+  sizingProbe.style.position = 'absolute';
+  sizingProbe.style.visibility = 'hidden';
+  sizingProbe.style.whiteSpace = 'pre';
+  sizingProbe.style.font = computedStyle.font;
+  sizingProbe.style.fontSize = computedStyle.fontSize;
+  sizingProbe.style.fontWeight = computedStyle.fontWeight;
+  sizingProbe.style.letterSpacing = computedStyle.letterSpacing;
+
+  document.body.appendChild(sizingProbe);
+  const measuredWidth = Math.ceil(sizingProbe.getBoundingClientRect().width);
+  sizingProbe.remove();
+
+  const horizontalPadding = (parseFloat(computedStyle.paddingLeft) || 0) +
+    (parseFloat(computedStyle.paddingRight) || 0);
+  const horizontalBorder = (parseFloat(computedStyle.borderLeftWidth) || 0) +
+    (parseFloat(computedStyle.borderRightWidth) || 0);
+  const safetyAllowance = 8;
+
+  select.style.width = `${Math.max(
+    56,
+    Math.ceil(measuredWidth + horizontalPadding + horizontalBorder + safetyAllowance)
+  )}px`;
+}
+
+function setupAutoSizedSelect(select) {
+  if (!(select instanceof HTMLSelectElement) || select.dataset.autoSizeBound === 'true') {
+    fitSelectWidth(select);
+    return;
+  }
+
+  select.dataset.autoSizeBound = 'true';
+  select.addEventListener('change', () => {
+    fitSelectWidth(select);
+  });
+
+  fitSelectWidth(select);
+}
+
+function refreshAutoSizedSelects(root = document) {
+  root.querySelectorAll('select').forEach((select) => {
+    setupAutoSizedSelect(select);
+  });
+}
+
+function getGoogleProviderModeOrDefault(settings) {
+  return normalizeGoogleProviderMode(settings.googleProviderMode || DEFAULT_GOOGLE_PROVIDER_MODE);
+}
+
+function renderGoogleModeSelectMarkup(currentMode, isEnabled) {
+  const normalizedMode = normalizeGoogleProviderMode(currentMode);
+  return `
+    <select
+      class="google-mode-select"
+      data-google-mode-select="true"
+      ${isEnabled ? '' : 'disabled'}
+      title="Google provider mode"
+    >
+      <option value="${GOOGLE_PROVIDER_MODE_AI}" ${normalizedMode === GOOGLE_PROVIDER_MODE_AI ? 'selected' : ''}>AI Mode</option>
+      <option value="${GOOGLE_PROVIDER_MODE_SEARCH}" ${normalizedMode === GOOGLE_PROVIDER_MODE_SEARCH ? 'selected' : ''}>Search</option>
+    </select>
+  `;
+}
 
 // Helper function to get browser's current language in our supported format
 function getCurrentBrowserLanguage() {
@@ -179,7 +259,9 @@ async function init() {
   await hideUpdateCheckingIfNeeded();  // Hide update checking for web store installations
   await renderProviderList();
   setupEventListeners();
+  setupStorageChangeListener();
   setupShortcutHelpers();
+  refreshAutoSizedSelects();
 }
 
 // T051: Load and display current settings
@@ -234,12 +316,14 @@ async function loadSettings() {
 
   // Load custom settings
   loadCustomEnterSettings(enterBehavior);
+  refreshAutoSizedSelects();
 }
 
 // T052-T053: Render provider enable/disable toggles with drag-and-drop reordering
 async function renderProviderList() {
   const settings = await getSettings();
   const enabledProviders = getEnabledProvidersOrDefault(settings);
+  const googleProviderMode = getGoogleProviderModeOrDefault(settings);
   const displayOrder = getProviderDisplayOrder(settings);
   const listContainer = document.getElementById('provider-list');
 
@@ -250,6 +334,10 @@ async function renderProviderList() {
 
   listContainer.innerHTML = sortedProviders.map(provider => {
     const isEnabled = enabledProviders.includes(provider.id);
+    const googleModeControl = provider.id === 'google'
+      ? renderGoogleModeSelectMarkup(googleProviderMode, isEnabled)
+      : '';
+
     return `
       <div class="provider-item ${isEnabled ? 'draggable' : ''}" data-provider-id="${provider.id}" draggable="${isEnabled}">
         <div class="provider-info">
@@ -260,7 +348,10 @@ async function renderProviderList() {
           </div>
           <span class="provider-name">${provider.name}</span>
         </div>
-        <div class="toggle-switch ${isEnabled ? 'active' : ''}" data-provider-id="${provider.id}"></div>
+        <div class="provider-controls">
+          ${googleModeControl}
+          <div class="toggle-switch ${isEnabled ? 'active' : ''}" data-provider-id="${provider.id}"></div>
+        </div>
       </div>
     `;
   }).join('');
@@ -279,8 +370,43 @@ async function renderProviderList() {
     });
   });
 
+  listContainer.querySelectorAll('[data-google-mode-select="true"]').forEach(select => {
+    select.addEventListener('mousedown', (event) => {
+      event.stopPropagation();
+    });
+
+    select.addEventListener('click', (event) => {
+      event.stopPropagation();
+    });
+
+    select.addEventListener('change', async (event) => {
+      await saveSetting('googleProviderMode', normalizeGoogleProviderMode(event.target.value));
+      fitSelectWidth(event.target);
+      showStatus('success', 'Google mode updated');
+    });
+  });
+
   // Setup drag-and-drop for enabled providers
   setupProviderDragAndDrop(listContainer);
+  refreshAutoSizedSelects(listContainer);
+}
+
+function setupStorageChangeListener() {
+  if (!chrome?.storage?.onChanged?.addListener) {
+    return;
+  }
+
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== 'sync' && areaName !== 'local') {
+      return;
+    }
+
+    if (changes.googleProviderMode) {
+      renderProviderList().catch((error) => {
+        console.error('Error syncing Google mode control:', error);
+      });
+    }
+  });
 }
 
 // Setup drag-and-drop reordering

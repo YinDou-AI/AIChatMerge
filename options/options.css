@@ -190,18 +190,35 @@ header p {
 
 /* Select Dropdown */
 select {
-  padding: 8px 12px;
+  padding: 8px 36px 8px 12px;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   font-size: 14px;
   background: white;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23333' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
   cursor: pointer;
-  min-width: 150px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  box-sizing: border-box;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
 }
 
 select:focus {
   outline: none;
   border-color: #1a73e8;
+}
+
+[data-theme="dark"] select {
+  background-color: #2d2d2d;
+  border-color: #555;
+  color: #e0e0e0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23e0e0e0' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 /* Buttons */
@@ -315,6 +332,16 @@ select:focus {
   font-size: 14px;
   font-weight: 500;
   color: #333;
+}
+
+.provider-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.provider-controls .google-mode-select {
+  max-width: 100%;
 }
 
 /* Data Management Section */
