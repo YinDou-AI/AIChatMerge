@@ -38,7 +38,7 @@ test.describe('Focus Protection E2E', () => {
   });
 
   test('Test 0: Unified input should be focused when page first opens', async () => {
-    await page.waitForTimeout(120);
+    await page.waitForFunction(() => window.getActiveElementId() === 'unified-input');
 
     let activeId = await page.evaluate(() => window.getActiveElementId());
     expect(activeId).toBe('unified-input');
@@ -169,5 +169,40 @@ test.describe('Focus Protection E2E', () => {
     // Focus should still be on textarea (protected during second load)
     const activeId = await page.evaluate(() => window.getActiveElementId());
     expect(activeId).toBe('unified-input');
+  });
+
+  test('Test 7: New chat focus restore should beat delayed iframe autofocus', async () => {
+    await page.evaluate(() => window.addControlledIframe());
+    await page.evaluate(() => window.setNewChatFocusStealDelays([100, 300, 900]));
+
+    await page.click('#unified-input');
+    await page.waitForTimeout(50);
+    await page.click('#new-chat-btn');
+    await page.waitForTimeout(1300);
+
+    const activeId = await page.evaluate(() => window.getActiveElementId());
+    expect(activeId).toBe('unified-input');
+  });
+
+  test('Test 8: User interaction should cancel new chat focus restore', async () => {
+    await page.evaluate(() => window.addControlledIframe());
+    await page.waitForTimeout(3200);
+    await page.evaluate(() => window.setNewChatFocusStealDelays([100, 300, 900]));
+
+    await page.click('#unified-input');
+    await page.waitForTimeout(50);
+    await page.click('#new-chat-btn');
+    await page.waitForTimeout(150);
+
+    await page.click('#other-control-input');
+    const debugState = await page.evaluate(() => window.getNewChatRestoreDebugState());
+    expect(debugState.userIntentCancelCount).toBeGreaterThan(0);
+    expect(debugState.pendingTimerCount).toBe(0);
+
+    await page.focus('#other-control-input');
+    await page.waitForTimeout(1000);
+
+    const activeId = await page.evaluate(() => window.getActiveElementId());
+    expect(activeId).not.toBe('unified-input');
   });
 });

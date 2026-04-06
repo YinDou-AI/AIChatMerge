@@ -14,6 +14,9 @@
 
   <label for="unified-input"><strong>Unified Input:</strong></label><br>
   <textarea id="unified-input" rows="2" placeholder="Type here..."></textarea>
+  <br>
+  <button id="new-chat-btn" type="button">New Chat for All</button>
+  <input id="other-control-input" type="text" placeholder="Other control">
 
   <div id="iframe-container">
     <!-- Iframes will be added dynamically by test -->
@@ -21,9 +24,15 @@
 
   <script>
     const inputTextarea = document.getElementById('unified-input');
+    const newChatBtn = document.getElementById('new-chat-btn');
 
     // === Loading counter (same as multi-panel.js) ===
     let loadingIframeCount = 0;
+    let newChatFocusRestoreTimerIds = [];
+    let isRestoringFocusAfterNewChat = false;
+    let newChatFocusStealDelays = [];
+    let userIntentCancelCount = 0;
+    let lastUserIntentCancelTarget = null;
 
     function focusUnifiedInput(options = {}) {
       const force = Boolean(options.force);
@@ -42,12 +51,102 @@
       });
     }
 
+    function cancelUnifiedInputFocusRestore() {
+      newChatFocusRestoreTimerIds.forEach(timerId => clearTimeout(timerId));
+      newChatFocusRestoreTimerIds = [];
+      isRestoringFocusAfterNewChat = false;
+    }
+
+    function isUnifiedInputOrNewChatControl(target) {
+      if (!(target instanceof Element)) {
+        return false;
+      }
+
+      return Boolean(target.closest('#unified-input, #new-chat-btn'));
+    }
+
+    function restoreUnifiedInputFocusAfterNewChat() {
+      cancelUnifiedInputFocusRestore();
+      isRestoringFocusAfterNewChat = true;
+
+      const restoreDelays = [0, 80, 200, 400, 800, 1000, 1200, 1500];
+      restoreDelays.forEach((delay, index) => {
+        const timerId = setTimeout(() => {
+          if (!isRestoringFocusAfterNewChat) {
+            return;
+          }
+
+          focusUnifiedInput({ force: true });
+
+          if (index === restoreDelays.length - 1) {
+            cancelUnifiedInputFocusRestore();
+          }
+        }, delay);
+
+        newChatFocusRestoreTimerIds.push(timerId);
+      });
+    }
+
+    function scheduleControlledIframeFocusSteal(delays) {
+      const iframe = document.querySelector('#iframe-container iframe');
+      if (!iframe || !iframe.contentDocument) {
+        return false;
+      }
+
+      const aiInput = iframe.contentDocument.getElementById('ai-input');
+      if (!aiInput) {
+        return false;
+      }
+
+      delays.forEach((delay) => {
+        setTimeout(() => {
+          aiInput.focus();
+        }, delay);
+      });
+
+      return true;
+    }
+
     // === Focus protection logic (identical to multi-panel.js) ===
     inputTextarea.addEventListener('blur', () => {
       if (loadingIframeCount > 0) {
         focusUnifiedInput();
       }
     });
+
+    const cancelNewChatFocusRestoreOnUserIntent = (event) => {
+      if (!isRestoringFocusAfterNewChat) {
+        return;
+      }
+
+      if (isUnifiedInputOrNewChatControl(event.target)) {
+        return;
+      }
+
+      userIntentCancelCount += 1;
+      lastUserIntentCancelTarget = event.target instanceof Element
+        ? (event.target.id || event.target.tagName)
+        : String(event.target);
+      cancelUnifiedInputFocusRestore();
+    };
+
+    document.addEventListener('pointerdown', cancelNewChatFocusRestoreOnUserIntent, true);
+    document.addEventListener('mousedown', cancelNewChatFocusRestoreOnUserIntent, true);
+    document.addEventListener('click', cancelNewChatFocusRestoreOnUserIntent, true);
+    document.addEventListener('focusin', cancelNewChatFocusRestoreOnUserIntent, true);
+    document.addEventListener('keydown', cancelNewChatFocusRestoreOnUserIntent, true);
+
+    const preserveNewChatButtonFocus = (event) => {
+      event.preventDefault();
+    };
+
+    newChatBtn.addEventListener('pointerdown', preserveNewChatButtonFocus);
+    newChatBtn.addEventListener('mousedown', preserveNewChatButtonFocus);
+    newChatBtn.addEventListener('click', () => {
+      restoreUnifiedInputFocusAfterNewChat();
+      scheduleControlledIframeFocusSteal(newChatFocusStealDelays);
+    });
+
     focusUnifiedInput({ force: true });
     // === End focus protection logic ===
 
@@ -76,6 +175,29 @@
       return iframe;
     };
 
+    window.addControlledIframe = function() {
+      return new Promise((resolve) => {
+        loadingIframeCount++;
+        const iframe = document.createElement('iframe');
+        iframe.srcdoc = `<html><body><input id="ai-input" type="text"></body></html>`;
+        iframe.addEventListener('load', () => {
+          setTimeout(() => {
+            loadingIframeCount = Math.max(0, loadingIframeCount - 1);
+          }, 3000);
+          resolve(true);
+        });
+        iframe.addEventListener('error', () => {
+          loadingIframeCount = Math.max(0, loadingIframeCount - 1);
+          resolve(false);
+        });
+        document.getElementById('iframe-container').appendChild(iframe);
+      });
+    };
+
+    window.setNewChatFocusStealDelays = function(delays) {
+      newChatFocusStealDelays = Array.isArray(delays) ? delays.slice() : [];
+    };
+
     window.getActiveElementTag = function() {
       return document.activeElement ? document.activeElement.tagName : 'null';
     };
@@ -91,6 +213,19 @@
     window.clearIframes = function() {
       document.getElementById('iframe-container').innerHTML = '';
       loadingIframeCount = 0;
+      newChatFocusStealDelays = [];
+      userIntentCancelCount = 0;
+      lastUserIntentCancelTarget = null;
+      cancelUnifiedInputFocusRestore();
+    };
+
+    window.getNewChatRestoreDebugState = function() {
+      return {
+        isRestoringFocusAfterNewChat,
+        pendingTimerCount: newChatFocusRestoreTimerIds.length,
+        userIntentCancelCount,
+        lastUserIntentCancelTarget
+      };
     };
   </script>
 </body>
