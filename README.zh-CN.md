@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.2-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.1.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/languages-10-brightgreen.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Chrome-114+-4285F4.svg" alt="Chrome">
@@ -40,11 +40,11 @@
 
 ### 一次提问，同时对比
 
-在统一输入框中输入一次内容，就能同时发送到 ChatGPT、Claude、Gemini、Grok、DeepSeek、Kimi、Google AI Mode。
+在统一输入框中输入一次内容，就能同时发送到 ChatGPT、Claude、Gemini、Grok、DeepSeek、Kimi、Google。
 
 ### 灵活布局
 
-支持 15 种布局。快速双模型对比可用 1×2，深入分析可用 2×2 或更多。
+支持 15 种布局。快速双模型对比可用 1×2，四模型深入分析可用 1×4。
 
 <p align="center">
   <img src="assets/screenshots/select-layout.png" alt="布局选择" width="600">
@@ -74,7 +74,7 @@
 - Grok
 - DeepSeek
 - Kimi
-- Google AI Mode
+- Google
 
 <p align="center">
   <img src="assets/screenshots/settings.png" alt="设置与平台管理" width="700">

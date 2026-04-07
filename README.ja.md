@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.2-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.1.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/languages-10-brightgreen.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Chrome-114+-4285F4.svg" alt="Chrome">
@@ -40,11 +40,11 @@
 
 ### 1回の入力で同時送信
 
-統一入力欄から ChatGPT / Claude / Gemini / Grok / DeepSeek / Kimi / Google AI Mode へ同時に送信できます。
+統一入力欄から ChatGPT / Claude / Gemini / Grok / DeepSeek / Kimi / Google へ同時に送信できます。
 
 ### 柔軟なレイアウト
 
-15種類のレイアウトを用意。2モデルの比較から多モデルの検証まで対応します。
+15種類のレイアウトを用意。素早い2モデル比較には1×2、4モデルの比較には1×4が使えます。
 
 <p align="center">
   <img src="assets/screenshots/select-layout.png" alt="Layout Selection" width="600">
@@ -74,7 +74,7 @@ API キー不要。通常どおり各 AI サービスにログインしていれ
 - Grok
 - DeepSeek
 - Kimi
-- Google AI Mode
+- Google
 
 <p align="center">
   <img src="assets/screenshots/settings.png" alt="Settings & Providers" width="700">
