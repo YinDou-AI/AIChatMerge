@@ -10,10 +10,13 @@
   const PANELIZE_PROVIDER_BUSY = 'PANELIZE_PROVIDER_BUSY';
   const PANELIZE_PROVIDER_IDLE = 'PANELIZE_PROVIDER_IDLE';
   const PANELIZE_PROVIDER_USER_INTERACTION = 'PANELIZE_PROVIDER_USER_INTERACTION';
+  const PANELIZE_TEMP_CHAT_ENABLED = 'PANELIZE_TEMP_CHAT_ENABLED';
   const CHATGPT_STOP_BUTTON_SELECTOR = 'button[data-testid="stop-button"]';
   const CHATGPT_SEND_TRACKING_IDLE_DELAY_MS = 800;
   const CHATGPT_SEND_TRACKING_NO_BUSY_TIMEOUT_MS = 2000;
   const MULTI_PANEL_USER_INTERACTION_TRACKING_TIMEOUT_MS = 90000;
+  const TEMP_CHAT_POLL_INTERVAL_MS = 200;
+  const TEMP_CHAT_POLL_TIMEOUT_MS = 1200;
   let googleSearchReplaceOnNextFill = true;
   let chatgptSendTracking = null;
   let multiPanelUserInteractionTracking = null;
@@ -214,6 +217,16 @@
     google: 'https://www.google.com/search?udm=50'
   };
 
+  const TEMP_CHAT_BUTTON_SELECTORS = {
+    chatgpt: ['button[aria-label="Turn on temporary chat"]'],
+    claude: ['button[aria-label="Use incognito"]'],
+    gemini: [
+      'button[data-test-id="temp-chat-button"]',
+      'button[aria-label="Temporary chat"]'
+    ],
+    grok: ['a[href="/c#private"][aria-label="Switch to Private Chat"]']
+  };
+
   // Detect which provider we're on based on hostname
   function detectProvider() {
     const hostname = window.location.hostname;
@@ -338,6 +351,18 @@
       requestId,
       provider,
       phase,
+      context: MULTI_PANEL_PROVIDER_STATUS_CONTEXT
+    }, '*');
+  }
+
+  function postTemporaryChatEnabled(provider = detectProvider()) {
+    if (!provider || window.parent === window) {
+      return;
+    }
+
+    window.parent.postMessage({
+      type: PANELIZE_TEMP_CHAT_ENABLED,
+      provider,
       context: MULTI_PANEL_PROVIDER_STATUS_CONTEXT
     }, '*');
   }
@@ -590,6 +615,14 @@
     }
 
     return true;
+  }
+
+  function isElementEnabled(element) {
+    return Boolean(
+      element &&
+      !element.disabled &&
+      element.getAttribute('aria-disabled') !== 'true'
+    );
   }
 
   function fillGoogleSearchInput(text) {
@@ -890,6 +923,29 @@
       ? 'https://www.google.com/'
       : 'https://www.google.com/search?udm=50';
     return true;
+  }
+
+  async function enableTemporaryChat(provider) {
+    const selectors = TEMP_CHAT_BUTTON_SELECTORS[provider];
+    if (!selectors || selectors.length === 0) {
+      console.log('[Temporary Chat] Provider does not support temporary chat:', provider);
+      return false;
+    }
+
+    const deadline = Date.now() + TEMP_CHAT_POLL_TIMEOUT_MS;
+    while (Date.now() <= deadline) {
+      const button = findDeepFirstVisibleElement(selectors) || findFirstVisibleElement(selectors);
+      if (button && isElementEnabled(button)) {
+        button.click();
+        postTemporaryChatEnabled(provider);
+        return true;
+      }
+
+      await sleep(TEMP_CHAT_POLL_INTERVAL_MS);
+    }
+
+    console.log('[Temporary Chat] Temporary chat control not found for provider:', provider);
+    return false;
   }
 
   // Find and click new chat button
@@ -1622,6 +1678,14 @@
         clickNewChatButton(provider, providerMode);
       } else {
         console.warn('[Text Injection] Provider not detected for NEW_CHAT');
+      }
+      return;
+    }
+
+    if (event.data.type === 'ENABLE_TEMP_CHAT' && event.data.context === 'multi-panel') {
+      const provider = detectProvider();
+      if (provider) {
+        void enableTemporaryChat(provider);
       }
       return;
     }

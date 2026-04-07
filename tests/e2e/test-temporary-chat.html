@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Temporary Chat Test Harness</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    textarea { width: 400px; padding: 8px; font-size: 16px; }
+    iframe { width: 400px; height: 150px; border: 1px solid #999; margin-top: 10px; display: block; }
+  </style>
+</head>
+<body>
+  <h1>Temporary Chat Test Harness</h1>
+
+  <label for="unified-input"><strong>Unified Input:</strong></label><br>
+  <textarea id="unified-input" rows="2" placeholder="Type here..."></textarea>
+  <br>
+  <button id="new-chat-btn" type="button">New Chat for All</button>
+  <button id="temporary-chat-btn" type="button">Temporary Chat for All</button>
+
+  <div id="iframe-container"></div>
+
+  <script>
+    const inputTextarea = document.getElementById('unified-input');
+    const newChatBtn = document.getElementById('new-chat-btn');
+    const temporaryChatBtn = document.getElementById('temporary-chat-btn');
+    const MULTI_PANEL_PROVIDER_STATUS_CONTEXT = 'multi-panel-provider-status';
+    const PANELIZE_TEMP_CHAT_ENABLED = 'PANELIZE_TEMP_CHAT_ENABLED';
+    const TEMP_CHAT_RETRY_DELAYS = [1200, 2500, 4000];
+    const TEMP_CHAT_OPERATION_TIMEOUT_MS = 5000;
+    const TEMP_CHAT_SUPPORTED_PROVIDERS = new Set(['chatgpt', 'gemini', 'claude', 'grok']);
+
+    let newChatFocusRestoreTimerIds = [];
+    let isRestoringFocusAfterNewChat = false;
+    let tempChatRetryTimerIds = new Map();
+    let tempChatCleanupTimerId = null;
+    let tempChatPendingPanelIds = new Set();
+    let isTemporaryChatModeEnabled = false;
+    let controlledIframeProviderId = 'chatgpt';
+    let tempChatSuccessTimeline = [];
+    let tempChatMessageLog = [];
+
+    function focusUnifiedInput(options = {}) {
+      const force = Boolean(options.force);
+      const active = document.activeElement;
+      const shouldFocus = force || !active || active.tagName === 'IFRAME' || active === document.body;
+      if (!shouldFocus) {
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        try {
+          inputTextarea.focus({ preventScroll: true });
+        } catch {
+          inputTextarea.focus();
+        }
+      });
+    }
+
+    function cancelUnifiedInputFocusRestore() {
+      newChatFocusRestoreTimerIds.forEach(timerId => clearTimeout(timerId));
+      newChatFocusRestoreTimerIds = [];
+      isRestoringFocusAfterNewChat = false;
+    }
+
+    function restoreUnifiedInputFocusAfterNewChat() {
+      cancelUnifiedInputFocusRestore();
+      isRestoringFocusAfterNewChat = true;
+
+      [0, 80, 200, 400, 800, 1000, 1200, 1500].forEach((delay, index, delays) => {
+        const timerId = setTimeout(() => {
+          if (!isRestoringFocusAfterNewChat) {
+            return;
+          }
+
+          focusUnifiedInput({ force: true });
+
+          if (index === delays.length - 1) {
+            cancelUnifiedInputFocusRestore();
+          }
+        }, delay);
+
+        newChatFocusRestoreTimerIds.push(timerId);
+      });
+    }
+
+    function isTemporaryChatSupportedProvider(providerId) {
+      return TEMP_CHAT_SUPPORTED_PROVIDERS.has(providerId);
+    }
+
+    function getControlledIframePanel() {
+      const iframe = document.querySelector('#iframe-container iframe');
+      if (!iframe || !iframe.contentWindow) {
+        return null;
+      }
+
+      return {
+        id: 'controlled-panel',
+        providerId: controlledIframeProviderId,
+        iframe
+      };
+    }
+
+    function clearTemporaryChatRetriesForPanel(panelId) {
+      const timerIds = tempChatRetryTimerIds.get(panelId) || [];
+      timerIds.forEach(timerId => clearTimeout(timerId));
+      tempChatRetryTimerIds.delete(panelId);
+    }
+
+    function cancelTemporaryChatActivation() {
+      tempChatRetryTimerIds.forEach(timerIds => {
+        timerIds.forEach(timerId => clearTimeout(timerId));
+      });
+      tempChatRetryTimerIds.clear();
+      tempChatPendingPanelIds.clear();
+
+      if (typeof tempChatCleanupTimerId === 'number') {
+        clearTimeout(tempChatCleanupTimerId);
+      }
+      tempChatCleanupTimerId = null;
+      temporaryChatBtn.disabled = false;
+    }
+
+    function updateTemporaryChatButtonState() {
+      temporaryChatBtn.classList.toggle('active', isTemporaryChatModeEnabled);
+      temporaryChatBtn.setAttribute('aria-pressed', isTemporaryChatModeEnabled ? 'true' : 'false');
+    }
+
+    function setTemporaryChatModeEnabled(enabled) {
+      isTemporaryChatModeEnabled = Boolean(enabled);
+      updateTemporaryChatButtonState();
+    }
+
+    function postNewChatToAllPanels() {
+      const panel = getControlledIframePanel();
+      if (!panel) {
+        return;
+      }
+
+      tempChatMessageLog.push({ type: 'NEW_CHAT', providerId: panel.providerId });
+    }
+
+    function scheduleTemporaryChatRetry(panel, delay) {
+      const timerId = setTimeout(() => {
+        if (!tempChatPendingPanelIds.has(panel.id)) {
+          return;
+        }
+
+        focusUnifiedInput({ force: true });
+        tempChatMessageLog.push({ type: 'ENABLE_TEMP_CHAT', providerId: panel.providerId, delay });
+      }, delay);
+
+      const timerIds = tempChatRetryTimerIds.get(panel.id) || [];
+      timerIds.push(timerId);
+      tempChatRetryTimerIds.set(panel.id, timerIds);
+    }
+
+    function disableTemporaryChatForSupportedPanels(source) {
+      const panel = getControlledIframePanel();
+      if (!panel || !isTemporaryChatSupportedProvider(panel.providerId)) {
+        return;
+      }
+
+      tempChatMessageLog.push({ type: 'DISABLE_TEMP_CHAT', providerId: panel.providerId, source });
+    }
+
+    function scheduleTempChatSuccessTimeline() {
+      const panel = getControlledIframePanel();
+      if (!panel || !panel.iframe.contentWindow) {
+        return;
+      }
+
+      tempChatSuccessTimeline.forEach((delay) => {
+        setTimeout(() => {
+          if (!tempChatPendingPanelIds.has(panel.id) || !panel.iframe.contentWindow.reportPanelizeStatus) {
+            return;
+          }
+
+          panel.iframe.contentWindow.reportPanelizeStatus({
+            type: PANELIZE_TEMP_CHAT_ENABLED,
+            provider: panel.providerId,
+            context: MULTI_PANEL_PROVIDER_STATUS_CONTEXT
+          });
+        }, delay);
+      });
+    }
+
+    function temporaryChatAllProviders() {
+      if (isTemporaryChatModeEnabled) {
+        cancelTemporaryChatActivation();
+        setTemporaryChatModeEnabled(false);
+        temporaryChatBtn.disabled = true;
+        disableTemporaryChatForSupportedPanels('toggle');
+        restoreUnifiedInputFocusAfterNewChat();
+        setTimeout(() => {
+          temporaryChatBtn.disabled = false;
+        }, 1000);
+        return;
+      }
+
+      cancelTemporaryChatActivation();
+      setTemporaryChatModeEnabled(true);
+      temporaryChatBtn.disabled = true;
+      postNewChatToAllPanels();
+      restoreUnifiedInputFocusAfterNewChat();
+
+      const panel = getControlledIframePanel();
+      if (panel && isTemporaryChatSupportedProvider(panel.providerId)) {
+        tempChatPendingPanelIds.add(panel.id);
+        TEMP_CHAT_RETRY_DELAYS.forEach(delay => scheduleTemporaryChatRetry(panel, delay));
+        scheduleTempChatSuccessTimeline();
+      }
+
+      tempChatCleanupTimerId = setTimeout(() => {
+        cancelTemporaryChatActivation();
+      }, TEMP_CHAT_OPERATION_TIMEOUT_MS);
+    }
+
+    function newChatAllProviders() {
+      if (isTemporaryChatModeEnabled) {
+        cancelTemporaryChatActivation();
+        setTemporaryChatModeEnabled(false);
+        disableTemporaryChatForSupportedPanels('new-chat');
+      } else {
+        postNewChatToAllPanels();
+      }
+
+      restoreUnifiedInputFocusAfterNewChat();
+    }
+
+    newChatBtn.addEventListener('click', newChatAllProviders);
+    temporaryChatBtn.addEventListener('pointerdown', (event) => event.preventDefault());
+    temporaryChatBtn.addEventListener('mousedown', (event) => event.preventDefault());
+    temporaryChatBtn.addEventListener('click', temporaryChatAllProviders);
+
+    inputTextarea.addEventListener('blur', () => {
+      if (isRestoringFocusAfterNewChat) {
+        focusUnifiedInput();
+      }
+    });
+
+    window.addEventListener('message', (event) => {
+      const data = event.data;
+      if (!data || data.context !== MULTI_PANEL_PROVIDER_STATUS_CONTEXT || data.type !== PANELIZE_TEMP_CHAT_ENABLED) {
+        return;
+      }
+
+      const panel = getControlledIframePanel();
+      if (!panel || event.source !== panel.iframe.contentWindow || data.provider !== panel.providerId) {
+        return;
+      }
+
+      clearTemporaryChatRetriesForPanel(panel.id);
+      tempChatPendingPanelIds.delete(panel.id);
+    });
+
+    focusUnifiedInput({ force: true });
+
+    window.addControlledIframe = function() {
+      return new Promise((resolve) => {
+        const iframe = document.createElement('iframe');
+        iframe.srcdoc = `<html><body><input id="ai-input" type="text"><script>
+          window.reportPanelizeStatus = function(payload) {
+            window.parent.postMessage(payload, '*');
+          };
+        <\/script></body></html>`;
+        iframe.addEventListener('load', () => resolve(true));
+        iframe.addEventListener('error', () => resolve(false));
+        document.getElementById('iframe-container').appendChild(iframe);
+      });
+    };
+
+    window.setControlledIframeProvider = function(providerId) {
+      controlledIframeProviderId = providerId || 'chatgpt';
+    };
+
+    window.setTempChatSuccessTimeline = function(delays) {
+      tempChatSuccessTimeline = Array.isArray(delays) ? delays.map(delay => Number(delay) || 0) : [];
+    };
+
+    window.getActiveElementId = function() {
+      return document.activeElement ? document.activeElement.id : 'null';
+    };
+
+    window.getTemporaryChatDebugState = function() {
+      return {
+        isTemporaryChatModeEnabled,
+        pendingPanelCount: tempChatPendingPanelIds.size,
+        temporaryChatButtonDisabled: temporaryChatBtn.disabled,
+        temporaryChatButtonActive: temporaryChatBtn.classList.contains('active'),
+        messageLog: tempChatMessageLog.slice()
+      };
+    };
+  </script>
+</body>
+</html>
