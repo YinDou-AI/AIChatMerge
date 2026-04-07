@@ -60,6 +60,7 @@ Save your best prompts and reuse them across all providers. Supports variables l
 
 ### 🔒 Privacy First
 
+- One-click privacy mode across supported providers
 - All data stays in your browser—nothing leaves your machine
 - No tracking, no analytics, no data collection
 - Open source—review the code yourself
