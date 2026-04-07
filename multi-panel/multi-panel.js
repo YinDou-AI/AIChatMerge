@@ -200,6 +200,18 @@ function getPanelProviderMode(panel) {
   return isGoogleProvider(panel.providerId) ? currentGoogleProviderMode : null;
 }
 
+function postNewChatToPanel(panel) {
+  if (!panel || !panel.iframe || !panel.iframe.contentWindow) {
+    return;
+  }
+
+  panel.iframe.contentWindow.postMessage({
+    type: 'NEW_CHAT',
+    providerMode: getPanelProviderMode(panel),
+    context: 'multi-panel'
+  }, '*');
+}
+
 function getProviderFrameUrl(providerId) {
   const provider = getProviderById(providerId);
   if (!provider) {
@@ -1389,13 +1401,7 @@ async function sendToPanel(panel, text, images = [], autoSubmit = true, requestI
 
 function postNewChatToAllPanels() {
   panels.forEach(panel => {
-    if (panel.iframe && panel.iframe.contentWindow) {
-      panel.iframe.contentWindow.postMessage({
-        type: 'NEW_CHAT',
-        providerMode: getPanelProviderMode(panel),
-        context: 'multi-panel'
-      }, '*');
-    }
+    postNewChatToPanel(panel);
   });
 }
 
@@ -1527,13 +1533,7 @@ async function newChatAllProviders() {
         return;
       }
 
-      if (panel.iframe && panel.iframe.contentWindow) {
-        panel.iframe.contentWindow.postMessage({
-          type: 'NEW_CHAT',
-          providerMode: getPanelProviderMode(panel),
-          context: 'multi-panel'
-        }, '*');
-      }
+      postNewChatToPanel(panel);
     });
 
     setTemporaryChatButtonDisabled(false);
@@ -1578,7 +1578,10 @@ async function temporaryChatAllProviders() {
     panels.forEach(panel => {
       if (isTemporaryChatSupportedProvider(panel.providerId)) {
         reloadPanelIframe(panel, getTemporaryChatNormalUrl(panel.providerId));
+        return;
       }
+
+      postNewChatToPanel(panel);
     });
 
     restoreUnifiedInputFocusAfterNewChat();
@@ -1596,13 +1599,7 @@ async function temporaryChatAllProviders() {
 
   panels.forEach(panel => {
     if (panel.providerId === 'gemini') {
-      if (panel.iframe && panel.iframe.contentWindow) {
-        panel.iframe.contentWindow.postMessage({
-          type: 'NEW_CHAT',
-          providerMode: getPanelProviderMode(panel),
-          context: 'multi-panel'
-        }, '*');
-      }
+      postNewChatToPanel(panel);
       startTemporaryChatActivationForPanel(panel);
       return;
     }
@@ -1612,13 +1609,7 @@ async function temporaryChatAllProviders() {
       return;
     }
 
-    if (panel.iframe && panel.iframe.contentWindow) {
-      panel.iframe.contentWindow.postMessage({
-        type: 'NEW_CHAT',
-        providerMode: getPanelProviderMode(panel),
-        context: 'multi-panel'
-      }, '*');
-    }
+    postNewChatToPanel(panel);
   });
 
   restoreUnifiedInputFocusAfterNewChat();

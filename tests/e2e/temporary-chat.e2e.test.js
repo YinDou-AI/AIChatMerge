@@ -111,6 +111,31 @@ test.describe('Temporary Chat E2E', () => {
     ]);
   });
 
+  test('disabling temporary mode also creates a new chat for unsupported providers', async () => {
+    await page.evaluate(async () => {
+      window.setControlledIframeProvider('kimi');
+      await window.addControlledIframe();
+      window.setTempChatSuccessTimeline([]);
+    });
+
+    await page.click('#temporary-chat-btn');
+    await page.waitForTimeout(5200);
+    await page.click('#temporary-chat-btn');
+    await page.waitForTimeout(1200);
+
+    const debugState = await page.evaluate(() => window.getTemporaryChatDebugState());
+    const newChatMessages = debugState.messageLog.filter(entry => entry.type === 'NEW_CHAT');
+    const disableMessages = debugState.messageLog.filter(entry => entry.type === 'DISABLE_TEMP_CHAT');
+
+    expect(debugState.isTemporaryChatModeEnabled).toBe(false);
+    expect(debugState.temporaryChatButtonActive).toBe(false);
+    expect(newChatMessages).toEqual([
+      expect.objectContaining({ providerId: 'kimi' }),
+      expect.objectContaining({ providerId: 'kimi' })
+    ]);
+    expect(disableMessages).toHaveLength(0);
+  });
+
   test('new chat disables temporary mode when it is active', async () => {
     await page.evaluate(async () => {
       window.setControlledIframeProvider('gemini');

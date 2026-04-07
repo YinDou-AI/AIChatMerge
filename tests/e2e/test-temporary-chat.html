@@ -101,6 +101,15 @@
       };
     }
 
+    function postNewChatToPanel() {
+      const panel = getControlledIframePanel();
+      if (!panel) {
+        return;
+      }
+
+      tempChatMessageLog.push({ type: 'NEW_CHAT', providerId: panel.providerId });
+    }
+
     function clearTemporaryChatRetriesForPanel(panelId) {
       const timerIds = tempChatRetryTimerIds.get(panelId) || [];
       timerIds.forEach(timerId => clearTimeout(timerId));
@@ -132,12 +141,7 @@
     }
 
     function postNewChatToAllPanels() {
-      const panel = getControlledIframePanel();
-      if (!panel) {
-        return;
-      }
-
-      tempChatMessageLog.push({ type: 'NEW_CHAT', providerId: panel.providerId });
+      postNewChatToPanel();
     }
 
     function scheduleTemporaryChatRetry(panel, delay) {
@@ -190,7 +194,12 @@
         cancelTemporaryChatActivation();
         setTemporaryChatModeEnabled(false);
         temporaryChatBtn.disabled = true;
-        disableTemporaryChatForSupportedPanels('toggle');
+        const panel = getControlledIframePanel();
+        if (panel && isTemporaryChatSupportedProvider(panel.providerId)) {
+          disableTemporaryChatForSupportedPanels('toggle');
+        } else {
+          postNewChatToPanel();
+        }
         restoreUnifiedInputFocusAfterNewChat();
         setTimeout(() => {
           temporaryChatBtn.disabled = false;
