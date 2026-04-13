@@ -29,16 +29,32 @@
     const TEMP_CHAT_RETRY_DELAYS = [1200, 2500, 4000];
     const TEMP_CHAT_OPERATION_TIMEOUT_MS = 5000;
     const TEMP_CHAT_SUPPORTED_PROVIDERS = new Set(['chatgpt', 'gemini', 'claude', 'grok']);
+    const TEMP_CHAT_RETRY_PROVIDERS = new Set(['gemini', 'grok']);
+    const TEMP_CHAT_URLS = {
+      chatgpt: 'https://chatgpt.com/?temporary-chat=true',
+      claude: 'https://claude.ai/new?incognito',
+      grok: 'https://grok.com/c#private'
+    };
+    const TEMP_CHAT_NORMAL_URLS = {
+      chatgpt: 'https://chatgpt.com/',
+      claude: 'https://claude.ai/new',
+      gemini: 'https://gemini.google.com/',
+      grok: 'https://grok.com/'
+    };
 
     let newChatFocusRestoreTimerIds = [];
     let isRestoringFocusAfterNewChat = false;
     let tempChatRetryTimerIds = new Map();
     let tempChatCleanupTimerId = null;
+    let tempChatButtonRestoreTimerId = null;
     let tempChatPendingPanelIds = new Set();
     let isTemporaryChatModeEnabled = false;
     let controlledIframeProviderId = 'chatgpt';
     let tempChatSuccessTimeline = [];
     let tempChatMessageLog = [];
+    let tempChatCycleCounter = 0;
+    let activeTempChatCycleId = 0;
+    let controlledPanelUrl = TEMP_CHAT_NORMAL_URLS.chatgpt;
 
     function focusUnifiedInput(options = {}) {
       const force = Boolean(options.force);
@@ -88,6 +104,22 @@
       return TEMP_CHAT_SUPPORTED_PROVIDERS.has(providerId);
     }
 
+    function requiresTemporaryChatActivationRetry(providerId) {
+      return TEMP_CHAT_RETRY_PROVIDERS.has(providerId);
+    }
+
+    function isUrlDrivenTemporaryChatProvider(providerId) {
+      return Object.prototype.hasOwnProperty.call(TEMP_CHAT_URLS, providerId);
+    }
+
+    function getTemporaryChatUrl(providerId) {
+      return TEMP_CHAT_URLS[providerId] || null;
+    }
+
+    function getTemporaryChatNormalUrl(providerId) {
+      return TEMP_CHAT_NORMAL_URLS[providerId] || 'https://example.com/';
+    }
+
     function getControlledIframePanel() {
       const iframe = document.querySelector('#iframe-container iframe');
       if (!iframe || !iframe.contentWindow) {
@@ -110,24 +142,58 @@
       tempChatMessageLog.push({ type: 'NEW_CHAT', providerId: panel.providerId });
     }
 
+    function reloadPanelIframe(panel, url) {
+      if (!panel) {
+        return;
+      }
+
+      controlledPanelUrl = url;
+      tempChatMessageLog.push({ type: 'RELOAD', providerId: panel.providerId, url });
+
+      if (isTemporaryChatModeEnabled && requiresTemporaryChatActivationRetry(panel.providerId)) {
+        setTimeout(() => {
+          startTemporaryChatActivationForPanel(getControlledIframePanel());
+        }, 0);
+      }
+    }
+
+    function clearTemporaryChatButtonRestoreTimer() {
+      if (typeof tempChatButtonRestoreTimerId === 'number') {
+        clearTimeout(tempChatButtonRestoreTimerId);
+      }
+      tempChatButtonRestoreTimerId = null;
+    }
+
+    function scheduleTemporaryChatButtonRestore(delay = 1000) {
+      clearTemporaryChatButtonRestoreTimer();
+      tempChatButtonRestoreTimerId = setTimeout(() => {
+        tempChatButtonRestoreTimerId = null;
+        temporaryChatBtn.disabled = false;
+      }, delay);
+    }
+
     function clearTemporaryChatRetriesForPanel(panelId) {
       const timerIds = tempChatRetryTimerIds.get(panelId) || [];
       timerIds.forEach(timerId => clearTimeout(timerId));
       tempChatRetryTimerIds.delete(panelId);
     }
 
-    function cancelTemporaryChatActivation() {
+    function cancelTemporaryChatActivation({ restoreButton = true } = {}) {
       tempChatRetryTimerIds.forEach(timerIds => {
         timerIds.forEach(timerId => clearTimeout(timerId));
       });
       tempChatRetryTimerIds.clear();
       tempChatPendingPanelIds.clear();
+      clearTemporaryChatButtonRestoreTimer();
 
       if (typeof tempChatCleanupTimerId === 'number') {
         clearTimeout(tempChatCleanupTimerId);
       }
       tempChatCleanupTimerId = null;
-      temporaryChatBtn.disabled = false;
+
+      if (restoreButton) {
+        temporaryChatBtn.disabled = false;
+      }
     }
 
     function updateTemporaryChatButtonState() {
@@ -140,18 +206,15 @@
       updateTemporaryChatButtonState();
     }
 
-    function postNewChatToAllPanels() {
-      postNewChatToPanel();
-    }
-
     function scheduleTemporaryChatRetry(panel, delay) {
+      const cycleId = activeTempChatCycleId;
       const timerId = setTimeout(() => {
         if (!tempChatPendingPanelIds.has(panel.id)) {
           return;
         }
 
         focusUnifiedInput({ force: true });
-        tempChatMessageLog.push({ type: 'ENABLE_TEMP_CHAT', providerId: panel.providerId, delay });
+        tempChatMessageLog.push({ type: 'ENABLE_TEMP_CHAT', providerId: panel.providerId, delay, cycleId });
       }, delay);
 
       const timerIds = tempChatRetryTimerIds.get(panel.id) || [];
@@ -189,9 +252,63 @@
       });
     }
 
+    function startTemporaryChatActivationForPanel(panel) {
+      if (!panel || !requiresTemporaryChatActivationRetry(panel.providerId)) {
+        return;
+      }
+
+      clearTemporaryChatRetriesForPanel(panel.id);
+      tempChatPendingPanelIds.add(panel.id);
+      TEMP_CHAT_RETRY_DELAYS.forEach(delay => scheduleTemporaryChatRetry(panel, delay));
+      scheduleTempChatSuccessTimeline();
+    }
+
+    function startTemporaryChatActivationCycle() {
+      cancelTemporaryChatActivation({ restoreButton: false });
+      tempChatCycleCounter += 1;
+      activeTempChatCycleId = tempChatCycleCounter;
+      temporaryChatBtn.disabled = true;
+      scheduleTemporaryChatButtonRestore();
+      tempChatCleanupTimerId = setTimeout(() => {
+        cancelTemporaryChatActivation();
+      }, TEMP_CHAT_OPERATION_TIMEOUT_MS);
+    }
+
+    function startFreshChatForPanel(panel, options = {}) {
+      const preferInPageNewChat = options.preferInPageNewChat === true;
+
+      if (!panel) {
+        return;
+      }
+
+      if (!isTemporaryChatModeEnabled) {
+        postNewChatToPanel();
+        return;
+      }
+
+      if (requiresTemporaryChatActivationRetry(panel.providerId) && !isUrlDrivenTemporaryChatProvider(panel.providerId)) {
+        postNewChatToPanel();
+        startTemporaryChatActivationForPanel(panel);
+        return;
+      }
+
+      if (panel.providerId === 'grok' && preferInPageNewChat) {
+        postNewChatToPanel();
+        startTemporaryChatActivationForPanel(panel);
+        return;
+      }
+
+      if (isUrlDrivenTemporaryChatProvider(panel.providerId)) {
+        reloadPanelIframe(panel, getTemporaryChatUrl(panel.providerId));
+        return;
+      }
+
+      postNewChatToPanel();
+    }
+
     function temporaryChatAllProviders() {
       if (isTemporaryChatModeEnabled) {
-        cancelTemporaryChatActivation();
+        cancelTemporaryChatActivation({ restoreButton: false });
         setTemporaryChatModeEnabled(false);
         temporaryChatBtn.disabled = true;
         const panel = getControlledIframePanel();
@@ -201,39 +318,22 @@
           postNewChatToPanel();
         }
         restoreUnifiedInputFocusAfterNewChat();
-        setTimeout(() => {
-          temporaryChatBtn.disabled = false;
-        }, 1000);
+        scheduleTemporaryChatButtonRestore();
         return;
       }
 
-      cancelTemporaryChatActivation();
       setTemporaryChatModeEnabled(true);
-      temporaryChatBtn.disabled = true;
-      postNewChatToAllPanels();
+      startTemporaryChatActivationCycle();
+      startFreshChatForPanel(getControlledIframePanel());
       restoreUnifiedInputFocusAfterNewChat();
-
-      const panel = getControlledIframePanel();
-      if (panel && isTemporaryChatSupportedProvider(panel.providerId)) {
-        tempChatPendingPanelIds.add(panel.id);
-        TEMP_CHAT_RETRY_DELAYS.forEach(delay => scheduleTemporaryChatRetry(panel, delay));
-        scheduleTempChatSuccessTimeline();
-      }
-
-      tempChatCleanupTimerId = setTimeout(() => {
-        cancelTemporaryChatActivation();
-      }, TEMP_CHAT_OPERATION_TIMEOUT_MS);
     }
 
     function newChatAllProviders() {
       if (isTemporaryChatModeEnabled) {
-        cancelTemporaryChatActivation();
-        setTemporaryChatModeEnabled(false);
-        disableTemporaryChatForSupportedPanels('new-chat');
-      } else {
-        postNewChatToAllPanels();
+        startTemporaryChatActivationCycle();
       }
 
+      startFreshChatForPanel(getControlledIframePanel(), { preferInPageNewChat: true });
       restoreUnifiedInputFocusAfterNewChat();
     }
 
@@ -281,6 +381,7 @@
 
     window.setControlledIframeProvider = function(providerId) {
       controlledIframeProviderId = providerId || 'chatgpt';
+      controlledPanelUrl = getTemporaryChatNormalUrl(controlledIframeProviderId);
     };
 
     window.setTempChatSuccessTimeline = function(delays) {
@@ -297,6 +398,8 @@
         pendingPanelCount: tempChatPendingPanelIds.size,
         temporaryChatButtonDisabled: temporaryChatBtn.disabled,
         temporaryChatButtonActive: temporaryChatBtn.classList.contains('active'),
+        activeTempChatCycleId,
+        controlledPanelUrl,
         messageLog: tempChatMessageLog.slice()
       };
     };

@@ -46,6 +46,7 @@ let sendFocusHardTimeoutIds = new Map();
 let tempChatRetryTimerIds = new Map();
 let tempChatCleanupTimerId = null;
 let tempChatPendingPanelIds = new Set();
+let tempChatButtonRestoreTimerId = null;
 let isTemporaryChatModeEnabled = false;
 let currentGoogleProviderMode = DEFAULT_GOOGLE_PROVIDER_MODE;
 
@@ -71,6 +72,7 @@ const PANELIZE_TEMP_CHAT_ENABLED = 'PANELIZE_TEMP_CHAT_ENABLED';
 const TEMP_CHAT_RETRY_DELAYS = [1200, 2500, 4000];
 const TEMP_CHAT_OPERATION_TIMEOUT_MS = 5000;
 const TEMP_CHAT_SUPPORTED_PROVIDERS = new Set(['chatgpt', 'gemini', 'claude', 'grok']);
+const TEMP_CHAT_RETRY_PROVIDERS = new Set(['gemini', 'grok']);
 const TEMP_CHAT_URLS = {
   chatgpt: 'https://chatgpt.com/?temporary-chat=true',
   claude: 'https://claude.ai/new?incognito',
@@ -171,6 +173,10 @@ function isChatgptProvider(providerId) {
 
 function isTemporaryChatSupportedProvider(providerId) {
   return TEMP_CHAT_SUPPORTED_PROVIDERS.has(providerId);
+}
+
+function requiresTemporaryChatActivationRetry(providerId) {
+  return TEMP_CHAT_RETRY_PROVIDERS.has(providerId);
 }
 
 function isUrlDrivenTemporaryChatProvider(providerId) {
@@ -445,6 +451,21 @@ function setTemporaryChatModeEnabled(enabled) {
   updateTemporaryChatButtonState();
 }
 
+function clearTemporaryChatButtonRestoreTimer() {
+  if (typeof tempChatButtonRestoreTimerId === 'number') {
+    clearTimeout(tempChatButtonRestoreTimerId);
+  }
+  tempChatButtonRestoreTimerId = null;
+}
+
+function scheduleTemporaryChatButtonRestore(delay = 1000) {
+  clearTemporaryChatButtonRestoreTimer();
+  tempChatButtonRestoreTimerId = setTimeout(() => {
+    tempChatButtonRestoreTimerId = null;
+    setTemporaryChatButtonDisabled(false);
+  }, delay);
+}
+
 function clearTemporaryChatRetriesForPanel(panelId) {
   const timerIds = tempChatRetryTimerIds.get(panelId) || [];
   timerIds.forEach(timerId => clearTimeout(timerId));
@@ -457,6 +478,7 @@ function cancelTemporaryChatActivation({ restoreButton = true } = {}) {
   });
   tempChatRetryTimerIds.clear();
   tempChatPendingPanelIds.clear();
+  clearTemporaryChatButtonRestoreTimer();
 
   if (typeof tempChatCleanupTimerId === 'number') {
     clearTimeout(tempChatCleanupTimerId);
@@ -469,13 +491,54 @@ function cancelTemporaryChatActivation({ restoreButton = true } = {}) {
 }
 
 function startTemporaryChatActivationForPanel(panel) {
-  if (!panel || panel.providerId !== 'gemini' || !panel.iframe || !panel.iframe.contentWindow) {
+  if (!panel || !requiresTemporaryChatActivationRetry(panel.providerId) || !panel.iframe || !panel.iframe.contentWindow) {
     return;
   }
 
   clearTemporaryChatRetriesForPanel(panel.id);
   tempChatPendingPanelIds.add(panel.id);
   TEMP_CHAT_RETRY_DELAYS.forEach(delay => scheduleTemporaryChatRetry(panel, delay));
+}
+
+function startTemporaryChatActivationCycle() {
+  cancelTemporaryChatActivation({ restoreButton: false });
+  setTemporaryChatButtonDisabled(true);
+  scheduleTemporaryChatButtonRestore();
+  tempChatCleanupTimerId = setTimeout(() => {
+    cancelTemporaryChatActivation();
+  }, TEMP_CHAT_OPERATION_TIMEOUT_MS);
+}
+
+function startFreshChatForPanel(panel, options = {}) {
+  const preferInPageNewChat = options.preferInPageNewChat === true;
+
+  if (!panel) {
+    return;
+  }
+
+  if (!isTemporaryChatModeEnabled) {
+    postNewChatToPanel(panel);
+    return;
+  }
+
+  if (requiresTemporaryChatActivationRetry(panel.providerId) && !isUrlDrivenTemporaryChatProvider(panel.providerId)) {
+    postNewChatToPanel(panel);
+    startTemporaryChatActivationForPanel(panel);
+    return;
+  }
+
+  if (panel.providerId === 'grok' && preferInPageNewChat) {
+    postNewChatToPanel(panel);
+    startTemporaryChatActivationForPanel(panel);
+    return;
+  }
+
+  if (isUrlDrivenTemporaryChatProvider(panel.providerId)) {
+    reloadPanelIframe(panel, getTemporaryChatUrl(panel.providerId));
+    return;
+  }
+
+  postNewChatToPanel(panel);
 }
 
 function isUnifiedInputOrNewChatControl(target) {
@@ -1104,7 +1167,7 @@ async function addPanel(providerId) {
   iframe.addEventListener('load', () => {
     loadingEl.classList.add('hidden');
     const panel = panels.find(p => p.id === panelId);
-    if (isTemporaryChatModeEnabled && panel && panel.providerId === 'gemini') {
+    if (isTemporaryChatModeEnabled && panel && requiresTemporaryChatActivationRetry(panel.providerId)) {
       startTemporaryChatActivationForPanel(panel);
     }
     setTimeout(() => {
@@ -1399,12 +1462,6 @@ async function sendToPanel(panel, text, images = [], autoSubmit = true, requestI
   });
 }
 
-function postNewChatToAllPanels() {
-  panels.forEach(panel => {
-    postNewChatToPanel(panel);
-  });
-}
-
 // Clear all input boxes (unified input + all panels)
 async function clearAllInputs() {
   // Clear unified input
@@ -1524,22 +1581,12 @@ async function newChatAllProviders() {
   newChatBtn.disabled = true;
 
   if (isTemporaryChatModeEnabled) {
-    cancelTemporaryChatActivation({ restoreButton: false });
-    setTemporaryChatModeEnabled(false);
-
-    panels.forEach(panel => {
-      if (isTemporaryChatSupportedProvider(panel.providerId)) {
-        reloadPanelIframe(panel, getTemporaryChatNormalUrl(panel.providerId));
-        return;
-      }
-
-      postNewChatToPanel(panel);
-    });
-
-    setTemporaryChatButtonDisabled(false);
-  } else {
-    postNewChatToAllPanels();
+    startTemporaryChatActivationCycle();
   }
+
+  panels.forEach(panel => {
+    startFreshChatForPanel(panel, { preferInPageNewChat: true });
+  });
 
   restoreUnifiedInputFocusAfterNewChat();
   showToast('New chat created for all AIs');
@@ -1587,36 +1634,18 @@ async function temporaryChatAllProviders() {
     restoreUnifiedInputFocusAfterNewChat();
     showToast('Temporary chat disabled');
 
-    setTimeout(() => {
-      setTemporaryChatButtonDisabled(false);
-    }, 1000);
+    scheduleTemporaryChatButtonRestore();
     return;
   }
 
-  cancelTemporaryChatActivation({ restoreButton: false });
   setTemporaryChatModeEnabled(true);
-  setTemporaryChatButtonDisabled(true);
+  startTemporaryChatActivationCycle();
 
   panels.forEach(panel => {
-    if (panel.providerId === 'gemini') {
-      postNewChatToPanel(panel);
-      startTemporaryChatActivationForPanel(panel);
-      return;
-    }
-
-    if (isUrlDrivenTemporaryChatProvider(panel.providerId)) {
-      reloadPanelIframe(panel, getTemporaryChatUrl(panel.providerId));
-      return;
-    }
-
-    postNewChatToPanel(panel);
+    startFreshChatForPanel(panel);
   });
 
   restoreUnifiedInputFocusAfterNewChat();
-
-  tempChatCleanupTimerId = setTimeout(() => {
-    cancelTemporaryChatActivation();
-  }, TEMP_CHAT_OPERATION_TIMEOUT_MS);
 
   showToast('Temporary chat enabled where supported');
 }

@@ -20,6 +20,37 @@ function markVisible(element) {
     configurable: true,
     get: () => document.body,
   });
+
+  element.getBoundingClientRect = () => ({
+    x: 0,
+    y: 0,
+    width: 32,
+    height: 32,
+    top: 0,
+    left: 0,
+    right: 32,
+    bottom: 32,
+    toJSON() {
+      return this;
+    }
+  });
+}
+
+function markVisibleAt(element, rect) {
+  markVisible(element);
+  element.getBoundingClientRect = () => ({
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+    top: rect.y,
+    left: rect.x,
+    right: rect.x + rect.width,
+    bottom: rect.y + rect.height,
+    toJSON() {
+      return this;
+    }
+  });
 }
 
 function getTemporaryChatEnabledCalls(postMessageSpy) {
@@ -82,6 +113,70 @@ describe('temporary chat content script', () => {
     ]);
   });
 
+  it('does not click Gemini temporary chat when it is already active', async () => {
+    window.happyDOM.setURL('https://gemini.google.com/app');
+    document.body.innerHTML = `
+      <button data-test-id="temp-chat-button" class="mdc-icon-button temp-chat-button temp-chat-on">Temporary chat</button>
+      <div>Temporary chats don't appear in Recent Chats</div>
+      <input aria-label="Ask questions in a temporary chat">
+    `;
+    const button = document.querySelector('button');
+    markVisible(button);
+
+    const clickSpy = vi.fn();
+    button.addEventListener('click', clickSpy);
+
+    dispatchMultiPanelMessage({ type: 'ENABLE_TEMP_CHAT', context: 'multi-panel' });
+    await wait(50);
+
+    expect(clickSpy).not.toHaveBeenCalled();
+    expect(getTemporaryChatEnabledCalls(window.parent.postMessage)).toEqual([
+      expect.objectContaining({ provider: 'gemini' })
+    ]);
+  });
+
+  it('treats Gemini temporary chat as active when the control exposes aria-pressed', async () => {
+    window.happyDOM.setURL('https://gemini.google.com/app');
+    document.body.innerHTML = `
+      <button data-test-id="temp-chat-button" aria-pressed="true">Temporary chat</button>
+    `;
+    const button = document.querySelector('button');
+    markVisible(button);
+
+    const clickSpy = vi.fn();
+    button.addEventListener('click', clickSpy);
+
+    dispatchMultiPanelMessage({ type: 'ENABLE_TEMP_CHAT', context: 'multi-panel' });
+    await wait(50);
+
+    expect(clickSpy).not.toHaveBeenCalled();
+    expect(getTemporaryChatEnabledCalls(window.parent.postMessage)).toEqual([
+      expect.objectContaining({ provider: 'gemini' })
+    ]);
+  });
+
+  it('still clicks Gemini temporary chat when page text mentions temporary chat but the control is inactive', async () => {
+    window.happyDOM.setURL('https://gemini.google.com/app');
+    document.body.innerHTML = `
+      <button data-test-id="temp-chat-button" class="mdc-icon-button temp-chat-button">Temporary chat</button>
+      <div>Temporary chats don't appear in Recent Chats</div>
+      <input aria-label="Ask questions in a temporary chat">
+    `;
+    const button = document.querySelector('button');
+    markVisible(button);
+
+    const clickSpy = vi.fn();
+    button.addEventListener('click', clickSpy);
+
+    dispatchMultiPanelMessage({ type: 'ENABLE_TEMP_CHAT', context: 'multi-panel' });
+    await wait(50);
+
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(getTemporaryChatEnabledCalls(window.parent.postMessage)).toEqual([
+      expect.objectContaining({ provider: 'gemini' })
+    ]);
+  });
+
   it('enables incognito for Claude', async () => {
     window.happyDOM.setURL('https://claude.ai/new');
     document.body.innerHTML = '<button aria-label="Use incognito">Incognito</button>';
@@ -116,6 +211,63 @@ describe('temporary chat content script', () => {
     expect(getTemporaryChatEnabledCalls(window.parent.postMessage)).toEqual([
       expect.objectContaining({ provider: 'grok' })
     ]);
+  });
+
+  it('does not click Grok private chat when it is already active', async () => {
+    window.happyDOM.setURL('https://grok.com/c#private');
+    document.body.innerHTML = '<a href="/c#private" aria-label="Switch to Private Chat">Private</a>';
+    const link = document.querySelector('a');
+    markVisible(link);
+
+    const clickSpy = vi.fn((event) => event.preventDefault());
+    link.addEventListener('click', clickSpy);
+
+    dispatchMultiPanelMessage({ type: 'ENABLE_TEMP_CHAT', context: 'multi-panel' });
+    await wait(50);
+
+    expect(clickSpy).not.toHaveBeenCalled();
+    expect(getTemporaryChatEnabledCalls(window.parent.postMessage)).toEqual([
+      expect.objectContaining({ provider: 'grok' })
+    ]);
+  });
+
+  it('prefers the in-viewport Grok new chat control over offscreen links', async () => {
+    window.happyDOM.setURL('https://grok.com/c#private');
+    document.body.innerHTML = `
+      <a id="hidden-home" href="/" aria-label="Home page">Home</a>
+      <a id="visible-compose" href="/">Compose</a>
+    `;
+
+    const hiddenHome = document.getElementById('hidden-home');
+    const visibleCompose = document.getElementById('visible-compose');
+    markVisibleAt(hiddenHome, { x: -246, y: 10, width: 36, height: 36 });
+    markVisibleAt(visibleCompose, { x: 378, y: 12, width: 40, height: 40 });
+
+    const hiddenSpy = vi.fn((event) => event.preventDefault());
+    const visibleSpy = vi.fn((event) => event.preventDefault());
+    hiddenHome.addEventListener('click', hiddenSpy);
+    visibleCompose.addEventListener('click', visibleSpy);
+
+    dispatchMultiPanelMessage({ type: 'NEW_CHAT', context: 'multi-panel' });
+    await wait(50);
+
+    expect(hiddenSpy).not.toHaveBeenCalled();
+    expect(visibleSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to Kimi Chinese new chat text without invalid CSS selectors', async () => {
+    window.happyDOM.setURL('https://www.kimi.com/');
+    document.body.innerHTML = '<button id="kimi-new-chat">新建会话</button>';
+    const button = document.getElementById('kimi-new-chat');
+    markVisible(button);
+
+    const clickSpy = vi.fn();
+    button.addEventListener('click', clickSpy);
+
+    dispatchMultiPanelMessage({ type: 'NEW_CHAT', context: 'multi-panel' });
+    await wait(50);
+
+    expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
   it('silently skips unsupported providers', async () => {

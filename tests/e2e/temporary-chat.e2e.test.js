@@ -136,7 +136,7 @@ test.describe('Temporary Chat E2E', () => {
     expect(disableMessages).toHaveLength(0);
   });
 
-  test('new chat disables temporary mode when it is active', async () => {
+  test('new chat keeps temporary mode active for Gemini', async () => {
     await page.evaluate(async () => {
       window.setControlledIframeProvider('gemini');
       await window.addControlledIframe();
@@ -146,15 +146,99 @@ test.describe('Temporary Chat E2E', () => {
     await page.click('#temporary-chat-btn');
     await page.waitForTimeout(5200);
     await page.click('#new-chat-btn');
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(5200);
 
     const debugState = await page.evaluate(() => window.getTemporaryChatDebugState());
     const disableMessages = debugState.messageLog.filter(entry => entry.type === 'DISABLE_TEMP_CHAT');
+    const newChatMessages = debugState.messageLog.filter(entry => entry.type === 'NEW_CHAT');
+    const enableMessages = debugState.messageLog.filter(entry => entry.type === 'ENABLE_TEMP_CHAT');
 
-    expect(debugState.isTemporaryChatModeEnabled).toBe(false);
-    expect(debugState.temporaryChatButtonActive).toBe(false);
-    expect(disableMessages).toEqual([
-      expect.objectContaining({ providerId: 'gemini', source: 'new-chat' })
+    expect(debugState.isTemporaryChatModeEnabled).toBe(true);
+    expect(debugState.temporaryChatButtonActive).toBe(true);
+    expect(debugState.temporaryChatButtonDisabled).toBe(false);
+    expect(disableMessages).toHaveLength(0);
+    expect(newChatMessages).toHaveLength(2);
+    expect(enableMessages).toHaveLength(2);
+  });
+
+  test('new chat keeps URL-driven providers on temporary chat URLs', async () => {
+    await page.evaluate(async () => {
+      window.setControlledIframeProvider('chatgpt');
+      await window.addControlledIframe();
+      window.setTempChatSuccessTimeline([]);
+    });
+
+    await page.click('#temporary-chat-btn');
+    await page.waitForTimeout(1200);
+    await page.click('#new-chat-btn');
+    await page.waitForTimeout(1200);
+
+    const debugState = await page.evaluate(() => window.getTemporaryChatDebugState());
+    const disableMessages = debugState.messageLog.filter(entry => entry.type === 'DISABLE_TEMP_CHAT');
+    const reloadMessages = debugState.messageLog.filter(entry => entry.type === 'RELOAD');
+
+    expect(debugState.isTemporaryChatModeEnabled).toBe(true);
+    expect(debugState.temporaryChatButtonActive).toBe(true);
+    expect(debugState.controlledPanelUrl).toBe('https://chatgpt.com/?temporary-chat=true');
+    expect(disableMessages).toHaveLength(0);
+    expect(reloadMessages).toEqual([
+      expect.objectContaining({ providerId: 'chatgpt', url: 'https://chatgpt.com/?temporary-chat=true' }),
+      expect.objectContaining({ providerId: 'chatgpt', url: 'https://chatgpt.com/?temporary-chat=true' })
     ]);
+  });
+
+  test('new chat re-activates Grok private mode after reload', async () => {
+    await page.evaluate(async () => {
+      window.setControlledIframeProvider('grok');
+      await window.addControlledIframe();
+      window.setTempChatSuccessTimeline([1200]);
+    });
+
+    await page.click('#temporary-chat-btn');
+    await page.waitForTimeout(5200);
+    await page.click('#new-chat-btn');
+    await page.waitForTimeout(5200);
+
+    const debugState = await page.evaluate(() => window.getTemporaryChatDebugState());
+    const disableMessages = debugState.messageLog.filter(entry => entry.type === 'DISABLE_TEMP_CHAT');
+    const reloadMessages = debugState.messageLog.filter(entry => entry.type === 'RELOAD');
+    const enableMessages = debugState.messageLog.filter(entry => entry.type === 'ENABLE_TEMP_CHAT');
+    const newChatMessages = debugState.messageLog.filter(entry => entry.type === 'NEW_CHAT');
+
+    expect(debugState.isTemporaryChatModeEnabled).toBe(true);
+    expect(debugState.temporaryChatButtonActive).toBe(true);
+    expect(debugState.controlledPanelUrl).toBe('https://grok.com/c#private');
+    expect(disableMessages).toHaveLength(0);
+    expect(reloadMessages).toEqual([
+      expect.objectContaining({ providerId: 'grok', url: 'https://grok.com/c#private' })
+    ]);
+    expect(newChatMessages).toEqual([
+      expect.objectContaining({ providerId: 'grok' })
+    ]);
+    expect(enableMessages).toHaveLength(2);
+  });
+
+  test('double new chat cancels previous Gemini retries and restarts a fresh cycle', async () => {
+    await page.evaluate(async () => {
+      window.setControlledIframeProvider('gemini');
+      await window.addControlledIframe();
+      window.setTempChatSuccessTimeline([]);
+    });
+
+    await page.click('#temporary-chat-btn');
+    await page.waitForTimeout(100);
+    await page.click('#new-chat-btn');
+    await page.waitForTimeout(100);
+    await page.click('#new-chat-btn');
+    await page.waitForTimeout(4300);
+
+    const debugState = await page.evaluate(() => window.getTemporaryChatDebugState());
+    const enableMessages = debugState.messageLog.filter(entry => entry.type === 'ENABLE_TEMP_CHAT');
+    const cycleIds = [...new Set(enableMessages.map(entry => entry.cycleId))];
+
+    expect(debugState.isTemporaryChatModeEnabled).toBe(true);
+    expect(debugState.activeTempChatCycleId).toBe(3);
+    expect(enableMessages.map(entry => entry.delay)).toEqual([1200, 2500, 4000]);
+    expect(cycleIds).toEqual([3]);
   });
 });

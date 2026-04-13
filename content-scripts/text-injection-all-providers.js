@@ -195,9 +195,7 @@
     kimi: [
       'a.new-chat-btn',
       'a[href="/"]',
-      '.sidebar a[href="/"]',
-      'button:has-text("新建会话")',
-      'a:has-text("新建会话")'
+      '.sidebar a[href="/"]'
     ],
     google: [
       'button[aria-label="New search"]',
@@ -265,10 +263,30 @@
   }
 
   function isVisibleElement(element) {
+    if (!element || element.offsetParent === null || element.getAttribute('aria-hidden') === 'true') {
+      return false;
+    }
+
+    const rect = typeof element.getBoundingClientRect === 'function'
+      ? element.getBoundingClientRect()
+      : null;
+
+    if (!rect) {
+      return true;
+    }
+
+    if (rect.width === 0 && rect.height === 0) {
+      return element.offsetParent !== null;
+    }
+
+    const viewportWidth = window.innerWidth || document.documentElement?.clientWidth || Number.POSITIVE_INFINITY;
+    const viewportHeight = window.innerHeight || document.documentElement?.clientHeight || Number.POSITIVE_INFINITY;
+
     return Boolean(
-      element &&
-      element.offsetParent !== null &&
-      element.getAttribute('aria-hidden') !== 'true'
+      rect.bottom > 0 &&
+      rect.right > 0 &&
+      rect.top < viewportHeight &&
+      rect.left < viewportWidth
     );
   }
 
@@ -925,6 +943,60 @@
     return true;
   }
 
+  function isTemporaryChatControlActive(element) {
+    if (!element) {
+      return false;
+    }
+
+    if (element.getAttribute('aria-pressed') === 'true' || element.getAttribute('aria-checked') === 'true') {
+      return true;
+    }
+
+    const dataState = (element.dataset?.state || '').toLowerCase();
+    if (dataState === 'active' || dataState === 'on' || dataState === 'checked' || dataState === 'selected') {
+      return true;
+    }
+
+    const classTokens = element.classList
+      ? [...element.classList].map(token => token.toLowerCase())
+      : String(element.className || '')
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(Boolean);
+
+    return ['active', 'selected', 'checked', 'toggled', 'enabled', 'on'].some(token => classTokens.includes(token));
+  }
+
+  function isGeminiTemporaryChatEnabled(control = null) {
+    const button = control ||
+      document.querySelector('button[data-test-id="temp-chat-button"]') ||
+      document.querySelector('button[aria-label="Temporary chat"]');
+
+    if (!button) {
+      return false;
+    }
+
+    return button.classList.contains('temp-chat-on') || isTemporaryChatControlActive(button);
+  }
+
+  function isTemporaryChatAlreadyEnabled(provider, control = null) {
+    const currentUrl = new URL(window.location.href);
+
+    switch (provider) {
+      case 'chatgpt':
+        return currentUrl.searchParams.get('temporary-chat') === 'true';
+      case 'claude':
+        return currentUrl.searchParams.has('incognito');
+      case 'grok':
+        return currentUrl.hash === '#private' || isTemporaryChatControlActive(control);
+      case 'gemini': {
+        return isGeminiTemporaryChatEnabled(control);
+      }
+      default:
+        return false;
+    }
+  }
+
   async function enableTemporaryChat(provider) {
     const selectors = TEMP_CHAT_BUTTON_SELECTORS[provider];
     if (!selectors || selectors.length === 0) {
@@ -932,9 +1004,19 @@
       return false;
     }
 
+    if (isTemporaryChatAlreadyEnabled(provider)) {
+      postTemporaryChatEnabled(provider);
+      return true;
+    }
+
     const deadline = Date.now() + TEMP_CHAT_POLL_TIMEOUT_MS;
     while (Date.now() <= deadline) {
       const button = findDeepFirstVisibleElement(selectors) || findFirstVisibleElement(selectors);
+      if (isTemporaryChatAlreadyEnabled(provider, button)) {
+        postTemporaryChatEnabled(provider);
+        return true;
+      }
+
       if (button && isElementEnabled(button)) {
         button.click();
         postTemporaryChatEnabled(provider);
@@ -962,17 +1044,11 @@
     }
 
     // Try to find and click button
-    for (const selector of selectors) {
-      try {
-        const button = document.querySelector(selector);
-        if (button) {
-          console.log('[Text Injection] Clicking new chat button:', selector);
-          button.click();
-          return true;
-        }
-      } catch (error) {
-        console.warn('[Text Injection] Error finding new chat button with selector:', selector, error);
-      }
+    const button = findDeepFirstVisibleElement(selectors) || findFirstVisibleElement(selectors);
+    if (button) {
+      console.log('[Text Injection] Clicking new chat button via visible selector match');
+      button.click();
+      return true;
     }
 
     // Fallback: Try to find any link or button containing "new" text
@@ -984,10 +1060,12 @@
         const href = elem.getAttribute('href') || '';
 
         if (text.includes('new chat') ||
-            text.includes('start new') ||
-            ariaLabel.includes('new chat') ||
-            ariaLabel.includes('start new') ||
-            (href === '/' && elem.closest('nav, aside'))) {
+          text.includes('start new') ||
+          text.includes('新建会话') ||
+          ariaLabel.includes('new chat') ||
+          ariaLabel.includes('start new') ||
+          ariaLabel.includes('新建会话') ||
+          (href === '/' && elem.closest('nav, aside'))) {
           console.log('[Text Injection] Found new chat button by text search');
           elem.click();
           return true;
