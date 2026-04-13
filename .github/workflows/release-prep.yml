@@ -1,0 +1,88 @@
+name: Release Prep
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Target version (x.y.z)'
+        required: true
+        type: string
+      changelog:
+        description: 'Release bullets separated with literal \n sequences'
+        required: true
+        type: string
+      base_ref:
+        description: 'Base branch or ref to prepare the release from'
+        required: false
+        default: 'main'
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-prep-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  release-prep:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+      RELEASE_CHANGELOG: ${{ inputs.changelog }}
+      RELEASE_BASE_REF: ${{ inputs.base_ref }}
+
+    steps:
+      - name: Checkout base ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.base_ref }}
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Ensure release branch does not already exist remotely
+        run: |
+          if git ls-remote --exit-code --heads origin "release/${RELEASE_VERSION}" >/dev/null 2>&1; then
+            echo "Remote branch release/${RELEASE_VERSION} already exists"
+            exit 1
+          fi
+
+      - name: Prepare release files
+        run: npm run release:prepare
+
+      - name: Run unit tests
+        run: npx vitest run --exclude='tests/e2e/**'
+
+      - name: Build release packages
+        run: npm run release:package
+
+      - name: Upload release zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: panelize-${{ inputs.version }}-release
+          path: dist/release-${{ inputs.version }}/panelize-${{ inputs.version }}-release.zip
+          retention-days: 14
+
+      - name: Upload cws zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: panelize-${{ inputs.version }}-cws
+          path: dist/release-${{ inputs.version }}/panelize-${{ inputs.version }}-cws.zip
+          retention-days: 14
+
+      - name: Commit and push release branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "release/${RELEASE_VERSION}"
+          git add manifest.json package.json package-lock.json data/version-info.json CHANGELOG.md
+          git commit -m "chore: bump version to ${RELEASE_VERSION}"
+          git push origin "release/${RELEASE_VERSION}"

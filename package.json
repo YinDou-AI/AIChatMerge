@@ -10,6 +10,10 @@
   "type": "module",
   "scripts": {
     "lint": "web-ext lint --source-dir .",
+    "release:package": "node scripts/package-release.js",
+    "release:prepare": "node scripts/prepare-release.js",
+    "release:prepare:dry-run": "node scripts/prepare-release.js --dry-run",
+    "release:prep": "npm run release:prepare && npm run release:package",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
