@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 - 2026-04-13
+- Fixed: New Chat for All now preserves temporary chat mode for supported providers.
+- Fixed: Gemini and Grok temporary or private chat activation no longer toggles off when already active.
+- Fixed: Grok private new-chat detection now avoids offscreen controls in narrow layouts.
+
 ## 1.1.0 - 2026-04-07
 - Added: One-click temporary chat toggle for supported providers in multi-panel. (#39)
 - Added: Global Google mode sync with AI/Search mode switching and repeat send/fill fixes. (#37)
