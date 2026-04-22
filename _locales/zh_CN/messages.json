@@ -141,7 +141,7 @@
     "message": "自定义在 AI 提供商输入字段中输入时回车键和修饰键的工作方式。"
   },
   "descEnterBehavior2": {
-    "message": "<strong>适用于:</strong> ChatGPT、Claude、Gemini、Grok、DeepSeek 和 Google(AI 模式)。"
+    "message": "<strong>适用于:</strong> ChatGPT、Claude、Gemini、Grok、DeepSeek、Kimi、Doubao 和 Google(AI 模式)。"
   },
   "labelEnableEnterCustomization": {
     "message": "启用回车键自定义"

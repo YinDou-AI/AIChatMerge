@@ -45,6 +45,19 @@
       'div.chat-input-editor[contenteditable]',
       'div[contenteditable="true"]'
     ],
+    doubao: [
+      '#input-engine-container .semi-input-textarea-wrapper textarea',
+      '.semi-input-textarea-wrapper textarea',
+      '#input-engine-container textarea',
+      'textarea.semi-input-textarea',
+      'textarea.semi-input-textarea[placeholder="发消息..."]',
+      'textarea[placeholder="发消息..."]',
+      '[data-slate-editor="true"][contenteditable="true"]',
+      '.flow-chat-editor [data-slate-editor="true"][contenteditable="true"]',
+      '.flow-chat-editor [contenteditable="true"][role="textbox"]',
+      '.flow-chat-editor [contenteditable="true"]',
+      '[contenteditable="true"][role="textbox"]'
+    ],
     google: [
       'textarea.ITIRGe',
       'textarea[aria-label="Ask anything"]',
@@ -73,6 +86,7 @@
     grok: true,
     deepseek: true,
     kimi: true,  // Kimi supports images
+    doubao: true,
     google: true  // Google AI Mode supports images
   };
 
@@ -84,6 +98,7 @@
     grok: ['input[type="file"]'],
     deepseek: ['input[type="file"]'],
     kimi: ['input[type="file"]'],
+    doubao: ['input[type="file"]'],
     google: ['input[type="file"]']
   };
 
@@ -95,6 +110,9 @@
     grok: [],
     deepseek: [],
     kimi: [],  // Kimi supports drag-drop for images
+    doubao: [
+      '#input-engine-container button[data-slot="dropdown-menu-trigger"][aria-haspopup="menu"]'
+    ],
     google: [
       'button[aria-label="更多输入项"]',
       'button[aria-label="Upload image"]',
@@ -153,6 +171,16 @@
       'button[aria-label*="Send"]',
       'button[aria-label*="发送"]'
     ],
+    doubao: [
+      '#flow-end-msg-send',
+      'button#flow-end-msg-send',
+      '#input-engine-container button#flow-end-msg-send',
+      'button[data-testid="send-button"]',
+      'button[data-test-id="send-button"]',
+      'button[aria-label="Send"]',
+      'button[aria-label="发送"]',
+      'button[type="submit"]'
+    ],
     google: [
       'button[data-xid="input-plate-send-button"]',
       'button[aria-label="Send"]',
@@ -197,6 +225,18 @@
       'a[href="/"]',
       '.sidebar a[href="/"]'
     ],
+    doubao: [
+      '#flow_chat_sidebar > div.cursor-pointer',
+      '#flow_chat_sidebar > div[class*="cursor-pointer"]',
+      'button[data-testid="new-chat-button"]',
+      'button[data-test-id="new-chat-button"]',
+      'button[data-testid="new-conversation-button"]',
+      'button[data-test-id="new-conversation-button"]',
+      'a[href="/chat/"]',
+      'a[href="/chat"]',
+      'button[aria-label*="New"]',
+      'button[aria-label*="新建"]'
+    ],
     google: [
       'button[aria-label="New search"]',
       'a[aria-label="Google"]',
@@ -212,6 +252,7 @@
     grok: 'https://grok.com/',
     deepseek: 'https://chat.deepseek.com/',
     kimi: 'https://www.kimi.com/',
+    doubao: 'https://www.doubao.com/chat/',
     google: 'https://www.google.com/search?udm=50'
   };
 
@@ -243,6 +284,8 @@
       return 'deepseek';
     } else if (hostname.includes('kimi.com')) {
       return 'kimi';
+    } else if (hostname.includes('doubao.com')) {
+      return 'doubao';
     } else if (hostname.includes('google.com') || hostname.includes('google.') || hostname === 'www.google.com') {
       // Google Search / AI Mode
       // Always return 'google' for any google.com page
@@ -605,6 +648,51 @@
     }
   }
 
+  function dispatchEditorKeyEvent(element, key, code, modifiers = {}) {
+    element.dispatchEvent(new KeyboardEvent('keydown', {
+      key,
+      code,
+      keyCode: key === 'Backspace' ? 8 : key === 'a' ? 65 : 13,
+      which: key === 'Backspace' ? 8 : key === 'a' ? 65 : 13,
+      ctrlKey: modifiers.ctrl || false,
+      metaKey: modifiers.meta || false,
+      shiftKey: modifiers.shift || false,
+      altKey: modifiers.alt || false,
+      bubbles: true,
+      cancelable: true
+    }));
+  }
+
+  function clearRichTextInput(provider, element) {
+    element.focus();
+
+    if (provider !== 'kimi' && provider !== 'doubao') {
+      element.innerHTML = '';
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
+
+    dispatchEditorKeyEvent(element, 'a', 'KeyA', { ctrl: true, meta: true });
+    document.execCommand('selectAll', false, null);
+
+    setTimeout(() => {
+      dispatchEditorKeyEvent(element, 'Backspace', 'Backspace');
+      document.execCommand('delete', false, null);
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+
+      const hasResidualContent = element.textContent.trim().length > 0 ||
+        element.querySelector('img, figure, [data-slate-node], [data-slate-string], [data-slate-zero-width]');
+
+      if (provider === 'doubao' && hasResidualContent) {
+        element.innerHTML = '';
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }, 10);
+  }
+
   function buildGoogleSearchFillValue(currentValue, nextText) {
     const normalizedCurrent = (currentValue || '').trim();
     const normalizedNext = (nextText || '').trim();
@@ -824,6 +912,20 @@
       return clickGoogleSendButton(providerMode);
     }
 
+    if (provider === 'doubao' && window.ButtonFinderUtils?.findButton) {
+      const sendButton = window.ButtonFinderUtils.findButton([
+        { type: 'css', value: '#flow-end-msg-send' },
+        { type: 'css', value: 'button[type="submit"]' },
+        { type: 'aria', textKey: 'send' },
+        { type: 'text', textKey: 'send' }
+      ]);
+
+      if (sendButton && isElementEnabled(sendButton)) {
+        sendButton.click();
+        return true;
+      }
+    }
+
     const selectors = SEND_BUTTON_SELECTORS[provider];
     if (!selectors) {
       console.warn('[Text Injection] No send button selectors for provider:', provider);
@@ -900,15 +1002,15 @@
       }
     }
 
-    // Special handling for Kimi - trigger Enter key if button not found
-    if (provider === 'kimi') {
-      console.log('[Text Injection] Kimi send button not found, trying Enter key on input');
+    // Special handling for providers that can fall back to Enter on the editor
+    if (provider === 'kimi' || provider === 'doubao') {
+      console.log('[Text Injection] Provider send button not found, trying Enter key on input:', provider);
       try {
-        const inputSelectors = PROVIDER_SELECTORS.kimi;
+        const inputSelectors = PROVIDER_SELECTORS[provider];
         for (const selector of inputSelectors) {
           const input = document.querySelector(selector);
           if (input) {
-            console.log('[Text Injection] Triggering Enter key on Kimi input');
+            console.log('[Text Injection] Triggering Enter key on provider input:', provider);
             // Focus first
             input.focus();
             // Trigger multiple events for better compatibility
@@ -923,7 +1025,7 @@
           }
         }
       } catch (error) {
-        console.warn('[Text Injection] Error in Kimi Enter key fallback:', error);
+        console.warn('[Text Injection] Error in provider Enter key fallback:', provider, error);
       }
     }
 
@@ -1060,11 +1162,16 @@
         const href = elem.getAttribute('href') || '';
 
         if (text.includes('new chat') ||
+          text.includes('new conversation') ||
           text.includes('start new') ||
           text.includes('新建会话') ||
+          text.includes('新建对话') ||
+          text.includes('开启新对话') ||
           ariaLabel.includes('new chat') ||
+          ariaLabel.includes('new conversation') ||
           ariaLabel.includes('start new') ||
           ariaLabel.includes('新建会话') ||
+          ariaLabel.includes('新建对话') ||
           (href === '/' && elem.closest('nav, aside'))) {
           console.log('[Text Injection] Found new chat button by text search');
           elem.click();
@@ -1207,8 +1314,8 @@
         if (success) {
           console.log('[Text Injection] Text injected via injectText helper for', provider);
           if (autoSubmit) {
-            // Use longer delay for DeepSeek/Kimi to ensure DOM is ready
-            const delay = (provider === 'deepseek' || provider === 'kimi') ? 800 : 500;
+            // Use longer delay for providers whose composer state updates asynchronously
+            const delay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : 500;
             setTimeout(() => clickSendButton(provider, providerMode), delay);
           }
           return true;
@@ -1308,6 +1415,8 @@
       case 'deepseek':
         // These work with drag-drop
         return await tryDragDropUpload(provider, imageData);
+      case 'doubao':
+        return await injectImageToDoubao(imageData);
       case 'google':
         return await injectImageToGoogle(imageData);
       default:
@@ -1474,6 +1583,97 @@
       console.error('[Image Injection] Google error:', error);
       return false;
     }
+  }
+
+  async function injectImageToDoubao(imageData) {
+    try {
+      const blob = await dataUrlToBlob(imageData.dataUrl);
+      const file = new File([blob], imageData.name, { type: imageData.type });
+
+      for (let attempt = 0; attempt < 3; attempt++) {
+        let fileInput = await waitForDoubaoFileInput(500);
+
+        if (!fileInput) {
+          const uploadButton = findDeepFirstVisibleElement(UPLOAD_BUTTON_SELECTORS.doubao) ||
+            findFirstVisibleElement(UPLOAD_BUTTON_SELECTORS.doubao);
+
+          if (uploadButton) {
+            uploadButton.click();
+            await sleep(200);
+            fileInput = await waitForDoubaoFileInput(800);
+          }
+        }
+
+        if (!fileInput) {
+          console.warn('[Image Injection] Doubao: No file input found on attempt', attempt + 1);
+          continue;
+        }
+
+        const assigned = assignFilesToInput(fileInput, [file]);
+        if (!assigned) {
+          await sleep(200);
+          continue;
+        }
+
+        fileInput.dispatchEvent(new Event('input', { bubbles: true }));
+        fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+        const uploadAccepted = await waitForDoubaoImagePreview(1200) ||
+          Boolean(fileInput.files && fileInput.files.length > 0);
+
+        if (uploadAccepted) {
+          console.log('[Image Injection] Doubao: File input triggered');
+          return true;
+        }
+
+        await sleep(250);
+      }
+
+      console.warn('[Image Injection] Doubao: Upload did not produce a preview after retries');
+      return false;
+    } catch (error) {
+      console.error('[Image Injection] Doubao error:', error);
+      return false;
+    }
+  }
+
+  async function waitForDoubaoFileInput(timeoutMs = 800) {
+    const start = Date.now();
+
+    while (Date.now() - start < timeoutMs) {
+      const fileInput = document.querySelector('#input-engine-container input[type="file"]') ||
+        document.querySelector('input[type="file"]');
+
+      if (fileInput) {
+        return fileInput;
+      }
+
+      await sleep(100);
+    }
+
+    return null;
+  }
+
+  function hasDoubaoImagePreview() {
+    return Boolean(
+      document.querySelector('.semi-image-preview-group') ||
+      document.querySelector('#input-engine-container img[src^="blob:"]') ||
+      document.querySelector('#input-engine-container img[src*="blob:"]')
+    );
+  }
+
+  async function waitForDoubaoImagePreview(timeoutMs = 1200) {
+    const start = Date.now();
+
+    while (Date.now() - start < timeoutMs) {
+      if (hasDoubaoImagePreview()) {
+        return true;
+      }
+
+      await sleep(100);
+    }
+
+    return false;
   }
 
   // Try to upload image via drag-drop event (works for Grok, DeepSeek)
@@ -1669,46 +1869,7 @@
             if (isTextarea) {
               setFormControlValue(element, '');
             } else {
-              // For contenteditable elements
-              element.focus();
-
-              // Special handling for Kimi (Lexical editor): simulate Ctrl+A + Backspace
-              // Lexical maintains internal state, so we must use keyboard events
-              if (provider === 'kimi') {
-                // Dispatch Ctrl+A (Select All)
-                element.dispatchEvent(new KeyboardEvent('keydown', {
-                  key: 'a',
-                  code: 'KeyA',
-                  keyCode: 65,
-                  which: 65,
-                  ctrlKey: true,
-                  metaKey: true,  // For Mac
-                  bubbles: true,
-                  cancelable: true
-                }));
-
-                // Use execCommand to select all (works with Lexical)
-                document.execCommand('selectAll', false, null);
-
-                // Small delay then delete
-                setTimeout(() => {
-                  element.dispatchEvent(new KeyboardEvent('keydown', {
-                    key: 'Backspace',
-                    code: 'Backspace',
-                    keyCode: 8,
-                    which: 8,
-                    bubbles: true,
-                    cancelable: true
-                  }));
-                  document.execCommand('delete', false, null);
-                  element.dispatchEvent(new Event('input', { bubbles: true }));
-                }, 10);
-              } else {
-                element.innerHTML = '';
-                // Trigger multiple events for React/Vue compatibility
-                element.dispatchEvent(new Event('input', { bubbles: true }));
-                element.dispatchEvent(new Event('change', { bubbles: true }));
-              }
+              clearRichTextInput(provider, element);
             }
             console.log('[Text Injection] Input cleared for', provider);
             break;

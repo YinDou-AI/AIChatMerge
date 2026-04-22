@@ -21,6 +21,8 @@
     "*://chat.deepseek.com/*",
     "*://www.kimi.com/*",
     "*://kimi.com/*",
+    "*://www.doubao.com/*",
+    "*://doubao.com/*",
     "*://www.google.com/*",
     "*://google.com/*",
     "*://api.github.com/*",
@@ -140,6 +142,21 @@
         "content-scripts/button-finder-utils.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-kimi.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://www.doubao.com/*",
+        "https://doubao.com/*"
+      ],
+      "js": [
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-doubao.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],

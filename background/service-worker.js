@@ -1,5 +1,6 @@
 import { notifyMessage } from '../modules/messaging.js';
 import { t, initializeLanguage } from '../modules/i18n.js';
+import { migrateEnabledProvidersOnUpdate } from '../modules/provider-defaults.js';
 
 // Install event - setup context menus
 const DEFAULT_SHORTCUT_SETTING = { keyboardShortcutEnabled: true };
@@ -86,7 +87,31 @@ async function openMultiPanel() {
   }
 }
 
-chrome.runtime.onInstalled.addListener(async () => {
+async function migrateProviderSettingsForUpdate(details) {
+  if (details?.reason !== 'update') {
+    return;
+  }
+
+  try {
+    const currentSettings = await chrome.storage.sync.get({
+      enabledProviders: null,
+      providerOrder: null
+    });
+    const migratedSettings = migrateEnabledProvidersOnUpdate(
+      currentSettings.enabledProviders,
+      currentSettings.providerOrder
+    );
+
+    if (migratedSettings) {
+      await chrome.storage.sync.set(migratedSettings);
+    }
+  } catch (error) {
+    // Ignore storage errors during best-effort settings migration
+  }
+}
+
+chrome.runtime.onInstalled.addListener(async (details) => {
+  await migrateProviderSettingsForUpdate(details);
   await createContextMenus();
   await loadShortcutSetting();
   await loadOpenModeSetting();

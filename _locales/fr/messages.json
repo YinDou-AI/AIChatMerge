@@ -141,7 +141,7 @@
     "message": "Personnalisez le fonctionnement de la touche Entrée et des touches modificatrices lors de la saisie dans les champs de saisie des fournisseurs IA."
   },
   "descEnterBehavior2": {
-    "message": "<strong>S'applique à :</strong> ChatGPT, Claude, Gemini, Grok, DeepSeek et Google (Mode IA)."
+    "message": "<strong>S'applique à :</strong> ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Doubao et Google (Mode IA)."
   },
   "labelEnableEnterCustomization": {
     "message": "Activer la personnalisation de la touche Entrée"

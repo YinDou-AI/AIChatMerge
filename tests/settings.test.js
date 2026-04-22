@@ -9,6 +9,7 @@ import {
   importSettings,
 } from '../modules/settings.js';
 import { DEFAULT_GOOGLE_PROVIDER_MODE } from '../modules/google-mode.js';
+import { DEFAULT_PROVIDER_IDS } from '../modules/provider-defaults.js';
 
 describe('settings module', () => {
   beforeEach(() => {
@@ -52,6 +53,7 @@ describe('settings module', () => {
       const result = await getSettings();
 
       expect(result.googleProviderMode).toBe(DEFAULT_GOOGLE_PROVIDER_MODE);
+      expect(result.enabledProviders).toEqual(DEFAULT_PROVIDER_IDS);
     });
   });
 

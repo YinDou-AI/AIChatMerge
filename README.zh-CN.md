@@ -40,7 +40,7 @@
 
 ### 一次提问，同时对比
 
-在统一输入框中输入一次内容，就能同时发送到 ChatGPT、Claude、Gemini、Grok、DeepSeek、Kimi、Google。
+在统一输入框中输入一次内容，就能同时发送到 ChatGPT、Claude、Gemini、Grok、DeepSeek、Kimi、Doubao、Google。
 
 ### 灵活布局
 
@@ -75,6 +75,7 @@
 - Grok
 - DeepSeek
 - Kimi
+- Doubao
 - Google
 
 <p align="center">

@@ -141,7 +141,7 @@
     "message": "Настройте, как работают клавиша Enter и модификаторы при вводе в полях ввода провайдеров ИИ."
   },
   "descEnterBehavior2": {
-    "message": "<strong>Применяется к:</strong> ChatGPT, Claude, Gemini, Grok, DeepSeek и Google (AI Mode)."
+    "message": "<strong>Применяется к:</strong> ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Doubao и Google (AI Mode)."
   },
   "labelEnableEnterCustomization": {
     "message": "Включить настройку клавиши Enter"

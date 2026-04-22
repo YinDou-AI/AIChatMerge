@@ -1,5 +1,6 @@
 // T050-T064: Settings Page Implementation
 import { PROVIDERS } from '../modules/providers.js';
+import { DEFAULT_PROVIDER_IDS } from '../modules/provider-defaults.js';
 import { getSettings, getSetting, saveSettings, saveSetting, resetSettings, exportSettings, importSettings } from '../modules/settings.js';
 import {
   DEFAULT_GOOGLE_PROVIDER_MODE,
@@ -20,7 +21,7 @@ import {
   checkForUpdates
 } from '../modules/version-checker.js';
 import { t, translatePage, getCurrentLanguage, initializeLanguage } from '../modules/i18n.js';
-const DEFAULT_ENABLED_PROVIDERS = ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google'];
+const DEFAULT_ENABLED_PROVIDERS = DEFAULT_PROVIDER_IDS;
 
 function fitSelectWidth(select) {
   if (!(select instanceof HTMLSelectElement)) {

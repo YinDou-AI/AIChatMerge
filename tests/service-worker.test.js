@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { migrateEnabledProvidersOnUpdate } from '../modules/provider-defaults.js';
 
 /**
  * Tests for background/service-worker.js
@@ -124,6 +125,30 @@ describe('service-worker', () => {
 
       expect(result.keyboardShortcutEnabled).toBe(true);
       expect(result.enabledProviders).toEqual(['chatgpt', 'claude']);
+    });
+
+    it('migrates untouched legacy provider settings during updates', () => {
+      expect(
+        migrateEnabledProvidersOnUpdate(
+          ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google'],
+          ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google']
+        )
+      ).toEqual({
+        enabledProviders: ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
+        providerOrder: ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
+      });
+    });
+
+    it('appends doubao while preserving a customized provider order for legacy-enabled users', () => {
+      expect(
+        migrateEnabledProvidersOnUpdate(
+          ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google'],
+          ['claude', 'chatgpt', 'gemini']
+        )
+      ).toEqual({
+        enabledProviders: ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
+        providerOrder: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
+      });
     });
   });
 

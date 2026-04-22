@@ -1,7 +1,8 @@
 import { DEFAULT_GOOGLE_PROVIDER_MODE } from './google-mode.js';
+import { DEFAULT_PROVIDER_IDS } from './provider-defaults.js';
 
 const DEFAULT_SETTINGS = {
-  enabledProviders: ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google'],
+  enabledProviders: DEFAULT_PROVIDER_IDS,
   googleProviderMode: DEFAULT_GOOGLE_PROVIDER_MODE,
   providerOrder: null,
   defaultProvider: 'chatgpt',
