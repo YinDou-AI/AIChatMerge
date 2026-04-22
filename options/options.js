@@ -1,5 +1,5 @@
 // T050-T064: Settings Page Implementation
-import { PROVIDERS } from '../modules/providers.js';
+import { PROVIDERS, getProviderIcon } from '../modules/providers.js';
 import { DEFAULT_PROVIDER_IDS } from '../modules/provider-defaults.js';
 import { getSettings, getSetting, saveSettings, saveSetting, resetSettings, exportSettings, importSettings } from '../modules/settings.js';
 import {
@@ -344,7 +344,7 @@ async function renderProviderList() {
         <div class="provider-info">
           ${isEnabled ? '<span class="drag-handle material-symbols-outlined">drag_indicator</span>' : ''}
           <div class="provider-icon">
-            <img src="${provider.icon}" alt="${provider.name}" width="24" height="24"
+            <img src="${getProviderIcon(provider)}" alt="${provider.name}" width="24" height="24"
                  onerror="this.style.display='none'" />
           </div>
           <span class="provider-name">${provider.name}</span>
@@ -547,10 +547,17 @@ async function getDefaultLibraryLanguage() {
 
 // T057-T064: Setup event listeners
 function setupEventListeners() {
+  document.addEventListener('panelize:themechange', () => {
+    renderProviderList().catch((error) => {
+      console.error('Failed to refresh provider icons after theme change:', error);
+    });
+  });
+
   // Theme change
   document.getElementById('theme-select').addEventListener('change', async (e) => {
     await saveSetting('theme', e.target.value);
     await applyTheme();  // Re-apply theme immediately
+    await renderProviderList();
     showStatus('success', t('msgThemeUpdated'));
   });
 

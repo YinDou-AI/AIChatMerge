@@ -4,6 +4,7 @@ import {
   getProviderById,
   getProviderByIdWithSettings,
   getEnabledProviders,
+  getProviderIcon,
 } from '../modules/providers.js';
 
 describe('providers module', () => {
@@ -93,6 +94,20 @@ describe('providers module', () => {
       const providers = await getEnabledProviders();
 
       expect(providers.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('getProviderIcon', () => {
+    it('returns the dark icon when theme is dark', () => {
+      const provider = getProviderById('doubao');
+
+      expect(getProviderIcon(provider, 'dark')).toBe(provider.iconDark);
+    });
+
+    it('returns the light icon when theme is light', () => {
+      const provider = getProviderById('doubao');
+
+      expect(getProviderIcon(provider, 'light')).toBe(provider.icon);
     });
   });
 });

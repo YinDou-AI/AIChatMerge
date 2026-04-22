@@ -67,6 +67,20 @@ export const PROVIDERS = [
   }
 ];
 
+export function getProviderIcon(provider, theme = null) {
+  if (!provider) return '';
+
+  const documentTheme = typeof document !== 'undefined'
+    ? document.documentElement?.getAttribute('data-theme')
+    : null;
+  const resolvedTheme = theme || documentTheme || 'light';
+  if (resolvedTheme === 'dark' && provider.iconDark) {
+    return provider.iconDark;
+  }
+
+  return provider.icon;
+}
+
 export function getProviderById(id) {
   return PROVIDERS.find(p => p.id === id);
 }

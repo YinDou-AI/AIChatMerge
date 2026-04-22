@@ -1610,8 +1610,3 @@ body {
 [data-theme="dark"] .btn-secondary:hover {
   background: #3a3a3a;
 }
-
-/* Dark theme icon handling */
-[data-theme="dark"] .provider-icon {
-  filter: invert(1) brightness(1.2);
-}

@@ -5,7 +5,7 @@
  * allowing users to compare responses from multiple AI providers side by side.
  */
 
-import { PROVIDERS, getProviderById, getEnabledProviders } from '../modules/providers.js';
+import { PROVIDERS, getProviderById, getEnabledProviders, getProviderIcon } from '../modules/providers.js';
 import { DEFAULT_PROVIDER_IDS } from '../modules/provider-defaults.js';
 import {
   DEFAULT_GOOGLE_PROVIDER_MODE,
@@ -49,6 +49,18 @@ let tempChatCleanupTimerId = null;
 let tempChatPendingPanelIds = new Set();
 let tempChatButtonRestoreTimerId = null;
 let isTemporaryChatModeEnabled = false;
+
+function getThemeAwareProviderIcon(provider) {
+  return getProviderIcon(provider);
+}
+
+function refreshThemeAwareProviderIcons() {
+  document.querySelectorAll('img[data-provider-id]').forEach((img) => {
+    const provider = getProviderById(img.dataset.providerId);
+    if (!provider) return;
+    img.src = getThemeAwareProviderIcon(provider);
+  });
+}
 let currentGoogleProviderMode = DEFAULT_GOOGLE_PROVIDER_MODE;
 
 // 提示词编辑器状态
@@ -114,6 +126,7 @@ function normalizeLayout(layout) {
 
 // ===== Initialization =====
 async function init() {
+  document.addEventListener('panelize:themechange', refreshThemeAwareProviderIcons);
   await applyTheme();
   await initializeLanguage();
   registerRuntimeMessageListener();
@@ -312,7 +325,7 @@ function showPanelLoadingState(panelEl, provider) {
   }
 
   loadingEl.classList.remove('hidden');
-  loadingEl.innerHTML = `<img src="${provider.icon}" alt="${provider.name}" class="loading-icon"><span class="loading-text">Loading ${provider.name}...</span>`;
+  loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">Loading ${provider.name}...</span>`;
 }
 
 function reloadPanelIframe(panel, overrideUrl = null) {
@@ -1146,14 +1159,14 @@ async function addPanel(providerId) {
   panelEl.innerHTML = `
     <div class="panel-header">
       <div class="panel-header-left">
-        <img src="${provider.icon}" alt="${provider.name}" class="provider-icon">
+        <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="provider-icon" data-provider-id="${provider.id}">
         <span>${provider.name}</span>
       </div>
       <div class="panel-header-right">${getPanelHeaderRightHtml(providerId)}</div>
     </div>
     <div class="panel-iframe-container">
       <div class="panel-loading">
-        <img src="${provider.icon}" alt="${provider.name}" class="loading-icon">
+        <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}">
         <span class="loading-text">Loading ${provider.name}...</span>
       </div>
       <iframe
@@ -1186,7 +1199,7 @@ async function addPanel(providerId) {
   });
 
   iframe.addEventListener('error', () => {
-    loadingEl.innerHTML = `<img src="${provider.icon}" alt="${provider.name}" class="loading-icon"><span class="loading-text">Failed to load ${provider.name}</span>`;
+    loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">Failed to load ${provider.name}</span>`;
     loadingPanelIds.delete(panelId);
   });
 
@@ -1262,7 +1275,8 @@ async function switchPanelProvider(panelId, newProviderId) {
   const headerIcon = panelEl.querySelector('.panel-header-left img');
   const headerName = panelEl.querySelector('.panel-header-left span');
   const headerRight = panelEl.querySelector('.panel-header-right');
-  headerIcon.src = provider.icon;
+  headerIcon.src = getThemeAwareProviderIcon(provider);
+  headerIcon.dataset.providerId = provider.id;
   headerIcon.alt = provider.name;
   headerName.textContent = provider.name;
   headerRight.innerHTML = getPanelHeaderRightHtml(newProviderId);
@@ -1293,7 +1307,7 @@ function updatePanelSelectors() {
     selector.className = 'panel-selector';
     selector.dataset.panelId = panel.id;
     selector.innerHTML = `
-      <img src="${provider.icon}" alt="${provider.name}" class="provider-icon">
+      <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="provider-icon" data-provider-id="${provider.id}">
       <span>${provider.name}</span>
       <button class="remove-panel" title="Remove panel">
         <span class="material-symbols-outlined">close</span>
@@ -2275,7 +2289,7 @@ async function showProviderSwitcher(panelId) {
       font-size: 14px;
       ${provider.id === panel.providerId ? 'background: #e3f2fd; color: #1976d2;' : ''}
     ">
-      <img src="${provider.icon}" alt="${provider.name}" style="width: 20px; height: 20px;">
+      <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" style="width: 20px; height: 20px;" data-provider-id="${provider.id}">
       <span>${provider.name}</span>
     </div>
   `).join('');
@@ -2359,7 +2373,7 @@ async function showAddPanelMenu() {
       cursor: pointer;
       font-size: 14px;
     ">
-      <img src="${provider.icon}" alt="${provider.name}" style="width: 20px; height: 20px;">
+      <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" style="width: 20px; height: 20px;" data-provider-id="${provider.id}">
       <span>${provider.name}</span>
     </div>
   `).join('');
