@@ -54,6 +54,32 @@ function getThemeAwareProviderIcon(provider) {
   return getProviderIcon(provider);
 }
 
+function isDarkThemeActive() {
+  return document.documentElement.getAttribute('data-theme') === 'dark';
+}
+
+function getDropdownThemePalette() {
+  if (isDarkThemeActive()) {
+    return {
+      menuBackground: '#2d2d2d',
+      menuBorder: '#444',
+      menuText: '#e0e0e0',
+      itemHoverBackground: '#3a3a3a',
+      selectedBackground: '#1a3a5a',
+      selectedText: '#64b5f6'
+    };
+  }
+
+  return {
+    menuBackground: 'white',
+    menuBorder: '#e0e0e0',
+    menuText: '#333',
+    itemHoverBackground: '#f5f5f5',
+    selectedBackground: '#e3f2fd',
+    selectedText: '#1976d2'
+  };
+}
+
 function refreshThemeAwareProviderIcons() {
   document.querySelectorAll('img[data-provider-id]').forEach((img) => {
     const provider = getProviderById(img.dataset.providerId);
@@ -2264,14 +2290,15 @@ async function showProviderSwitcher(panelId) {
   const enabledProviders = await getEnabledProviders();
   const panel = panels.find(p => p.id === panelId);
   if (!panel) return;
+  const palette = getDropdownThemePalette();
 
   // Create a simple dropdown menu
   const menu = document.createElement('div');
   menu.className = 'provider-switcher-menu';
   menu.style.cssText = `
     position: fixed;
-    background: white;
-    border: 1px solid #e0e0e0;
+    background: ${palette.menuBackground};
+    border: 1px solid ${palette.menuBorder};
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 1000;
@@ -2287,7 +2314,8 @@ async function showProviderSwitcher(panelId) {
       padding: 10px 16px;
       cursor: pointer;
       font-size: 14px;
-      ${provider.id === panel.providerId ? 'background: #e3f2fd; color: #1976d2;' : ''}
+      color: ${provider.id === panel.providerId ? palette.selectedText : palette.menuText};
+      ${provider.id === panel.providerId ? `background: ${palette.selectedBackground};` : ''}
     ">
       <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" style="width: 20px; height: 20px;" data-provider-id="${provider.id}">
       <span>${provider.name}</span>
@@ -2310,13 +2338,22 @@ async function showProviderSwitcher(panelId) {
     });
 
     item.addEventListener('mouseenter', () => {
-      item.style.background = '#f5f5f5';
+      if (item.dataset.providerId === panel.providerId) {
+        item.style.background = palette.selectedBackground;
+        item.style.color = palette.selectedText;
+        return;
+      }
+
+      item.style.background = palette.itemHoverBackground;
+      item.style.color = palette.menuText;
     });
     item.addEventListener('mouseleave', () => {
       if (item.dataset.providerId === panel.providerId) {
-        item.style.background = '#e3f2fd';
+        item.style.background = palette.selectedBackground;
+        item.style.color = palette.selectedText;
       } else {
         item.style.background = '';
+        item.style.color = palette.menuText;
       }
     });
   });
@@ -2348,6 +2385,7 @@ async function showAddPanelMenu() {
 
   const btn = document.getElementById('add-panel-btn');
   const rect = btn.getBoundingClientRect();
+  const palette = getDropdownThemePalette();
 
   const menu = document.createElement('div');
   menu.className = 'add-panel-menu';
@@ -2355,8 +2393,8 @@ async function showAddPanelMenu() {
     position: fixed;
     top: ${rect.bottom + 4}px;
     left: ${rect.left}px;
-    background: white;
-    border: 1px solid #e0e0e0;
+    background: ${palette.menuBackground};
+    border: 1px solid ${palette.menuBorder};
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 1000;
@@ -2372,6 +2410,7 @@ async function showAddPanelMenu() {
       padding: 10px 16px;
       cursor: pointer;
       font-size: 14px;
+      color: ${palette.menuText};
     ">
       <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" style="width: 20px; height: 20px;" data-provider-id="${provider.id}">
       <span>${provider.name}</span>
@@ -2387,10 +2426,12 @@ async function showAddPanelMenu() {
     });
 
     item.addEventListener('mouseenter', () => {
-      item.style.background = '#f5f5f5';
+      item.style.background = palette.itemHoverBackground;
+      item.style.color = palette.menuText;
     });
     item.addEventListener('mouseleave', () => {
       item.style.background = '';
+      item.style.color = palette.menuText;
     });
   });
 
