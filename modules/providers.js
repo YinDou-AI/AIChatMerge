@@ -1,3 +1,5 @@
+import { DEFAULT_PROVIDER_IDS } from './provider-defaults.js';
+
 export const PROVIDERS = [
   {
     id: 'chatgpt',
@@ -54,6 +56,14 @@ export const PROVIDERS = [
     icon: '/icons/providers/google.png',
     iconDark: '/icons/providers/dark/google.png',
     enabled: true
+  },
+  {
+    id: 'doubao',
+    name: 'Doubao',
+    url: 'https://www.doubao.com/chat/',
+    icon: '/icons/providers/doubao.png',
+    iconDark: '/icons/providers/dark/doubao.png',
+    enabled: true
   }
 ];
 
@@ -70,7 +80,7 @@ export async function getProviderByIdWithSettings(id) {
 
 export async function getEnabledProviders() {
   let settings = {
-    enabledProviders: ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google'],
+    enabledProviders: DEFAULT_PROVIDER_IDS,
     providerOrder: null
   };
   
@@ -91,6 +101,7 @@ export async function getEnabledProviders() {
       const indexA = settings.providerOrder.indexOf(a.id);
       const indexB = settings.providerOrder.indexOf(b.id);
       // If not in order array, put at the end
+      if (indexA === -1 && indexB === -1) return 0;
       if (indexA === -1) return 1;
       if (indexB === -1) return -1;
       return indexA - indexB;

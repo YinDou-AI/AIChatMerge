@@ -141,7 +141,7 @@
     "message": "AI プロバイダーの入力フィールドで Enter キーと修飾キーがどのように機能するかをカスタマイズします。"
   },
   "descEnterBehavior2": {
-    "message": "<strong>適用先:</strong> ChatGPT、Claude、Gemini、Grok、DeepSeek、Google（AI モード）。"
+    "message": "<strong>適用先:</strong> ChatGPT、Claude、Gemini、Grok、DeepSeek、Kimi、Doubao、Google（AI モード）。"
   },
   "labelEnableEnterCustomization": {
     "message": "Enter キーのカスタマイズを有効にする"

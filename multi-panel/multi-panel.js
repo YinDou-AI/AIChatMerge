@@ -6,6 +6,7 @@
  */
 
 import { PROVIDERS, getProviderById, getEnabledProviders } from '../modules/providers.js';
+import { DEFAULT_PROVIDER_IDS } from '../modules/provider-defaults.js';
 import {
   DEFAULT_GOOGLE_PROVIDER_MODE,
   GOOGLE_PROVIDER_MODE_AI,
@@ -58,8 +59,8 @@ let currentOpenMode = 'tab'; // 'tab' 或 'popup'
 let isPopupWindow = false;   // 当前窗口是否为弹出窗口
 
 // Default panel configuration
-const DEFAULT_PROVIDERS = ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google'];
-const MAX_PANELS = 7;
+const DEFAULT_PROVIDERS = DEFAULT_PROVIDER_IDS;
+const MAX_PANELS = 8;
 const PENDING_MULTI_PANEL_ACTION_KEY = 'pendingMultiPanelAction';
 const SEND_FOCUS_RESTORE_DELAYS = [0, 80, 200, 400, 800, 1500, 2500, 4000, 6000, 8000, 10000, 12000];
 const SEND_FOCUS_NO_BUSY_TIMEOUT_MS = 2000;
@@ -92,6 +93,7 @@ const LAYOUT_PANEL_COUNTS = {
   '1x5': 5,
   '1x6': 6,
   '1x7': 7,
+  '1x8': 8,
   '2x1': 2,
   '2x2': 4,
   '2x3': 6,
@@ -1054,15 +1056,19 @@ function getAutoAdjustedLayout(currentLayout, newPanelCount) {
   // 如果新面板数不超过容量，无需调整
   if (newPanelCount <= currentCapacity) return null;
   
+  if (currentLayout === '1x7' && newPanelCount === 8) {
+    return '4x2';
+  }
+
   // 计算下一级布局
   const nextCols = currentCols + 1;
   const nextLayout = `1x${nextCols}`;
-  
-  // 检查是否存在（1x6 是上限）
+
+  // 1x8 remains a manual layout option; auto-expand still prefers 4x2 for the 8th panel
   if (LAYOUT_PANEL_COUNTS[nextLayout]) {
     return nextLayout;
   }
-  
+
   return null; // 已达上限，无法自动调整
 }
 
@@ -1074,6 +1080,10 @@ function getAutoAdjustedLayout(currentLayout, newPanelCount) {
  * @returns {string|null} - New layout name, or null if no adjustment needed
  */
 function getAutoShrunkLayout(currentLayout, newPanelCount) {
+  if (currentLayout === '4x2' && newPanelCount === 7) {
+    return '1x7';
+  }
+
   // Only handle 1xN layouts (consistent with auto-expand behavior)
   const match = currentLayout.match(/^1x(\d)$/);
   if (!match) return null;

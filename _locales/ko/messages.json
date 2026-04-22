@@ -141,7 +141,7 @@
     "message": "AI 제공자 입력 필드에서 Enter 키와 수정 키가 작동하는 방식을 사용자 지정합니다."
   },
   "descEnterBehavior2": {
-    "message": "<strong>적용 대상:</strong> ChatGPT, Claude, Gemini, Grok, DeepSeek 및 Google (AI 모드)."
+    "message": "<strong>적용 대상:</strong> ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Doubao 및 Google (AI 모드)."
   },
   "labelEnableEnterCustomization": {
     "message": "Enter 키 사용자 지정 활성화"

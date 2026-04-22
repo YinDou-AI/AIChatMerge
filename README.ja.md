@@ -40,7 +40,7 @@
 
 ### 1回の入力で同時送信
 
-統一入力欄から ChatGPT / Claude / Gemini / Grok / DeepSeek / Kimi / Google へ同時に送信できます。
+統一入力欄から ChatGPT / Claude / Gemini / Grok / DeepSeek / Kimi / Doubao / Google へ同時に送信できます。
 
 ### 柔軟なレイアウト
 
@@ -75,6 +75,7 @@ API キー不要。通常どおり各 AI サービスにログインしていれ
 - Grok
 - DeepSeek
 - Kimi
+- Doubao
 - Google
 
 <p align="center">

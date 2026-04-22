@@ -141,7 +141,7 @@
     "message": "Personalizza come funzionano il tasto Invio e i tasti modificatori durante la digitazione nei campi di input dei provider IA."
   },
   "descEnterBehavior2": {
-    "message": "<strong>Si applica a:</strong> ChatGPT, Claude, Gemini, Grok, DeepSeek e Google (Modalità IA)."
+    "message": "<strong>Si applica a:</strong> ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Doubao e Google (Modalità IA)."
   },
   "labelEnableEnterCustomization": {
     "message": "Abilita personalizzazione tasto Invio"
