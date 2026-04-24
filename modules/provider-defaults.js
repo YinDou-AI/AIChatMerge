@@ -23,27 +23,28 @@ export function migrateEnabledProvidersOnUpdate(enabledProviders, providerOrder)
 
   const enabledProvidersAreLegacyDefault =
     nextEnabledProviders === null ||
-    arraysMatchExactly(nextEnabledProviders, LEGACY_DEFAULT_PROVIDER_IDS);
+    arraysContainSameIds(nextEnabledProviders, LEGACY_DEFAULT_PROVIDER_IDS);
 
   if (!enabledProvidersAreLegacyDefault) {
     return null;
   }
 
-  const migratedEnabledProviders = DEFAULT_PROVIDER_IDS;
-  const migratedProviderOrder = buildMigratedProviderOrder(nextProviderOrder);
+  const migratedProviderIds = buildMigratedProviderOrder(nextProviderOrder || nextEnabledProviders);
 
   return {
-    enabledProviders: migratedEnabledProviders,
-    providerOrder: migratedProviderOrder,
+    enabledProviders: migratedProviderIds,
+    providerOrder: migratedProviderIds,
   };
 }
 
-function arraysMatchExactly(left, right) {
+function arraysContainSameIds(left, right) {
   if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
     return false;
   }
 
-  return left.every((value, index) => value === right[index]);
+  const leftIds = new Set(left);
+  const rightIds = new Set(right);
+  return leftIds.size === rightIds.size && left.every((value) => rightIds.has(value));
 }
 
 function buildMigratedProviderOrder(providerOrder) {
