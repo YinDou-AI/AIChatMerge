@@ -192,7 +192,7 @@
     "message": "Customize how Enter and modifier keys work when typing in AI provider input fields."
   },
   "descEnterBehavior2": {
-    "message": "<strong>Applies to:</strong> ChatGPT, Claude, Gemini, Grok, DeepSeek, and Google (AI Mode)."
+    "message": "<strong>Applies to:</strong> ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Doubao, and Google (AI Mode)."
   },
   "labelEnableEnterCustomization": {
     "message": "Enable Enter Key Customization"

@@ -5,7 +5,8 @@
  * allowing users to compare responses from multiple AI providers side by side.
  */
 
-import { PROVIDERS, getProviderById, getEnabledProviders } from '../modules/providers.js';
+import { PROVIDERS, getProviderById, getEnabledProviders, getProviderIcon } from '../modules/providers.js';
+import { DEFAULT_PROVIDER_IDS } from '../modules/provider-defaults.js';
 import {
   DEFAULT_GOOGLE_PROVIDER_MODE,
   GOOGLE_PROVIDER_MODE_AI,
@@ -48,6 +49,44 @@ let tempChatCleanupTimerId = null;
 let tempChatPendingPanelIds = new Set();
 let tempChatButtonRestoreTimerId = null;
 let isTemporaryChatModeEnabled = false;
+
+function getThemeAwareProviderIcon(provider) {
+  return getProviderIcon(provider);
+}
+
+function isDarkThemeActive() {
+  return document.documentElement.getAttribute('data-theme') === 'dark';
+}
+
+function getDropdownThemePalette() {
+  if (isDarkThemeActive()) {
+    return {
+      menuBackground: '#2d2d2d',
+      menuBorder: '#444',
+      menuText: '#e0e0e0',
+      itemHoverBackground: '#3a3a3a',
+      selectedBackground: '#1a3a5a',
+      selectedText: '#64b5f6'
+    };
+  }
+
+  return {
+    menuBackground: 'white',
+    menuBorder: '#e0e0e0',
+    menuText: '#333',
+    itemHoverBackground: '#f5f5f5',
+    selectedBackground: '#e3f2fd',
+    selectedText: '#1976d2'
+  };
+}
+
+function refreshThemeAwareProviderIcons() {
+  document.querySelectorAll('img[data-provider-id]').forEach((img) => {
+    const provider = getProviderById(img.dataset.providerId);
+    if (!provider) return;
+    img.src = getThemeAwareProviderIcon(provider);
+  });
+}
 let currentGoogleProviderMode = DEFAULT_GOOGLE_PROVIDER_MODE;
 
 // 提示词编辑器状态
@@ -58,8 +97,8 @@ let currentOpenMode = 'tab'; // 'tab' 或 'popup'
 let isPopupWindow = false;   // 当前窗口是否为弹出窗口
 
 // Default panel configuration
-const DEFAULT_PROVIDERS = ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google'];
-const MAX_PANELS = 7;
+const DEFAULT_PROVIDERS = DEFAULT_PROVIDER_IDS;
+const MAX_PANELS = 8;
 const PENDING_MULTI_PANEL_ACTION_KEY = 'pendingMultiPanelAction';
 const SEND_FOCUS_RESTORE_DELAYS = [0, 80, 200, 400, 800, 1500, 2500, 4000, 6000, 8000, 10000, 12000];
 const SEND_FOCUS_NO_BUSY_TIMEOUT_MS = 2000;
@@ -92,6 +131,7 @@ const LAYOUT_PANEL_COUNTS = {
   '1x5': 5,
   '1x6': 6,
   '1x7': 7,
+  '1x8': 8,
   '2x1': 2,
   '2x2': 4,
   '2x3': 6,
@@ -112,6 +152,7 @@ function normalizeLayout(layout) {
 
 // ===== Initialization =====
 async function init() {
+  document.addEventListener('panelize:themechange', refreshThemeAwareProviderIcons);
   await applyTheme();
   await initializeLanguage();
   registerRuntimeMessageListener();
@@ -310,7 +351,7 @@ function showPanelLoadingState(panelEl, provider) {
   }
 
   loadingEl.classList.remove('hidden');
-  loadingEl.innerHTML = `<img src="${provider.icon}" alt="${provider.name}" class="loading-icon"><span class="loading-text">Loading ${provider.name}...</span>`;
+  loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">Loading ${provider.name}...</span>`;
 }
 
 function reloadPanelIframe(panel, overrideUrl = null) {
@@ -1054,15 +1095,19 @@ function getAutoAdjustedLayout(currentLayout, newPanelCount) {
   // 如果新面板数不超过容量，无需调整
   if (newPanelCount <= currentCapacity) return null;
   
+  if (currentLayout === '1x7' && newPanelCount === 8) {
+    return '4x2';
+  }
+
   // 计算下一级布局
   const nextCols = currentCols + 1;
   const nextLayout = `1x${nextCols}`;
-  
-  // 检查是否存在（1x6 是上限）
+
+  // 1x8 remains a manual layout option; auto-expand still prefers 4x2 for the 8th panel
   if (LAYOUT_PANEL_COUNTS[nextLayout]) {
     return nextLayout;
   }
-  
+
   return null; // 已达上限，无法自动调整
 }
 
@@ -1074,6 +1119,10 @@ function getAutoAdjustedLayout(currentLayout, newPanelCount) {
  * @returns {string|null} - New layout name, or null if no adjustment needed
  */
 function getAutoShrunkLayout(currentLayout, newPanelCount) {
+  if (currentLayout === '4x2' && newPanelCount === 7) {
+    return '1x7';
+  }
+
   // Only handle 1xN layouts (consistent with auto-expand behavior)
   const match = currentLayout.match(/^1x(\d)$/);
   if (!match) return null;
@@ -1136,14 +1185,14 @@ async function addPanel(providerId) {
   panelEl.innerHTML = `
     <div class="panel-header">
       <div class="panel-header-left">
-        <img src="${provider.icon}" alt="${provider.name}" class="provider-icon">
+        <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="provider-icon" data-provider-id="${provider.id}">
         <span>${provider.name}</span>
       </div>
       <div class="panel-header-right">${getPanelHeaderRightHtml(providerId)}</div>
     </div>
     <div class="panel-iframe-container">
       <div class="panel-loading">
-        <img src="${provider.icon}" alt="${provider.name}" class="loading-icon">
+        <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}">
         <span class="loading-text">Loading ${provider.name}...</span>
       </div>
       <iframe
@@ -1176,7 +1225,7 @@ async function addPanel(providerId) {
   });
 
   iframe.addEventListener('error', () => {
-    loadingEl.innerHTML = `<img src="${provider.icon}" alt="${provider.name}" class="loading-icon"><span class="loading-text">Failed to load ${provider.name}</span>`;
+    loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">Failed to load ${provider.name}</span>`;
     loadingPanelIds.delete(panelId);
   });
 
@@ -1252,7 +1301,8 @@ async function switchPanelProvider(panelId, newProviderId) {
   const headerIcon = panelEl.querySelector('.panel-header-left img');
   const headerName = panelEl.querySelector('.panel-header-left span');
   const headerRight = panelEl.querySelector('.panel-header-right');
-  headerIcon.src = provider.icon;
+  headerIcon.src = getThemeAwareProviderIcon(provider);
+  headerIcon.dataset.providerId = provider.id;
   headerIcon.alt = provider.name;
   headerName.textContent = provider.name;
   headerRight.innerHTML = getPanelHeaderRightHtml(newProviderId);
@@ -1283,7 +1333,7 @@ function updatePanelSelectors() {
     selector.className = 'panel-selector';
     selector.dataset.panelId = panel.id;
     selector.innerHTML = `
-      <img src="${provider.icon}" alt="${provider.name}" class="provider-icon">
+      <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="provider-icon" data-provider-id="${provider.id}">
       <span>${provider.name}</span>
       <button class="remove-panel" title="Remove panel">
         <span class="material-symbols-outlined">close</span>
@@ -2240,14 +2290,15 @@ async function showProviderSwitcher(panelId) {
   const enabledProviders = await getEnabledProviders();
   const panel = panels.find(p => p.id === panelId);
   if (!panel) return;
+  const palette = getDropdownThemePalette();
 
   // Create a simple dropdown menu
   const menu = document.createElement('div');
   menu.className = 'provider-switcher-menu';
   menu.style.cssText = `
     position: fixed;
-    background: white;
-    border: 1px solid #e0e0e0;
+    background: ${palette.menuBackground};
+    border: 1px solid ${palette.menuBorder};
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 1000;
@@ -2263,9 +2314,10 @@ async function showProviderSwitcher(panelId) {
       padding: 10px 16px;
       cursor: pointer;
       font-size: 14px;
-      ${provider.id === panel.providerId ? 'background: #e3f2fd; color: #1976d2;' : ''}
+      color: ${provider.id === panel.providerId ? palette.selectedText : palette.menuText};
+      ${provider.id === panel.providerId ? `background: ${palette.selectedBackground};` : ''}
     ">
-      <img src="${provider.icon}" alt="${provider.name}" style="width: 20px; height: 20px;">
+      <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" style="width: 20px; height: 20px;" data-provider-id="${provider.id}">
       <span>${provider.name}</span>
     </div>
   `).join('');
@@ -2286,13 +2338,22 @@ async function showProviderSwitcher(panelId) {
     });
 
     item.addEventListener('mouseenter', () => {
-      item.style.background = '#f5f5f5';
+      if (item.dataset.providerId === panel.providerId) {
+        item.style.background = palette.selectedBackground;
+        item.style.color = palette.selectedText;
+        return;
+      }
+
+      item.style.background = palette.itemHoverBackground;
+      item.style.color = palette.menuText;
     });
     item.addEventListener('mouseleave', () => {
       if (item.dataset.providerId === panel.providerId) {
-        item.style.background = '#e3f2fd';
+        item.style.background = palette.selectedBackground;
+        item.style.color = palette.selectedText;
       } else {
         item.style.background = '';
+        item.style.color = palette.menuText;
       }
     });
   });
@@ -2324,6 +2385,7 @@ async function showAddPanelMenu() {
 
   const btn = document.getElementById('add-panel-btn');
   const rect = btn.getBoundingClientRect();
+  const palette = getDropdownThemePalette();
 
   const menu = document.createElement('div');
   menu.className = 'add-panel-menu';
@@ -2331,8 +2393,8 @@ async function showAddPanelMenu() {
     position: fixed;
     top: ${rect.bottom + 4}px;
     left: ${rect.left}px;
-    background: white;
-    border: 1px solid #e0e0e0;
+    background: ${palette.menuBackground};
+    border: 1px solid ${palette.menuBorder};
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 1000;
@@ -2348,8 +2410,9 @@ async function showAddPanelMenu() {
       padding: 10px 16px;
       cursor: pointer;
       font-size: 14px;
+      color: ${palette.menuText};
     ">
-      <img src="${provider.icon}" alt="${provider.name}" style="width: 20px; height: 20px;">
+      <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" style="width: 20px; height: 20px;" data-provider-id="${provider.id}">
       <span>${provider.name}</span>
     </div>
   `).join('');
@@ -2363,10 +2426,12 @@ async function showAddPanelMenu() {
     });
 
     item.addEventListener('mouseenter', () => {
-      item.style.background = '#f5f5f5';
+      item.style.background = palette.itemHoverBackground;
+      item.style.color = palette.menuText;
     });
     item.addEventListener('mouseleave', () => {
       item.style.background = '';
+      item.style.color = palette.menuText;
     });
   });
 

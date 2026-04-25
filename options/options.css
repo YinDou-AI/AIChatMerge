@@ -219,6 +219,9 @@ select:focus {
   border-color: #555;
   color: #e0e0e0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23e0e0e0' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
 }
 
 /* Buttons */
@@ -608,6 +611,168 @@ select:focus {
   color: #e0e0e0;
 }
 
+/* Explicit dark-theme overrides for settings UI.
+   The nested dark-theme block below is not consistently applied in all contexts,
+   which can leave the page in a light surface state while icons have already
+   switched to their dark variants. Keep the provider list readable by forcing
+   the key surfaces to dark when the explicit theme is dark. */
+[data-theme="dark"] .container {
+  background: #2d2d2d;
+}
+
+[data-theme="dark"] .section-title {
+  color: #e0e0e0;
+  border-bottom-color: #444;
+}
+
+[data-theme="dark"] .setting-label {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .setting-description {
+  color: #aaa;
+}
+
+[data-theme="dark"] select {
+  background-color: #1e1e1e;
+  border-color: #444;
+  color: #e0e0e0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23e0e0e0' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
+}
+
+[data-theme="dark"] .provider-item {
+  background: #3a3a3a;
+}
+
+[data-theme="dark"] .provider-item.dragging {
+  background: #1a3a5a;
+}
+
+[data-theme="dark"] .drag-handle {
+  color: #888;
+}
+
+[data-theme="dark"] .provider-icon {
+  background: #2d2d2d;
+}
+
+[data-theme="dark"] .provider-name {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .setting-item {
+  border-bottom-color: #3a3a3a;
+}
+
+[data-theme="dark"] .data-stats {
+  background: #3a3a3a;
+}
+
+[data-theme="dark"] .data-stat-label {
+  color: #aaa;
+}
+
+[data-theme="dark"] .data-stat-value {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .shortcut-item {
+  background: #3a3a3a;
+}
+
+[data-theme="dark"] .shortcut-label {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .key {
+  background: #2d2d2d;
+  border-color: #444;
+  color: #aaa;
+}
+
+[data-theme="dark"] .btn-secondary {
+  background: #3a3a3a;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: #444;
+}
+
+[data-theme="dark"] .version {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .commit-hash {
+  color: #aaa;
+}
+
+[data-theme="dark"] .version-download a {
+  color: #90caf9;
+}
+
+[data-theme="dark"] .update-status.update-available {
+  background: #1a237e;
+  border-color: #3f51b5;
+  color: #90caf9;
+}
+
+[data-theme="dark"] .update-status.update-current {
+  background: #1b5e20;
+  border-color: #388e3c;
+  color: #81c784;
+}
+
+[data-theme="dark"] .update-status.update-error {
+  background: #5f1a1a;
+  border-color: #d32f2f;
+  color: #ef9a9a;
+}
+
+[data-theme="dark"] .library-import-card {
+  background: #3a3a3a;
+  border-color: #444;
+}
+
+[data-theme="dark"] .library-import-card:hover {
+  border-color: #1a73e8;
+  background: #2d2d2d;
+}
+
+[data-theme="dark"] .library-header h3 {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .library-count {
+  background: #2d2d2d;
+  border-color: #555;
+  color: #aaa;
+}
+
+[data-theme="dark"] .library-description {
+  color: #aaa;
+}
+
+[data-theme="dark"] .library-helper {
+  color: #999;
+}
+
+[data-theme="dark"] .key-mapping-card {
+  background: #2d2d2d;
+  border-color: #444;
+}
+
+[data-theme="dark"] .key-mapping-card h3 {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .key-mapping-controls label {
+  color: #aaa;
+}
+
 @media (prefers-color-scheme: dark),
 [data-theme="dark"] {
   .container {
@@ -632,9 +797,13 @@ select:focus {
   }
 
   select {
-    background: #1e1e1e;
+    background-color: #1e1e1e;
     border-color: #444;
     color: #e0e0e0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23e0e0e0' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px 16px;
   }
 
   .provider-item {

@@ -16,6 +16,9 @@ export async function applyTheme() {
   }
 
   document.documentElement.setAttribute('data-theme', theme);
+  document.dispatchEvent(new CustomEvent('panelize:themechange', {
+    detail: { theme }
+  }));
   return theme;
 }
 
