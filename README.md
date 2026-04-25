@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.1.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.2.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/languages-10-brightgreen.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Chrome-114+-4285F4.svg" alt="Chrome">
@@ -40,7 +40,7 @@ Ever found yourself copying the same prompt across multiple AI tabs just to comp
 
 ### 🎯 Ask Once, Compare All
 
-Type your question once and send it to ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Doubao, and Google simultaneously. See which AI gives you the best answer—no tab switching required.
+Type your question once and send it to ChatGPT, Claude, Gemini, Grok, Doubao, DeepSeek, Kimi, and Google simultaneously. See which AI gives you the best answer—no tab switching required.
 
 ### 📐 Flexible Layouts
 
@@ -77,9 +77,9 @@ Save your best prompts and reuse them across all providers. Supports variables l
     <td align="center"><strong>Grok</strong></td>
   </tr>
   <tr>
+    <td align="center"><strong>Doubao</strong></td>
     <td align="center"><strong>DeepSeek</strong></td>
     <td align="center"><strong>Kimi</strong></td>
-    <td align="center"><strong>Doubao</strong></td>
     <td align="center"><strong>Google</strong></td>
   </tr>
 </table>
