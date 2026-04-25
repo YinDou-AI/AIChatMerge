@@ -1375,11 +1375,18 @@
         startChatgptSendTracking(requestId);
       }
 
+      const imageInjectionResults = [];
+
       // Inject images first
       for (const image of images) {
-        await injectSingleImage(provider, image);
+        imageInjectionResults.push(await injectSingleImage(provider, image));
         // Wait a bit between images
         await sleep(200);
+      }
+
+      const allImagesInjected = imageInjectionResults.every(Boolean);
+      if (!allImagesInjected) {
+        console.warn('[Image Injection] One or more images failed to inject for:', provider);
       }
 
       // Wait for images to upload
@@ -1388,8 +1395,12 @@
       // Then inject text if provided
       if (text && text.trim()) {
         await sleep(300);
-        injectText(provider, text, autoSubmit, providerMode);
+        injectText(provider, text, autoSubmit && allImagesInjected, providerMode);
       } else if (autoSubmit) {
+        if (!allImagesInjected) {
+          console.warn('[Image Injection] Skipping auto-submit because image injection failed for:', provider);
+          return;
+        }
         // If no text but autoSubmit is true, click send button
         await sleep(300);
         clickSendButton(provider, providerMode);
@@ -1618,15 +1629,15 @@
         fileInput.dispatchEvent(new Event('input', { bubbles: true }));
         fileInput.dispatchEvent(new Event('change', { bubbles: true }));
 
-        const uploadAccepted = await waitForDoubaoImagePreview(1200) ||
-          Boolean(fileInput.files && fileInput.files.length > 0);
+        const uploadAccepted = await waitForDoubaoImagePreview(1200);
 
         if (uploadAccepted) {
-          console.log('[Image Injection] Doubao: File input triggered');
+          console.log('[Image Injection] Doubao: Image preview detected');
           return true;
         }
 
-        await sleep(250);
+        console.warn('[Image Injection] Doubao: Upload did not produce an image preview');
+        return false;
       }
 
       console.warn('[Image Injection] Doubao: Upload did not produce a preview after retries');
