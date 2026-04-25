@@ -146,7 +146,7 @@ describe('service-worker', () => {
           ['claude', 'chatgpt', 'gemini']
         )
       ).toEqual({
-        enabledProviders: ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
+        enabledProviders: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
         providerOrder: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
       });
     });

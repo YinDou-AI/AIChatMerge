@@ -120,6 +120,11 @@ describe('doubao content script integration', () => {
   it('uploads images through the Doubao file input and keeps text injection working', async () => {
     const { editor, fileInput } = createDoubaoComposerDom();
     const changeSpy = vi.fn();
+    fileInput.addEventListener('change', () => {
+      const preview = document.createElement('img');
+      preview.src = 'blob:https://www.doubao.com/test-preview';
+      document.getElementById('input-engine-container').appendChild(preview);
+    });
     fileInput.addEventListener('change', changeSpy);
 
     dispatchMultiPanelMessage({
@@ -141,6 +146,31 @@ describe('doubao content script integration', () => {
     expect(fileInput.files).toHaveLength(1);
     expect(fileInput.files[0].name).toBe('sample.png');
   });
+
+  it('does not auto-submit Doubao images when upload preview never appears', async () => {
+    const { fileInput, sendButton } = createDoubaoComposerDom();
+    const clickSpy = vi.fn();
+    const changeSpy = vi.fn();
+    fileInput.addEventListener('change', changeSpy);
+    sendButton.addEventListener('click', clickSpy);
+
+    dispatchMultiPanelMessage({
+      type: 'INJECT_TEXT_WITH_IMAGES',
+      text: 'text with missing preview',
+      images: [{
+        name: 'sample.png',
+        type: 'image/png',
+        dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO2Z2ioAAAAASUVORK5CYII='
+      }],
+      autoSubmit: true,
+      context: 'multi-panel',
+    });
+
+    await wait(3500);
+
+    expect(changeSpy).toHaveBeenCalledTimes(1);
+    expect(clickSpy).not.toHaveBeenCalled();
+  }, 6000);
 
   it('uses the visible new chat control for Doubao', () => {
     const { newChatButton } = createDoubaoComposerDom();

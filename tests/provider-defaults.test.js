@@ -41,7 +41,19 @@ describe('provider defaults', () => {
     expect(
       migrateEnabledProvidersOnUpdate(LEGACY_DEFAULT_PROVIDER_IDS, ['claude', 'chatgpt', 'gemini'])
     ).toEqual({
-      enabledProviders: DEFAULT_PROVIDER_IDS,
+      enabledProviders: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
+      providerOrder: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
+    });
+  });
+
+  it('migrates reordered legacy defaults while preserving the user order', () => {
+    expect(
+      migrateEnabledProvidersOnUpdate(
+        ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google'],
+        null
+      )
+    ).toEqual({
+      enabledProviders: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
       providerOrder: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
     });
   });
@@ -49,6 +61,15 @@ describe('provider defaults', () => {
   it('does not override customized enabled providers', () => {
     expect(
       migrateEnabledProvidersOnUpdate(['chatgpt', 'claude'], LEGACY_DEFAULT_PROVIDER_IDS)
+    ).toBeNull();
+  });
+
+  it('does not migrate duplicate legacy provider lists that are missing a default provider', () => {
+    expect(
+      migrateEnabledProvidersOnUpdate(
+        ['chatgpt', 'chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi'],
+        null
+      )
     ).toBeNull();
   });
 });
