@@ -62,6 +62,48 @@
       'textarea.ITIRGe',
       'textarea[aria-label="Ask anything"]',
       'textarea[maxlength="8192"]'
+    ],
+    qianwen: [
+      'div[data-slate-editor="true"]',
+      'div[contenteditable="true"][data-slate-editor]',
+      'textarea[class*="input"]',
+      'textarea[placeholder*="输入"]',
+      'textarea[placeholder*="提问"]',
+      'textarea',
+      '[contenteditable="true"]'
+    ],
+    zhipu: [
+      'textarea.scroll-display-none',
+      'textarea[placeholder*="输入"]',
+      'textarea[placeholder*="提问"]',
+      '.chat-input textarea',
+      'textarea',
+      '[contenteditable="true"]'
+    ],
+    wenxin: [
+      'div[data-slate-editor="true"]',
+      'div[contenteditable="true"][data-slate-editor]',
+      'textarea[placeholder*="输入"]',
+      'textarea[placeholder*="提问"]',
+      '.chat-input textarea',
+      'textarea',
+      '[contenteditable="true"]'
+    ],
+    // yuanbao: [
+    //   '.ql-editor[contenteditable="true"]',
+    //   '.ql-editor',
+    //   'textarea[placeholder*="输入"]',
+    //   'textarea[placeholder*="提问"]',
+    //   'textarea',
+    //   '[contenteditable="true"]'
+    // ],
+    metaso: [
+      'textarea.search-consult-textarea',
+      'textarea[placeholder*="搜索"]',
+      'textarea[placeholder*="提问"]',
+      'textarea',
+      'input[type="text"]',
+      '[contenteditable="true"]'
     ]
   };
 
@@ -87,7 +129,12 @@
     deepseek: true,
     kimi: true,  // Kimi supports images
     doubao: true,
-    google: true  // Google AI Mode supports images
+    google: true,  // Google AI Mode supports images
+    qianwen: false,
+    zhipu: false,
+    wenxin: false,
+    // yuanbao: false,
+    metaso: false
   };
 
   // Provider-specific file input selectors for image upload
@@ -99,7 +146,12 @@
     deepseek: ['input[type="file"]'],
     kimi: ['input[type="file"]'],
     doubao: ['input[type="file"]'],
-    google: ['input[type="file"]']
+    google: ['input[type="file"]'],
+    qianwen: ['input[type="file"]'],
+    zhipu: ['input[type="file"]'],
+    wenxin: ['input[type="file"]'],
+    // yuanbao: ['input[type="file"]'],
+    metaso: ['input[type="file"]']
   };
 
   // Provider-specific upload button selectors (to click before file input)
@@ -185,6 +237,42 @@
       'button[data-xid="input-plate-send-button"]',
       'button[aria-label="Send"]',
       'button.OEueve'
+    ],
+    qianwen: [
+      'button[aria-label="Send"]',
+      'button[aria-label="发送"]',
+      'button[aria-label="发送消息"]',
+      'button[class*="send"]',
+      'button[type="submit"]'
+    ],
+    zhipu: [
+      'button[aria-label="Send"]',
+      'button[aria-label="发送"]',
+      'button[aria-label="发送消息"]',
+      'button[type="submit"]'
+    ],
+    wenxin: [
+      'button[aria-label="Send"]',
+      'button[aria-label="发送"]',
+      'button[aria-label="发送消息"]',
+      'button[type="submit"]',
+      'button[class*="send"]',
+      'div[class*="send"][role="button"]',
+      '[class*="send-btn"]'
+    ],
+    // yuanbao: [
+    //   'button[aria-label="Send"]',
+    //   'button[aria-label="发送"]',
+    //   'button[aria-label="发送消息"]',
+    //   'button[type="submit"]',
+    //   'button[class*="send"]'
+    // ],
+    metaso: [
+      'button[type="submit"]',
+      'button[aria-label*="发送"]',
+      'button[aria-label*="Send"]',
+      'button[class*="search"]',
+      'button[class*="submit"]'
     ]
   };
 
@@ -241,6 +329,31 @@
       'button[aria-label="New search"]',
       'a[aria-label="Google"]',
       'a[href^="/search"][href*="udm="]'
+    ],
+    qianwen: [
+      'button[aria-label*="新"]',
+      'a[href="/chat"]',
+      'button[aria-label*="New"]'
+    ],
+    zhipu: [
+      'button[aria-label*="新"]',
+      'a[href="/"]',
+      'button[aria-label*="New"]'
+    ],
+    wenxin: [
+      'button[aria-label*="新"]',
+      'a[href="/"]',
+      'button[aria-label*="New"]'
+    ],
+    // yuanbao: [
+    //   'button[aria-label*="新"]',
+    //   'a[href="/chat/"]',
+    //   'button[aria-label*="New"]'
+    // ],
+    metaso: [
+      'button[aria-label*="新"]',
+      'a[href="/"]',
+      'button[aria-label*="New"]'
     ]
   };
 
@@ -253,7 +366,12 @@
     deepseek: 'https://chat.deepseek.com/',
     kimi: 'https://www.kimi.com/',
     doubao: 'https://www.doubao.com/chat/',
-    google: 'https://www.google.com/search?udm=50'
+    google: 'https://www.google.com/search?udm=50',
+    qianwen: 'https://www.qianwen.com/chat',
+    zhipu: 'https://chatglm.cn/',
+    wenxin: 'https://yiyan.baidu.com/',
+    // yuanbao: 'https://yuanbao.tencent.com/chat/',
+    metaso: 'https://metaso.cn/chat/2062455376112967681'
   };
 
   const TEMP_CHAT_BUTTON_SELECTORS = {
@@ -286,6 +404,16 @@
       return 'kimi';
     } else if (hostname.includes('doubao.com')) {
       return 'doubao';
+    } else if (hostname.includes('qianwen.com')) {
+      return 'qianwen';
+    } else if (hostname.includes('chatglm.cn')) {
+      return 'zhipu';
+    } else if (hostname.includes('yiyan.baidu.com')) {
+      return 'wenxin';
+    // } else if (hostname.includes('yuanbao.tencent.com')) {
+    //   return 'yuanbao';
+    } else if (hostname.includes('metaso.cn')) {
+      return 'metaso';
     } else if (hostname.includes('google.com') || hostname.includes('google.') || hostname === 'www.google.com') {
       // Google Search / AI Mode
       // Always return 'google' for any google.com page
@@ -303,6 +431,55 @@
 
   function resetGoogleSearchFillSession() {
     googleSearchReplaceOnNextFill = true;
+  }
+
+  // Check if element is a Slate editor
+  function isSlateEditor(element) {
+    return element && (
+      element.getAttribute('data-slate-editor') === 'true' ||
+      element.getAttribute('data-slate-editor') === ''
+    );
+  }
+
+  // Inject text into Slate editor via paste event (like 群问AI)
+  function injectTextIntoSlateEditor(element, text) {
+    if (!element || !text) return false;
+    element.focus();
+
+    // Select all and delete first
+    try {
+      document.execCommand('selectAll', false, null);
+      document.execCommand('delete', false, null);
+    } catch (e) {
+      // Fallback
+      try {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        document.execCommand('delete', false, null);
+      } catch (e2) {}
+    }
+
+    // Create clipboard data with text
+    const dataTransfer = new DataTransfer();
+    dataTransfer.setData('text/plain', text);
+
+    // Dispatch paste event
+    const pasteEvent = new ClipboardEvent('paste', {
+      bubbles: true,
+      cancelable: true,
+      clipboardData: dataTransfer
+    });
+    element.dispatchEvent(pasteEvent);
+
+    // Also try insertText as fallback
+    try {
+      document.execCommand('insertText', false, text);
+    } catch (e) {}
+
+    return true;
   }
 
   function isVisibleElement(element) {
@@ -893,17 +1070,7 @@
       return false;
     }
 
-    input.focus();
-    const enterEvent = new KeyboardEvent('keydown', {
-      key: 'Enter',
-      code: 'Enter',
-      keyCode: 13,
-      which: 13,
-      bubbles: true,
-      cancelable: true
-    });
-    input.dispatchEvent(enterEvent);
-    return true;
+    return pressEnter(input);
   }
 
   // Find and click send button
@@ -926,111 +1093,50 @@
       }
     }
 
-    const selectors = SEND_BUTTON_SELECTORS[provider];
-    if (!selectors) {
-      console.warn('[Text Injection] No send button selectors for provider:', provider);
-      return false;
+    // For qianwen and wenxin: try Enter key first (like 群问AI)
+    if (provider === 'qianwen' || provider === 'wenxin') {
+      console.log('[Text Injection] Trying Enter key first for', provider);
+      if (pressEnterOnProviderInput(provider)) {
+        return true;
+      }
     }
 
-    console.log('[Text Injection] Attempting to click send button for provider:', provider);
-
-    // Try each selector
-    for (const selector of selectors) {
-      try {
-        const elements = document.querySelectorAll(selector);
-        console.log(`[Text Injection] Found ${elements.length} elements with selector:`, selector);
-
-        for (const element of elements) {
-          // Handle SVG elements - try to find parent button
-          let targetElement = element;
-          if (element.tagName === 'svg' || element.tagName === 'SVG') {
-            // Look for parent button or clickable container
-            let parent = element.parentElement;
-            while (parent && parent !== document.body) {
-              if (parent.tagName === 'BUTTON' || 
-                  parent.role === 'button' || 
-                  parent.classList.contains('send-button-container') ||
-                  parent.onclick ||
-                  parent.getAttribute('role') === 'button') {
-                targetElement = parent;
-                break;
+    // Try send button selectors
+    const selectors = SEND_BUTTON_SELECTORS[provider];
+    if (selectors) {
+      for (const selector of selectors) {
+        try {
+          const elements = document.querySelectorAll(selector);
+          for (const element of elements) {
+            let targetElement = element;
+            if (element.tagName === 'svg' || element.tagName === 'SVG') {
+              let parent = element.parentElement;
+              while (parent && parent !== document.body) {
+                if (parent.tagName === 'BUTTON' || parent.getAttribute('role') === 'button' || parent.classList.contains('send-button-container')) {
+                  targetElement = parent;
+                  break;
+                }
+                parent = parent.parentElement;
               }
-              parent = parent.parentElement;
+            }
+            if (isElementEnabled(targetElement)) {
+              targetElement.click();
+              return true;
             }
           }
-          
-          // Check if element or its parent is disabled
-          const isDisabled = targetElement.disabled || 
-                            targetElement.getAttribute('aria-disabled') === 'true' ||
-                            targetElement.classList.contains('disabled');
-          
-          if (!isDisabled) {
-            console.log('[Text Injection] Clicking send button:', selector, targetElement);
-            targetElement.click();
-            return true;
-          } else {
-            console.log('[Text Injection] Button found but disabled:', selector);
-          }
+        } catch (error) {
+          console.warn('[Text Injection] Error with send button selector:', selector, error);
         }
-      } catch (error) {
-        console.warn('[Text Injection] Error finding button with selector:', selector, error);
       }
     }
 
-    // Special handling for DeepSeek - trigger Enter key if button not found
-    if (provider === 'deepseek') {
-      console.log('[Text Injection] DeepSeek send button not found, trying Enter key');
-      try {
-        const inputSelectors = PROVIDER_SELECTORS.deepseek;
-        for (const selector of inputSelectors) {
-          const input = document.querySelector(selector);
-          if (input) {
-            console.log('[Text Injection] Triggering Enter key on DeepSeek input');
-            // Trigger multiple events for better compatibility
-            const events = [
-              new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }),
-              new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }),
-              new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true })
-            ];
-
-            events.forEach(event => input.dispatchEvent(event));
-            return true;
-          }
-        }
-      } catch (error) {
-        console.warn('[Text Injection] Error in DeepSeek Enter key fallback:', error);
-      }
-    }
-
-    // Special handling for providers that can fall back to Enter on the editor
-    if (provider === 'kimi' || provider === 'doubao') {
-      console.log('[Text Injection] Provider send button not found, trying Enter key on input:', provider);
-      try {
-        const inputSelectors = PROVIDER_SELECTORS[provider];
-        for (const selector of inputSelectors) {
-          const input = document.querySelector(selector);
-          if (input) {
-            console.log('[Text Injection] Triggering Enter key on provider input:', provider);
-            // Focus first
-            input.focus();
-            // Trigger multiple events for better compatibility
-            const events = [
-              new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }),
-              new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }),
-              new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true })
-            ];
-
-            events.forEach(event => input.dispatchEvent(event));
-            return true;
-          }
-        }
-      } catch (error) {
-        console.warn('[Text Injection] Error in provider Enter key fallback:', provider, error);
-      }
+    // Fallback: press Enter on provider input
+    console.log('[Text Injection] Send button not found, trying Enter key for', provider);
+    if (pressEnterOnProviderInput(provider)) {
+      return true;
     }
 
     console.warn('[Text Injection] Send button not found or disabled for:', provider);
-    console.warn('[Text Injection] Available buttons:', document.querySelectorAll('button'));
     return false;
   }
 
@@ -1213,6 +1319,11 @@
         return false;
       }
 
+      // Slate editors need paste method
+      if (isSlateEditor(element)) {
+        return injectTextIntoSlateEditor(element, text);
+      }
+
       if (isTextarea) {
         // For textarea/input elements
         const currentValue = element.value || '';
@@ -1220,22 +1331,43 @@
 
         setFormControlValue(element, newValue);
       } else {
-        // For contenteditable elements - append text without clearing existing content
+        // For contenteditable elements - clear first, then insert (replacement semantics)
         element.focus();
 
-        // Move cursor to end first
+        // Select all content first
         try {
-          const selection = window.getSelection();
-          const range = document.createRange();
-          range.selectNodeContents(element);
-          range.collapse(false); // Collapse to end
-          selection.removeAllRanges();
-          selection.addRange(range);
+          document.execCommand('selectAll', false, null);
         } catch (e) {
-          // Ignore selection errors in cross-origin context
+          // Fallback: manual selection
+          try {
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          } catch (e2) {
+            // Ignore selection errors
+          }
         }
 
-        // Use execCommand insertText to append - works well with ProseMirror/Lexical/Quill
+        // Delete selected content
+        try {
+          document.execCommand('delete', false, null);
+        } catch (e) {
+          // Fallback: keyboard event
+          try {
+            element.dispatchEvent(new KeyboardEvent('keydown', {
+              key: 'Backspace', code: 'Backspace', keyCode: 8, which: 8,
+              bubbles: true, cancelable: true
+            }));
+          } catch (e2) {
+            // Last resort: clear innerHTML
+            element.innerHTML = '';
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }
+
+        // Now insert the new text
         let inserted = false;
         try {
           inserted = document.execCommand('insertText', false, text);
@@ -1244,9 +1376,8 @@
         }
 
         if (!inserted) {
-          // Fallback: manually append text node
-          const textNode = document.createTextNode(text);
-          element.appendChild(textNode);
+          // Fallback: set text content
+          element.textContent = text;
           element.dispatchEvent(new Event('input', { bubbles: true }));
         }
 
@@ -1315,7 +1446,7 @@
           console.log('[Text Injection] Text injected via injectText helper for', provider);
           if (autoSubmit) {
             // Use longer delay for providers whose composer state updates asynchronously
-            const delay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : 500;
+            const delay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin') ? 1500 : 500;
             setTimeout(() => clickSendButton(provider, providerMode), delay);
           }
           return true;
@@ -1819,6 +1950,32 @@
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  // Unified Enter key dispatch for sending messages
+  function pressEnter(element) {
+    if (!element) return false;
+    element.focus();
+    const events = [
+      new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }),
+      new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }),
+      new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true })
+    ];
+    events.forEach(event => element.dispatchEvent(event));
+    return true;
+  }
+
+  // Find input element for a provider and press Enter
+  function pressEnterOnProviderInput(provider) {
+    const selectors = PROVIDER_SELECTORS[provider];
+    if (!selectors) return false;
+    for (const selector of selectors) {
+      const input = document.querySelector(selector);
+      if (input) {
+        return pressEnter(input);
+      }
+    }
+    return false;
+  }
+
   // Shadow DOM query helper functions
   function querySelectorDeep(selector, root = document) {
     // Try to find in current root element
@@ -1851,6 +2008,20 @@
   function handleTextInjection(event) {
     // Validate event data structure
     if (!event || !event.data || typeof event.data !== 'object') {
+      return;
+    }
+
+    // Handle HEALTH_CHECK messages
+    if (event.data.type === 'HEALTH_CHECK' && event.data.context === 'multi-panel') {
+      const results = runHealthCheck();
+      if (window.parent !== window) {
+        window.parent.postMessage({
+          type: 'HEALTH_CHECK_RESULT',
+          results,
+          panelId: event.data.panelId,
+          context: 'multi-panel-health'
+        }, '*');
+      }
       return;
     }
 
@@ -1943,6 +2114,58 @@
     // Handle INJECT_TEXT_WITH_IMAGES messages
     if (event.data.type === 'INJECT_TEXT_WITH_IMAGES' && event.data.context === 'multi-panel') {
       handleImageInjection(event);
+      return;
+    }
+
+    // Handle EXTRACT_ANSWER messages (collect AI responses from the page)
+    if (event.data.type === 'EXTRACT_ANSWER' && event.data.context === 'multi-panel') {
+      const provider = detectProvider();
+      const answerText = extractLatestAnswer();
+      console.log('[TextInjection] EXTRACT_ANSWER received. provider:', provider, 'answer length:', answerText ? answerText.length : 0);
+      if (window.parent !== window) {
+        window.parent.postMessage({
+          type: 'EXTRACTED_ANSWER',
+          provider: provider,
+          panelId: event.data.panelId,
+          answer: answerText,
+          requestId: event.data.requestId,
+          context: 'multi-panel-answer'
+        }, '*');
+      }
+      return;
+    }
+
+    // Handle EXTRACT_DEBUG messages (diagnostic: return phase-by-phase results)
+    if (event.data.type === 'EXTRACT_DEBUG' && event.data.context === 'multi-panel') {
+      const provider = detectProvider();
+      const utils = window.__panelize_extractor_utils;
+      const extractors = window.__panelize_extractors || {};
+      const debug = { provider, phases: [] };
+
+      // Phase 1
+      const d1 = extractByDirectSelector(provider);
+      debug.phases.push({ phase: 1, name: 'direct-selector', hit: !!d1, len: d1 ? d1.length : 0 });
+      // Phase 2
+      if (extractors[provider]) {
+        try {
+          const d2 = extractors[provider](utils);
+          debug.phases.push({ phase: 2, name: 'provider-extractor', hit: !!d2, len: d2 ? d2.length : 0 });
+        } catch (e) {
+          debug.phases.push({ phase: 2, name: 'provider-extractor', error: e.message });
+        }
+      } else {
+        debug.phases.push({ phase: 2, name: 'provider-extractor', skipped: true });
+      }
+      // Phase 3
+      const d3 = extractByCopyButton(provider);
+      debug.phases.push({ phase: 3, name: 'copy-button', hit: !!d3, len: d3 ? d3.length : 0 });
+      // Phase 4
+      const d4 = extractGenericMarkdownAnswer();
+      debug.phases.push({ phase: 4, name: 'generic-markdown', hit: !!d4, len: d4 ? d4.length : 0 });
+
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'EXTRACT_DEBUG_RESULT', provider, debug, context: 'multi-panel-debug' }, '*');
+      }
       return;
     }
 
@@ -2077,7 +2300,7 @@
             if (success) {
               console.log('[Text Injection] Text injected on retry into', provider, 'using selector:', retrySelector);
               if (shouldAutoSubmit) {
-                const submitDelay = provider === 'deepseek' ? 800 : 500;
+                const submitDelay = provider === 'deepseek' ? 800 : (provider === 'qianwen' || provider === 'wenxin') ? 1500 : 500;
                 setTimeout(() => {
                   console.log('[Text Injection] Attempting to click send button for', provider, 'after retry');
                   clickSendButton(provider, providerMode);
@@ -2092,6 +2315,450 @@
         }, delay);
       });
     }
+  }
+
+  // ===== Answer Extraction =====
+
+
+  function extractText(el) {
+    if (!el) return '';
+    const clone = el.cloneNode(true);
+    clone.querySelectorAll('script, style, noscript, svg').forEach(e => e.remove());
+    return (clone.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+
+  // Clean known noise patterns from extracted answer text
+  function cleanCopyText(text) {
+    const patterns = [
+      /Request interrupted by user\s*/g,
+      /以上内容为 AI 生成，不代表开发者立场，请勿删除或修改本标记\s*/g,
+      /以上内容为 AI 生成，仅供参考，请仔细甄别\s*/g,
+      /内容由AI生成，仅供参考\s*/g,
+      /内容由 AI 生成，仅供/g,
+      /内容由AI生成，请仔细甄别/g,
+      /内容由 AI 生成，请仔细甄别/g,
+      /NaN\/\s*/g,
+      /Scroll to the (top|bottom)\s*/gi,
+      /View.*sources?\s*/gi,
+      /Ask follow-up\s*/gi,
+      /[ \t]+$/gm,
+      /\n{3,}/g,
+    ];
+    let cleaned = text;
+    for (const p of patterns) {
+      cleaned = cleaned.replace(p, '');
+    }
+    return cleaned.trim();
+  }
+
+  // ===== Direct Answer Selectors (Phase 1) =====
+  const DIRECT_ANSWER_SELECTORS = {
+    chatgpt: [
+      '[data-message-author-role="assistant"] .markdown-body',
+      '[data-message-author-role="assistant"]',
+    ],
+    claude: [
+      '[data-message-role="assistant"]',
+      '.font-claude-message',
+    ],
+    gemini: [
+      '[role="log"] .markdown-body',
+      '.conversation-container .markdown-body',
+    ],
+    grok: [
+      '.message-content .markdown-body',
+      '[role="log"] .markdown-body',
+    ],
+    deepseek: [
+      '.ds-assistant-message-main-content',
+      '.ds-chat-message:not([class*="user"]):not([class*="system"])',
+    ],
+    kimi: ['.kimi-message-content', '.message-list [class*="message"]'],
+    doubao: [
+      '.md-box-root',
+      '.container-qX9Csx.md-box-root',
+      '.semi-chat-message-content',
+      '.semi-chat-message',
+    ],
+    qianwen: ['.qk-markdown-complete', '#qk-markdown-react', '.qk-markdown'],
+    zhipu: ['.markdown-body.md-body', '.markdown-body', '.content-markdown'],
+    wenxin: ['.custom-html.md-stream-desktop', '.md-stream-desktop', '.markdown-body'],
+    metaso: ['[class*="result-responsive-layer"] .markdown-body'],
+    google: ['.markdown-body'],
+  };
+
+  /**
+   * Phase 1: Try direct answer selectors for the given provider.
+   * Returns the LAST visible match's text (most recent answer).
+   * Strips citation markers before extracting text.
+   */
+  function extractByDirectSelector(provider) {
+    const selectors = DIRECT_ANSWER_SELECTORS[provider];
+    if (!selectors) return null;
+
+    for (const sel of selectors) {
+      try {
+        const elements = document.querySelectorAll(sel);
+        for (let i = elements.length - 1; i >= 0; i--) {
+          if (!isVisibleElement(elements[i])) continue;
+          if (elements[i].closest('textarea, [contenteditable="true"], form, nav, aside, footer, [role="navigation"]')) continue;
+          const clone = elements[i].cloneNode(true);
+          clone.querySelectorAll(
+            '.ds-markdown-cite, .ds-markdown-cite *, ' +
+            '._2ed5dee, .options-item-Yv7oFR, ' +
+            '.hyc-common-markdown__ref-list, .qk-md-has-multi-modal, ' +
+            'script, style, sup, a[href] sup, ' +
+            '[class*="citation"], [class*="reference"], [class*="footnote"], ' +
+            'a[class*="cite"], [class*="options-item"]'
+          ).forEach(el => el.remove());
+          clone.querySelectorAll('svg').forEach(el => el.remove());
+          const text = extractText(clone);
+          if (text.length > 0) {
+            return text;
+          }
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  // ===== Copy Button Selectors (Phase 3) =====
+  const COPY_BUTTON_SELECTORS = {
+    chatgpt: [
+      'button[aria-label="Copy"]',
+      'button[data-testid="copy-button"]',
+      'button[data-testid="copy"]',
+      'button[class*="copy"]',
+      'svg[class*="copy"]'
+    ],
+    claude: [
+      'button[aria-label="Copy"]',
+      'button[aria-label="复制"]',
+      'button[class*="copy"]',
+      'svg[class*="copy"]'
+    ],
+    gemini: [
+      'button[aria-label="Copy"]',
+      'button[aria-label="复制"]',
+      'button[mattooltip="Copy"]',
+      'button[mattooltip="复制"]',
+      'button[class*="copy"]'
+    ],
+    grok: [
+      'button[aria-label="Copy"]',
+      'button[aria-label="复制"]',
+      'button[class*="copy"]',
+      'svg[class*="copy"]'
+    ],
+    deepseek: [
+      'button[aria-label="Copy"]',
+      'button[aria-label="复制"]',
+      'button[class*="copy"]',
+      '.ds-button[aria-label*="copy"]',
+      '.ds-button[aria-label*="Copy"]',
+      '.ds-chat-message-actions button'
+    ],
+    kimi: [
+      'button[aria-label*="复制"]',
+      'button[aria-label*="Copy"]',
+      'span[class*="copy"]',
+      'div[class*="copy"]',
+      'svg[name="Copy"]',
+      '[class*="copy-btn"]',
+      '[class*="copyIcon"]'
+    ],
+    doubao: [
+      'button[aria-label*="复制"]',
+      'button[aria-label*="Copy"]',
+      'span[class*="copy"]',
+      'div[class*="copy"]',
+      '.semi-button[aria-label*="复制"]',
+      '.semi-button[aria-label*="Copy"]',
+      '[class*="copy-btn"]'
+    ],
+    qianwen: [
+      'button[aria-label*="复制"]',
+      'button[aria-label*="Copy"]',
+      'button[class*="copy"]',
+      'span[class*="copy"]',
+      'div[class*="copy"]',
+      '[class*="copy-btn"]'
+    ],
+    zhipu: [
+      'button[aria-label*="复制"]',
+      'button[aria-label*="Copy"]',
+      'button[aria-label*="copy"]',
+      'span[aria-label*="复制"]',
+      'div[aria-label*="复制"]',
+      'span[class*="copy"]',
+      'div[class*="copy"]',
+      '[class*="copy-btn"]',
+      '[class*="copyIcon"]',
+      'button[class*="action"]'
+    ],
+    wenxin: [
+      'button[aria-label*="复制"]',
+      'button[aria-label*="Copy"]',
+      'button[class*="copy"]',
+      'span[class*="copy"]',
+      'div[class*="copy"]',
+      '[class*="copy-btn"]'
+    ],
+    metaso: [
+      'button[aria-label*="复制"]',
+      'button[aria-label*="Copy"]',
+      'button[class*="copy"]',
+      'span[class*="copy"]',
+      'div[class*="copy"]',
+      '[class*="copy-btn"]'
+    ]
+  };
+
+  // Provider-specific answer selectors for copy button walking (Phase 3)
+  const COPY_BUTTON_ANSWER_SELECTORS = {
+    deepseek: ['.ds-assistant-message-main-content', '.ds-markdown'],
+    kimi: ['.kimi-message-content', '.markdown-body', '[class*="message-content"]'],
+    doubao: ['.semi-chat-message-content', '.markdown-body', '.semi-chat-message'],
+    qianwen: ['.markdown-body', '[class*="markdown-body"]'],
+    zhipu: ['.markdown-body', '.content-markdown', '[class*="markdown-body"]'],
+    wenxin: ['.markdown-body'],
+    metaso: ['.markdown-body'],
+    chatgpt: ['.markdown-body'],
+    claude: ['.markdown-body'],
+    gemini: ['.markdown-body'],
+    grok: ['.markdown-body']
+  };
+
+  /**
+   * Phase 3: Find copy button, walk up DOM, use provider-specific selectors scoped to container.
+   */
+  function extractByCopyButton(provider) {
+    const btnSelectors = COPY_BUTTON_SELECTORS[provider];
+    if (!btnSelectors) return null;
+
+    const ansSel = COPY_BUTTON_ANSWER_SELECTORS[provider] || ['.markdown-body'];
+
+    for (const btnSel of btnSelectors) {
+      try {
+        const btns = document.querySelectorAll(btnSel);
+        for (const btn of btns) {
+          if (!isVisibleElement(btn)) continue;
+
+          let el = btn.parentElement;
+          for (let depth = 0; depth < 10 && el; depth++) {
+            for (const as of ansSel) {
+              try {
+                const matches = el.querySelectorAll(as);
+                for (let i = matches.length - 1; i >= 0; i--) {
+                  if (!isVisibleElement(matches[i])) continue;
+                  if (matches[i].contains(btn) || btn.contains(matches[i])) continue;
+                  const t = extractText(matches[i]);
+                  if (t.length > 0) {
+                    return t;
+                  }
+                }
+              } catch (_) {}
+            }
+            el = el.parentElement;
+          }
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  function extractGenericMarkdownAnswer() {
+    const bodies = document.querySelectorAll('.markdown-body');
+    for (let i = bodies.length - 1; i >= 0; i--) {
+      if (!isVisibleElement(bodies[i])) continue;
+      if (bodies[i].closest('textarea, [contenteditable="true"], form, nav, aside, footer, [role="navigation"]')) continue;
+      const text = extractText(bodies[i]);
+      if (text.length > 0) {
+        if (text.length > 50) return text;
+      }
+    }
+    const logAreas = document.querySelectorAll('[role="log"], [role="region"]');
+    for (let i = logAreas.length - 1; i >= 0; i--) {
+      if (!isVisibleElement(logAreas[i])) continue;
+      const text = extractText(logAreas[i]);
+      if (text.length > 0) return text;
+    }
+    return '';
+  }
+
+  // Shared fallback extractors used by multiple provider extractors
+  function extractFromRoleLog() {
+    const logArea = document.querySelector('[role="log"]');
+    if (!logArea || !isVisibleElement(logArea)) return '';
+    const text = extractText(logArea);
+    if (text.length > 0) return text;
+    for (let i = logArea.children.length - 1; i >= 0; i--) {
+      if (!isVisibleElement(logArea.children[i])) continue;
+      const childText = extractText(logArea.children[i]);
+      if (childText.length > 0) return childText;
+    }
+    return '';
+  }
+
+  function extractFromRoleList() {
+    const lists = document.querySelectorAll('[role="list"]');
+    for (let i = lists.length - 1; i >= 0; i--) {
+      if (!isVisibleElement(lists[i])) continue;
+      const items = lists[i].querySelectorAll('[role="listitem"]');
+      for (let j = items.length - 1; j >= 0; j--) {
+        if (!isVisibleElement(items[j])) continue;
+        if (items[j].closest('textarea, [contenteditable="true"], form, nav, aside')) continue;
+        const text = extractText(items[j]);
+        if (text.length > 0) return text;
+      }
+    }
+    return '';
+  }
+
+  // Expose shared utils for per-provider extractor files
+  window.__panelize_extractor_utils = {
+    isVisibleElement,
+    extractText,
+    cleanCopyText,
+    extractByDirectSelector,
+    extractByCopyButton,
+    extractGenericMarkdownAnswer,
+    extractFromRoleLog,
+    extractFromRoleList
+  };
+
+  function extractLatestAnswer() {
+    const provider = detectProvider();
+    const utils = window.__panelize_extractor_utils;
+    const extractors = window.__panelize_extractors || {};
+
+    // Phase 1: Try provider-specific extractor first (most precise)
+    if (extractors[provider]) {
+      try {
+        const result = extractors[provider](utils);
+        if (result) {
+          console.log('[Extract] Phase 1 (provider extractor) hit for', provider, 'len:', result.length);
+          return result;
+        }
+        console.log('[Extract] Phase 1 (provider extractor) returned empty for', provider);
+      } catch (e) {
+        console.warn('[Extract] Phase 1 error for', provider, e);
+      }
+    } else {
+      console.log('[Extract] Phase 1 skipped — no extractor registered for', provider);
+    }
+
+    // Phase 2: Try direct answer selectors
+    const directResult = extractByDirectSelector(provider);
+    if (directResult) {
+      console.log('[Extract] Phase 2 (direct selector) hit for', provider, 'len:', directResult.length);
+      return directResult;
+    }
+    console.log('[Extract] Phase 2 miss for', provider);
+
+    // Phase 3: Try copy button approach
+    const copyBtnResult = extractByCopyButton(provider);
+    if (copyBtnResult) {
+      console.log('[Extract] Phase 3 (copy button) hit for', provider, 'len:', copyBtnResult.length);
+      return copyBtnResult;
+    }
+    console.log('[Extract] Phase 3 miss for', provider);
+
+    // Phase 4: Generic markdown body
+    const genericResult = extractGenericMarkdownAnswer();
+    console.log('[Extract] Phase 4 (generic) for', provider, 'len:', genericResult ? genericResult.length : 0);
+    return genericResult;
+  }
+
+  // ===== Selector Health Check =====
+  // Run diagnostics to check if selectors still find elements on the page.
+  // Trigger via: postMessage({ type: 'HEALTH_CHECK', context: 'multi-panel' })
+  function runHealthCheck() {
+    const provider = detectProvider();
+    if (!provider) {
+      console.warn('[Health Check] Unknown provider');
+      return { provider: null, status: 'unknown-provider' };
+    }
+
+    const results = { provider, input: [], send: [], extract: [], newChat: [] };
+
+    // Check input selectors
+    const inputSelectors = PROVIDER_SELECTORS[provider] || [];
+    for (const sel of inputSelectors) {
+      try {
+        const el = document.querySelector(sel);
+        results.input.push({ selector: sel, found: !!el, visible: el ? isVisibleElement(el) : false });
+      } catch (e) {
+        results.input.push({ selector: sel, error: e.message });
+      }
+    }
+
+    // Check send button selectors
+    const sendSelectors = SEND_BUTTON_SELECTORS[provider] || [];
+    for (const sel of sendSelectors) {
+      try {
+        const el = document.querySelector(sel);
+        results.send.push({ selector: sel, found: !!el, visible: el ? isVisibleElement(el) : false });
+      } catch (e) {
+        results.send.push({ selector: sel, error: e.message });
+      }
+    }
+
+    // Check answer extraction selectors
+    const directSelectors = DIRECT_ANSWER_SELECTORS[provider] || [];
+    for (const sel of directSelectors) {
+      try {
+        const els = document.querySelectorAll(sel);
+        const visibleCount = [...els].filter(e => isVisibleElement(e)).length;
+        results.extract.push({ selector: sel, count: els.length, visibleCount });
+      } catch (e) {
+        results.extract.push({ selector: sel, error: e.message });
+      }
+    }
+
+    // Check provider-specific extractor
+    const extractors = window.__panelize_extractors || {};
+    if (extractors[provider]) {
+      try {
+        const text = extractors[provider](window.__panelize_extractor_utils);
+        results.extract.push({ extractor: provider, returned: text.length > 0, length: text.length });
+      } catch (e) {
+        results.extract.push({ extractor: provider, error: e.message });
+      }
+    }
+
+    // Check new chat button selectors
+    const newChatSelectors = NEW_CHAT_BUTTON_SELECTORS[provider] || [];
+    for (const sel of newChatSelectors) {
+      try {
+        const el = document.querySelector(sel);
+        results.newChat.push({ selector: sel, found: !!el, visible: el ? isVisibleElement(el) : false });
+      } catch (e) {
+        results.newChat.push({ selector: sel, error: e.message });
+      }
+    }
+
+    // Summary
+    const hasInput = results.input.some(s => s.visible);
+    const hasSend = results.send.some(s => s.visible);
+    const hasExtract = results.extract.some(s => (s.visibleCount > 0) || (s.returned === true));
+
+    results.summary = {
+      inputOk: hasInput,
+      sendOk: hasSend,
+      extractOk: hasExtract,
+      verdict: hasInput && hasSend ? (hasExtract ? 'OK' : 'EXTRACTION_NEEDED') : 'BROKEN'
+    };
+
+    console.group(`[Health Check] ${provider}`);
+    console.log('Input selectors:', results.input);
+    console.log('Send selectors:', results.send);
+    console.log('Extract selectors:', results.extract);
+    console.log('New chat selectors:', results.newChat);
+    console.log('Summary:', results.summary);
+    console.groupEnd();
+
+    return results;
   }
 
   // Listen for messages from the multi-panel host

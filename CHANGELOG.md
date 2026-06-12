@@ -1,5 +1,35 @@
 # Changelog
 
+## 2.0.0 - 2026-06-12
+
+### 答案提取器重构
+- 提取顺序调整：专用提取器优先于通用选择器，避免匹配到UI元素
+- 删除所有长度限制（MIN_ANSWER_LENGTH/MAX_ANSWER_LENGTH），只要 `text.length > 0` 即返回
+- 删除文本过滤（cleanCopyText/cleanDoubaoNoise/cleanWenxinNoise），原始文本直接返回
+- 新增共享 fallback 函数：`extractFromRoleLog()`、`extractFromRoleList()`
+- Kimi 选择器更新为 `.markdown-container` > `.markdown` 优先
+- 千问提取器新增推荐卡片移除逻辑（`.qk-md-has-multi-modal` 等）
+
+### UI 调整
+- 一键复制按钮从 toolbar 移到底部输入栏，紧跟 Send All 右侧
+- 输入框缩小（padding/min-height/max-height/font-size 均减小）
+
+### 国内AI平台支持
+- 新增 7 个国内平台专用提取器（DeepSeek/豆包/智谱/文心/千问/Kimi/元宝）
+- 新增 4 个平台 Enter 键行为（千问/文心/智谱/秘塔）
+- Slate 编辑器注入支持（千问/文心使用 ClipboardEvent paste）
+- 元宝暂停开发，相关代码已注释
+
+### 调试功能
+- 提取诊断：`EXTRACT_DEBUG` 消息 + `debugExtraction()` 全局函数
+- 选择器健康检查：`runHealthCheck()` 函数
+
+### 文件变更
+- 新增 12 个提取器/行为文件（content-scripts/answer-extractor-*.js, enter-behavior-*.js）
+- 修改 text-injection-all-providers.js（提取逻辑重构）
+- 修改 multi-panel.html/js/css（UI 调整 + 调试功能）
+- 修改 manifest.json/providers.js/bypass-headers.json（元宝暂停）
+
 ## 1.1.1 - 2026-04-13
 - Fixed: New Chat for All now preserves temporary chat mode for supported providers.
 - Fixed: Gemini and Grok temporary or private chat activation no longer toggles off when already active.

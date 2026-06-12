@@ -49,6 +49,8 @@ let tempChatCleanupTimerId = null;
 let tempChatPendingPanelIds = new Set();
 let tempChatButtonRestoreTimerId = null;
 let isTemporaryChatModeEnabled = false;
+let answerExtractionRequestId = 0;
+let pendingAnswerExtractions = new Map();
 
 function getThemeAwareProviderIcon(provider) {
   return getProviderIcon(provider);
@@ -738,6 +740,18 @@ function restoreUnifiedInputFocusAfterSend(trackedPanels = []) {
 function handleProviderStatusMessage(event) {
   const data = event?.data;
   if (!data || typeof data !== 'object') {
+    return;
+  }
+
+  // Handle answer extraction responses
+  if (data.type === 'EXTRACTED_ANSWER' && data.context === 'multi-panel-answer') {
+    handleExtractedAnswer(data);
+    return;
+  }
+
+  // Handle extraction debug results
+  if (data.type === 'EXTRACT_DEBUG_RESULT' && data.context === 'multi-panel-debug') {
+    console.log('[ExtractDebug]', data.provider, JSON.stringify(data.debug, null, 2));
     return;
   }
 
@@ -1968,6 +1982,144 @@ async function searchPromptLibrary(query) {
   await renderPromptList(query);
 }
 
+// ===== Answer Extraction & Copy All =====
+
+async function extractAllAnswers() {
+  const requestId = ++answerExtractionRequestId;
+
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      const entry = pendingAnswerExtractions.get(requestId);
+      if (entry) {
+        const responded = entry.respondedPanels ? entry.respondedPanels.size : 0;
+        console.log('[CopyAll] Timeout. Responded:', responded, '/', panels.length, 'Answers:', entry.answers.length);
+        if (entry.respondedPanels) {
+          panels.forEach(p => {
+            if (!entry.respondedPanels.has(p.id)) {
+              console.warn('[CopyAll] No response from panel:', p.id, 'provider:', p.providerId);
+            }
+          });
+        }
+        resolve(entry.answers);
+      } else {
+        resolve([]);
+      }
+      pendingAnswerExtractions.delete(requestId);
+    }, 15000);
+
+    const answers = [];
+    pendingAnswerExtractions.set(requestId, {
+      resolve,
+      timer: timeout,
+      answers
+    });
+
+    let sentCount = 0;
+    panels.forEach(panel => {
+      if (panel.iframe && panel.iframe.contentWindow) {
+        console.log('[CopyAll] Sending EXTRACT_ANSWER to panel:', panel.id, 'provider:', panel.providerId);
+        panel.iframe.contentWindow.postMessage({
+          type: 'EXTRACT_ANSWER',
+          requestId,
+          panelId: panel.id,
+          context: 'multi-panel'
+        }, '*');
+        sentCount++;
+      }
+    });
+    console.log('[CopyAll] Sent extraction request to', sentCount, 'panels, total panels:', panels.length);
+
+    if (sentCount === 0) {
+      clearTimeout(timeout);
+      pendingAnswerExtractions.delete(requestId);
+      resolve([]);
+    }
+  });
+}
+
+function handleExtractedAnswer(data) {
+  if (!data.requestId || data.context !== 'multi-panel-answer') return;
+
+  const entry = pendingAnswerExtractions.get(data.requestId);
+  if (!entry) return;
+
+  if (!entry.respondedPanels) {
+    entry.respondedPanels = new Set();
+  }
+  if (data.panelId) {
+    entry.respondedPanels.add(data.panelId);
+  }
+
+  console.log('[CopyAll] Received answer from panel:', data.panelId, 'provider:', data.provider, 'answer length:', data.answer ? data.answer.length : 0);
+
+  if (data.provider && data.answer) {
+    entry.answers.push({
+      providerId: data.provider,
+      providerName: getProviderById(data.provider)?.name || data.provider,
+      answer: data.answer
+    });
+  }
+
+  if (entry.respondedPanels.size >= panels.length) {
+    clearTimeout(entry.timer);
+    console.log('[CopyAll] All panels responded. Answers:', entry.answers.length, 'of', panels.length);
+    entry.resolve(entry.answers);
+    pendingAnswerExtractions.delete(data.requestId);
+  }
+}
+
+async function copyAllAnswers() {
+  showToast('Extracting answers...');
+  const answers = await extractAllAnswers();
+  const validAnswers = answers.filter(a => a.answer && a.answer.trim().length > 0);
+  if (validAnswers.length === 0) {
+    showToast('No answers found - ensure AI has responded');
+    return;
+  }
+
+  const text = validAnswers.map(a =>
+    `=== ${a.providerName} ===\n${a.answer}`
+  ).join('\n---\n');
+
+  try {
+    await navigator.clipboard.writeText(text);
+    const missing = answers.length - validAnswers.length;
+    const msg = missing > 0
+      ? `Copied ${validAnswers.length}/${answers.length} answers (${missing} incomplete, reopen those panels and retry)`
+      : `Copied ${validAnswers.length} answer${validAnswers.length > 1 ? 's' : ''} to clipboard`;
+    showToast(msg);
+  } catch (err) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    const missing = answers.length - validAnswers.length;
+    const msg = missing > 0
+      ? `Copied ${validAnswers.length}/${answers.length} answers`
+      : `Copied ${validAnswers.length} answer${validAnswers.length > 1 ? 's' : ''}`;
+    showToast(msg);
+  }
+}
+
+// Debug extraction - call debugExtraction() from console
+window.debugExtraction = function() {
+  console.log('[ExtractDebug] Total panels:', panels.length);
+  panels.forEach(panel => {
+    const hasIframe = !!panel.iframe;
+    const hasContentWindow = hasIframe && !!panel.iframe.contentWindow;
+    console.log('[ExtractDebug] Panel:', panel.id, 'provider:', panel.providerId, 'iframe:', hasIframe, 'contentWindow:', hasContentWindow);
+    if (hasIframe && hasContentWindow) {
+      panel.iframe.contentWindow.postMessage({
+        type: 'EXTRACT_DEBUG',
+        panelId: panel.id,
+        context: 'multi-panel'
+      }, '*');
+    }
+  });
+};
+
 // ===== Event Listeners =====
 function setupEventListeners() {
   // Layout button
@@ -1985,6 +2137,9 @@ function setupEventListeners() {
   // Toggle toolbar button and expand bar
   document.getElementById('toggle-toolbar-btn').addEventListener('click', toggleToolbar);
   document.getElementById('toolbar-expand-bar').addEventListener('click', toggleToolbar);
+
+  // Copy All Answers button
+  document.getElementById('copy-all-btn').addEventListener('click', copyAllAnswers);
 
   // New Chat button
   const newChatBtn = document.getElementById('new-chat-btn');
