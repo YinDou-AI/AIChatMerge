@@ -13,18 +13,16 @@
     "declarativeNetRequestWithHostAccess"
   ],
   "host_permissions": [
-    "*://chatgpt.com/*",
-    "*://chat.openai.com/*",
-    "*://claude.ai/*",
-    "*://gemini.google.com/*",
-    "*://grok.com/*",
     "*://chat.deepseek.com/*",
     "*://www.kimi.com/*",
     "*://kimi.com/*",
     "*://www.doubao.com/*",
     "*://doubao.com/*",
-    "*://www.google.com/*",
-    "*://google.com/*",
+    "*://www.qianwen.com/*",
+    "*://qianwen.com/*",
+    "*://chatglm.cn/*",
+    "*://yiyan.baidu.com/*",
+    "*://metaso.cn/*",
     "*://api.github.com/*",
     "*://raw.githubusercontent.com/*"
   ],
@@ -67,12 +65,13 @@
   "content_scripts": [
     {
       "matches": [
-        "https://chatgpt.com/*",
-        "https://chat.openai.com/*"
+        "https://www.qianwen.com/*",
+        "https://qianwen.com/*"
       ],
       "js": [
         "content-scripts/enter-behavior-utils.js",
-        "content-scripts/enter-behavior-chatgpt.js",
+        "content-scripts/enter-behavior-qianwen.js",
+        "content-scripts/answer-extractor-qianwen.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
@@ -81,11 +80,12 @@
     },
     {
       "matches": [
-        "https://claude.ai/*"
+        "https://chatglm.cn/*"
       ],
       "js": [
         "content-scripts/enter-behavior-utils.js",
-        "content-scripts/enter-behavior-claude.js",
+        "content-scripts/enter-behavior-zhipu.js",
+        "content-scripts/answer-extractor-zhipu.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
@@ -94,29 +94,30 @@
     },
     {
       "matches": [
-        "https://gemini.google.com/*"
+        "https://yiyan.baidu.com/*"
       ],
       "js": [
         "content-scripts/enter-behavior-utils.js",
-        "content-scripts/enter-behavior-gemini.js",
+        "content-scripts/enter-behavior-wenxin.js",
+        "content-scripts/answer-extractor-wenxin.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
-      "run_at": "document_start",
+      "run_at": "document_end",
       "all_frames": true
     },
     {
       "matches": [
-        "https://grok.com/*"
+        "https://metaso.cn/*"
       ],
       "js": [
-        "content-scripts/button-finder-utils.js",
         "content-scripts/enter-behavior-utils.js",
-        "content-scripts/enter-behavior-grok.js",
+        "content-scripts/enter-behavior-metaso.js",
+        "content-scripts/answer-extractor-metaso.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
-      "run_at": "document_start",
+      "run_at": "document_end",
       "all_frames": true
     },
     {
@@ -127,6 +128,7 @@
         "content-scripts/button-finder-utils.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-deepseek.js",
+        "content-scripts/answer-extractor-deepseek.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
@@ -142,6 +144,7 @@
         "content-scripts/button-finder-utils.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-kimi.js",
+        "content-scripts/answer-extractor-kimi.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
@@ -157,25 +160,11 @@
         "content-scripts/button-finder-utils.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-doubao.js",
+        "content-scripts/answer-extractor-doubao.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
       "run_at": "document_start",
-      "all_frames": true
-    },
-    {
-      "matches": [
-        "https://www.google.com/",
-        "https://www.google.com/webhp*",
-        "https://www.google.com/search*"
-      ],
-      "js": [
-        "content-scripts/enter-behavior-utils.js",
-        "content-scripts/enter-behavior-google.js",
-        "content-scripts/text-injection-all-providers.js",
-        "content-scripts/focus-toggle.js"
-      ],
-      "run_at": "document_end",
       "all_frames": true
     }
   ],

@@ -9,8 +9,14 @@ export const LEGACY_DEFAULT_PROVIDER_IDS = [
 ];
 
 export const DEFAULT_PROVIDER_IDS = [
-  ...LEGACY_DEFAULT_PROVIDER_IDS,
+  'deepseek',
+  'kimi',
   'doubao',
+  'qianwen',
+  'zhipu',
+  'wenxin',
+  // 'yuanbao',
+  'metaso',
 ];
 
 export function migrateEnabledProvidersOnUpdate(enabledProviders, providerOrder) {

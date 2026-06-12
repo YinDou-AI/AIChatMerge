@@ -2,38 +2,6 @@ import { DEFAULT_PROVIDER_IDS } from './provider-defaults.js';
 
 export const PROVIDERS = [
   {
-    id: 'chatgpt',
-    name: 'ChatGPT',
-    url: 'https://chatgpt.com',
-    icon: '/icons/providers/chatgpt.png',
-    iconDark: '/icons/providers/dark/chatgpt.png',
-    enabled: true
-  },
-  {
-    id: 'claude',
-    name: 'Claude',
-    url: 'https://claude.ai',
-    icon: '/icons/providers/claude.png',
-    iconDark: '/icons/providers/dark/claude.png',
-    enabled: true
-  },
-  {
-    id: 'gemini',
-    name: 'Gemini',
-    url: 'https://gemini.google.com',
-    icon: '/icons/providers/gemini.png',
-    iconDark: '/icons/providers/dark/gemini.png',
-    enabled: true
-  },
-  {
-    id: 'grok',
-    name: 'Grok',
-    url: 'https://grok.com',
-    icon: '/icons/providers/grok.png',
-    iconDark: '/icons/providers/dark/grok.png',
-    enabled: true
-  },
-  {
     id: 'deepseek',
     name: 'DeepSeek',
     url: 'https://chat.deepseek.com',
@@ -50,19 +18,51 @@ export const PROVIDERS = [
     enabled: true
   },
   {
-    id: 'google',
-    name: 'Google',
-    url: 'https://www.google.com/search?udm=50',
-    icon: '/icons/providers/google.png',
-    iconDark: '/icons/providers/dark/google.png',
-    enabled: true
-  },
-  {
     id: 'doubao',
-    name: 'Doubao',
+    name: '豆包',
     url: 'https://www.doubao.com/chat/',
     icon: '/icons/providers/doubao.png',
     iconDark: '/icons/providers/dark/doubao.png',
+    enabled: true
+  },
+  {
+    id: 'qianwen',
+    name: '千问',
+    url: 'https://www.qianwen.com/chat',
+    icon: '/icons/providers/qianwen.png',
+    iconDark: '/icons/providers/dark/qianwen.png',
+    enabled: true
+  },
+  {
+    id: 'zhipu',
+    name: '智谱',
+    url: 'https://chatglm.cn/',
+    icon: '/icons/providers/zhipu.png',
+    iconDark: '/icons/providers/dark/zhipu.png',
+    enabled: true
+  },
+  {
+    id: 'wenxin',
+    name: '文心一言',
+    url: 'https://yiyan.baidu.com/',
+    icon: '/icons/providers/wenxin.png',
+    iconDark: '/icons/providers/dark/wenxin.png',
+    enabled: true
+  },
+  // {
+  //   id: 'yuanbao',
+  //   name: '元宝',
+  //   url: 'https://yuanbao.tencent.com/chat/',
+  //   icon: '/icons/providers/yuanbao.png',
+  //   iconDark: '/icons/providers/dark/yuanbao.png',
+  //   enabled: true
+  // },
+  {
+    id: 'metaso',
+    name: '秘塔AI',
+    url: 'https://metaso.cn/chat/2062455376112967681',
+    icon: '/icons/providers/metaso.png',
+    iconDark: '/icons/providers/dark/metaso.png',
     enabled: true
   }
 ];

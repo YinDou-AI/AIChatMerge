@@ -10,22 +10,7 @@
       ]
     },
     "condition": {
-      "urlFilter": "https://chatgpt.com/*",
-      "resourceTypes": ["sub_frame"]
-    }
-  },
-  {
-    "id": 7,
-    "priority": 1,
-    "action": {
-      "type": "modifyHeaders",
-      "responseHeaders": [
-        { "header": "X-Frame-Options", "operation": "remove" },
-        { "header": "Content-Security-Policy", "operation": "remove" }
-      ]
-    },
-    "condition": {
-      "urlFilter": "https://chat.openai.com/*",
+      "urlFilter": "https://chat.deepseek.com/*",
       "resourceTypes": ["sub_frame"]
     }
   },
@@ -40,7 +25,7 @@
       ]
     },
     "condition": {
-      "urlFilter": "https://claude.ai/*",
+      "urlFilter": "https://www.doubao.com/*",
       "resourceTypes": ["sub_frame"]
     }
   },
@@ -55,7 +40,7 @@
       ]
     },
     "condition": {
-      "urlFilter": "https://gemini.google.com/*",
+      "urlFilter": "https://www.qianwen.com/*",
       "resourceTypes": ["sub_frame"]
     }
   },
@@ -70,7 +55,7 @@
       ]
     },
     "condition": {
-      "urlFilter": "https://grok.com/*",
+      "urlFilter": "https://chatglm.cn/*",
       "resourceTypes": ["sub_frame"]
     }
   },
@@ -85,21 +70,22 @@
       ]
     },
     "condition": {
-      "urlFilter": "https://chat.deepseek.com/*",
+      "urlFilter": "https://yiyan.baidu.com/*",
       "resourceTypes": ["sub_frame"]
     }
   },
   {
-    "id": 6,
+    "id": 7,
     "priority": 1,
     "action": {
       "type": "modifyHeaders",
       "responseHeaders": [
-        { "header": "X-Frame-Options", "operation": "remove" }
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
       ]
     },
     "condition": {
-      "urlFilter": "http://localhost:3000/*",
+      "urlFilter": "https://metaso.cn/*",
       "resourceTypes": ["sub_frame"]
     }
   },
@@ -114,7 +100,7 @@
       ]
     },
     "condition": {
-      "urlFilter": "https://www.google.com/*",
+      "urlFilter": "https://www.kimi.com/*",
       "resourceTypes": ["sub_frame"]
     }
   }
