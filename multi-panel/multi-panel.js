@@ -749,6 +749,12 @@ function handleProviderStatusMessage(event) {
     return;
   }
 
+  // Handle completion detection from iframe MutationObserver
+  if (data.type === 'COMPLETION_DETECTED' && data.context === 'multi-panel-completion') {
+    handleMergeCompletionDetected(data);
+    return;
+  }
+
   // Handle extraction debug results
   if (data.type === 'EXTRACT_DEBUG_RESULT' && data.context === 'multi-panel-debug') {
     console.log('[ExtractDebug]', data.provider, JSON.stringify(data.debug, null, 2));
@@ -2120,6 +2126,227 @@ window.debugExtraction = function() {
   });
 };
 
+// ===== Auto Merge / Fusion =====
+
+const MERGE_TARGET_URLS = {
+  deepseek: 'https://chat.deepseek.com/',
+  kimi: 'https://kimi.com/',
+  qianwen: 'https://www.qianwen.com/',
+  zhipu: 'https://chatglm.cn/',
+  wenxin: 'https://yiyan.baidu.com/',
+  doubao: 'https://www.doubao.com/chat/',
+  metaso: 'https://metaso.cn/'
+};
+
+const MERGE_MAX_WAIT = 120000;      // 最长2分钟
+
+let mergeCompletedPanels = new Set();
+let mergeTimeoutTimer = null;
+let mergeStartDelayTimer = null;
+let mergeIsActive = false;
+let lastSentQuestion = '';
+
+function startMergeMonitor() {
+  stopMergeMonitor();
+  mergeIsActive = true;
+  mergeCompletedPanels = new Set();
+  const mergeBtn = document.getElementById('merge-btn');
+  if (mergeBtn) mergeBtn.classList.add('active');
+
+  console.log('[Merge] Monitoring started, waiting 15s before starting detection...');
+
+  // 延迟 15 秒再开始监控，等 AI 开始回答
+  mergeStartDelayTimer = setTimeout(() => {
+    if (!mergeIsActive) return;
+    console.log('[Merge] Sending MONITOR_COMPLETION to', panels.length, 'panels');
+    panels.forEach(panel => {
+      if (panel.iframe && panel.iframe.contentWindow) {
+        panel.iframe.contentWindow.postMessage({
+          type: 'MONITOR_COMPLETION',
+          context: 'multi-panel'
+        }, '*');
+      }
+    });
+  }, 15000);
+
+  // Safety net: force merge after max wait (从 Send All 开始计时)
+  mergeTimeoutTimer = setTimeout(() => {
+    if (!mergeIsActive) return;
+    console.log('[Merge] Timeout, triggering merge');
+    stopMergeMonitor();
+    triggerMerge();
+  }, MERGE_MAX_WAIT);
+}
+
+function handleMergeCompletionDetected(data) {
+  console.log('[Merge] COMPLETION_DETECTED received:', data.provider, 'active:', mergeIsActive);
+  if (!mergeIsActive || data.context !== 'multi-panel-completion') return;
+
+  const panel = panels.find(p => p.providerId === data.provider);
+  if (!panel) {
+    console.warn('[Merge] No panel found for provider:', data.provider);
+    return;
+  }
+
+  if (mergeCompletedPanels.has(panel.id)) return;
+
+  mergeCompletedPanels.add(panel.id);
+  console.log('[Merge] Panel completed:', panel.id, 'provider:', data.provider, '(', mergeCompletedPanels.size, '/', panels.length, ')');
+
+  if (mergeCompletedPanels.size >= panels.length) {
+    console.log('[Merge] All panels completed, triggering merge');
+    stopMergeMonitor();
+    triggerMerge();
+  }
+}
+
+function stopMergeMonitor() {
+  mergeIsActive = false;
+  mergeCompletedPanels.clear();
+
+  if (mergeStartDelayTimer) {
+    clearTimeout(mergeStartDelayTimer);
+    mergeStartDelayTimer = null;
+  }
+
+  if (mergeTimeoutTimer) {
+    clearTimeout(mergeTimeoutTimer);
+    mergeTimeoutTimer = null;
+  }
+
+  // Tell all panels to stop monitoring
+  panels.forEach(panel => {
+    if (panel.iframe && panel.iframe.contentWindow) {
+      panel.iframe.contentWindow.postMessage({
+        type: 'STOP_MONITORING',
+        context: 'multi-panel'
+      }, '*');
+    }
+  });
+
+  const mergeBtn = document.getElementById('merge-btn');
+  if (mergeBtn) mergeBtn.classList.remove('active');
+}
+
+function buildMergePrompt(question, answers) {
+  const parts = answers.map(a => `【${a.providerName}】\n${a.answer}`);
+  const today = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+  return `今天是${today}，你是一名专业的AI回答评审员。
+【原始问题】
+${question}
+【各AI回答】
+${parts.join('\n')}
+请对比以上多个AI模型的回答，执行以下任务：
+1. 根据今天日期，搜索最新信息，去除过时或错误的信息
+2. 将相似观点归类合并，只总结推荐排名前50%的方案，至少保留3个最佳选择
+3. 按以下格式输出：
+【观点名称】
+- 支持模型：[列出模型名称]
+- 依据：[简述理由]
+...（逐个观点列出）
+【最终建议】
+综合以上分析，给出推荐方案及理由。`;
+}
+
+async function triggerMerge() {
+  console.log('[Merge] Triggering merge...');
+  const answers = await extractAllAnswers();
+  const validAnswers = answers.filter(a => a.answer && a.answer.trim().length > 0);
+
+  if (validAnswers.length === 0) {
+    console.log('[Merge] No answers found');
+    return;
+  }
+
+  const question = lastSentQuestion || document.getElementById('unified-input')?.value || '';
+  const prompt = buildMergePrompt(question, validAnswers);
+  const targetProvider = document.getElementById('merge-target-select')?.value || 'deepseek';
+
+  console.log('[Merge] Target:', targetProvider, 'Answers:', validAnswers.length);
+
+  // 在当前面板网格最左边添加新面板
+  const provider = getProviderById(targetProvider);
+  if (!provider) {
+    console.error('[Merge] Provider not found:', targetProvider);
+    return;
+  }
+
+  // 布局自动调整
+  const newPanelCount = panels.length + 1;
+  const adjustedLayout = getAutoAdjustedLayout(currentLayout, newPanelCount);
+  if (adjustedLayout) {
+    currentLayout = adjustedLayout;
+    const panelGrid = document.getElementById('panel-grid');
+    panelGrid.className = `layout-${adjustedLayout}`;
+    document.querySelectorAll('.layout-option').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.layout === adjustedLayout);
+    });
+    await saveProviderConfiguration();
+  }
+
+  const panelId = `panel-merge-${Date.now()}`;
+  const panelGrid = document.getElementById('panel-grid');
+
+  // 创建面板元素
+  const panelEl = document.createElement('div');
+  panelEl.className = 'panel-item';
+  panelEl.id = panelId;
+  panelEl.innerHTML = `
+    <div class="panel-header">
+      <div class="panel-header-left">
+        <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="provider-icon" data-provider-id="${provider.id}">
+        <span>${provider.name} (融合)</span>
+      </div>
+      <div class="panel-header-right">${getPanelHeaderRightHtml(targetProvider)}</div>
+    </div>
+    <div class="panel-iframe-container">
+      <div class="panel-loading">
+        <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}">
+        <span class="loading-text">Loading ${provider.name}...</span>
+      </div>
+      <iframe
+        src="${getProviderFrameUrl(targetProvider)}"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+        allow="clipboard-read; clipboard-write"
+      ></iframe>
+    </div>
+  `;
+
+  // 插入到最左边（prepend）
+  panelGrid.insertBefore(panelEl, panelGrid.firstChild);
+  panelEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+  console.log('[Merge] Panel created at leftmost position:', panelId);
+
+  const iframe = panelEl.querySelector('iframe');
+  const loadingEl = panelEl.querySelector('.panel-loading');
+
+  // 添加到 panels 数组最前面
+  panels.unshift({
+    id: panelId,
+    providerId: targetProvider,
+    iframe,
+    state: 'loading'
+  });
+
+  bindPanelHeaderActions(panelId);
+  await saveProviderConfiguration();
+
+  // 等 iframe 加载完成后注入提示词
+  iframe.addEventListener('load', () => {
+    loadingEl.classList.add('hidden');
+    console.log('[Merge] Panel loaded, injecting prompt in 2s...');
+    setTimeout(() => {
+      iframe.contentWindow.postMessage({
+        type: 'INJECT_TEXT',
+        text: prompt,
+        autoSubmit: true,
+        context: 'auto-merge'
+      }, '*');
+      console.log('[Merge] Prompt injected into panel', panelId);
+    }, 2000);
+  });
+}
+
 // ===== Event Listeners =====
 function setupEventListeners() {
   // Layout button
@@ -2292,7 +2519,16 @@ function setupEventListeners() {
   // Send All button (fill + auto-send)
   sendAllBtn.addEventListener('click', () => {
     const input = document.getElementById('unified-input');
+    lastSentQuestion = input.value || '';
     broadcastMessage(input.value, true);
+    // Start merge monitoring after sending
+    startMergeMonitor();
+  });
+
+  // Merge button (manual trigger)
+  document.getElementById('merge-btn').addEventListener('click', () => {
+    stopMergeMonitor();
+    triggerMerge();
   });
 
   // Input textarea
@@ -2311,7 +2547,9 @@ function setupEventListeners() {
         return;
       }
       e.preventDefault();
-      broadcastMessage(inputTextarea.value);
+      lastSentQuestion = inputTextarea.value || '';
+      broadcastMessage(inputTextarea.value, true);
+      startMergeMonitor();
     }
   });
 
