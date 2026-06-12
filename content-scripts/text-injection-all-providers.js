@@ -817,7 +817,12 @@
       element.value = value;
     }
 
-    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new InputEvent('input', {
+      bubbles: true,
+      cancelable: true,
+      inputType: 'insertText',
+      data: value,
+    }));
     element.dispatchEvent(new Event('change', { bubbles: true }));
 
     if (typeof element.value === 'string') {
@@ -1103,6 +1108,7 @@
 
     // Try send button selectors
     const selectors = SEND_BUTTON_SELECTORS[provider];
+    let foundDisabledButton = false;
     if (selectors) {
       for (const selector of selectors) {
         try {
@@ -1122,11 +1128,21 @@
             if (isElementEnabled(targetElement)) {
               targetElement.click();
               return true;
+            } else {
+              foundDisabledButton = true;
             }
           }
         } catch (error) {
           console.warn('[Text Injection] Error with send button selector:', selector, error);
         }
+      }
+    }
+
+    // Button found but disabled — try Enter key (framework state not updated)
+    if (foundDisabledButton) {
+      console.log('[Text Injection] Send button disabled for', provider, '- trying Enter key');
+      if (pressEnterOnProviderInput(provider)) {
+        return true;
       }
     }
 
@@ -2004,6 +2020,35 @@
     return elements;
   }
 
+  // Attempt auto-submit with retry logic.
+  // If the send button is not ready (disabled or not found) on the first try,
+  // retry with increasing delays so the AI's framework has time to process the
+  // injected text and enable the send button.
+  function attemptAutoSubmitWithRetry(provider, providerMode, initialDelay) {
+    const RETRY_DELAYS = [initialDelay, 1000, 2000, 3500];
+    let attempt = 0;
+
+    function trySubmit() {
+      const delay = RETRY_DELAYS[attempt];
+      attempt++;
+
+      setTimeout(() => {
+        console.log('[Text Injection] Auto-submit attempt', attempt, 'for', provider, 'delay:', delay);
+        const clicked = clickSendButton(provider, providerMode);
+        if (clicked) {
+          console.log('[Text Injection] Send button clicked for', provider, 'on attempt', attempt);
+        } else if (attempt < RETRY_DELAYS.length) {
+          console.warn('[Text Injection] Send button not ready for', provider, 'on attempt', attempt, '— will retry');
+          trySubmit();
+        } else {
+          console.warn('[Text Injection] Failed to click send button for', provider, 'after all', RETRY_DELAYS.length, 'retry attempts');
+        }
+      }, delay);
+    }
+
+    trySubmit();
+  }
+
   // Handle text injection message
   function handleTextInjection(event) {
     // Validate event data structure
@@ -2190,10 +2235,10 @@
     const autoSubmit = event.data.autoSubmit === true;
     const context = event.data.context;
 
-    // Security check: Only allow autoSubmit from multi-panel context
+    // Security check: Only allow autoSubmit from trusted contexts
     // This prevents other contexts from accidentally auto-submitting when
     // multi-panel sends messages to its iframes
-    const shouldAutoSubmit = autoSubmit && context === 'multi-panel';
+    const shouldAutoSubmit = autoSubmit && (context === 'multi-panel' || context === 'auto-merge');
 
     const provider = detectProvider();
     if (!provider) {
@@ -2263,16 +2308,11 @@
 
         // Auto-submit if requested (only from multi-panel context)
         if (shouldAutoSubmit) {
-          // Wait for UI to update, then click send button
-          // Use longer delay for DeepSeek to ensure DOM is ready
-          const delay = provider === 'deepseek' ? 800 : 500;
-          setTimeout(() => {
-            console.log('[Text Injection] Attempting to click send button for', provider);
-            const clicked = clickSendButton(provider, providerMode);
-            if (!clicked) {
-              console.warn('[Text Injection] Failed to click send button for', provider);
-            }
-          }, delay);
+          // Wait for UI to update, then click send button.
+          // Use provider-specific delays whose composer state updates asynchronously,
+          // matching the injectText() helper used by image injection.
+          const delay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin') ? 1500 : 500;
+          attemptAutoSubmitWithRetry(provider, providerMode, delay);
         }
       } else {
         console.error(`[Text Injection] Failed to inject text into ${provider}`);
@@ -2300,11 +2340,8 @@
             if (success) {
               console.log('[Text Injection] Text injected on retry into', provider, 'using selector:', retrySelector);
               if (shouldAutoSubmit) {
-                const submitDelay = provider === 'deepseek' ? 800 : (provider === 'qianwen' || provider === 'wenxin') ? 1500 : 500;
-                setTimeout(() => {
-                  console.log('[Text Injection] Attempting to click send button for', provider, 'after retry');
-                  clickSendButton(provider, providerMode);
-                }, submitDelay);
+                const submitDelay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin') ? 1500 : 500;
+                attemptAutoSubmitWithRetry(provider, providerMode, submitDelay);
               }
             }
           } else if (index === retryDelays.length - 1) {
@@ -2761,6 +2798,345 @@
     return results;
   }
 
+  // ===== Completion Monitoring (Button-state primary + MutationObserver fallback) =====
+
+  // Provider-specific stop button selectors
+  const STOP_BUTTON_SELECTORS = {
+    chatgpt: [
+      'button[data-testid="stop-button"]',
+      'button[aria-label="Stop"]',
+      'button[aria-label="Stop generating"]'
+    ],
+    claude: [
+      'button[aria-label="Stop Response"]',
+      'button[aria-label="Stop"]',
+      'button[aria-label*="stop"]'
+    ],
+    gemini: [
+      'button[aria-label="Stop"]',
+      'button[aria-label*="Stop"]',
+      'button[mattooltip="Stop"]',
+      'button[mattooltip*="stop"]'
+    ],
+    grok: [
+      'button[aria-label="Stop"]',
+      'button[aria-label*="Stop"]',
+      'button[aria-label*="stop"]'
+    ],
+    deepseek: [
+      'button[aria-label="Stop"]',
+      '.ds-stop-button',
+      'button[aria-label*="Stop"]',
+      'button[class*="stop"]'
+    ],
+    kimi: [
+      'button[aria-label*="停止"]',
+      'button[aria-label*="Stop"]',
+      '[class*="stop"]',
+      'svg[name="Stop"]'
+    ],
+    doubao: [
+      'button[aria-label*="停止"]',
+      'button[aria-label*="Stop"]',
+      '[class*="stop"]'
+    ],
+    google: [
+      'button[aria-label="Stop"]',
+      'button[aria-label*="Stop"]',
+      'button[aria-label*="停止"]'
+    ],
+    qianwen: [
+      'button[aria-label*="停止"]',
+      'button[aria-label*="Stop"]',
+      '[class*="stop"]'
+    ],
+    zhipu: [
+      'button[aria-label*="停止"]',
+      'button[aria-label*="Stop"]',
+      '[class*="stop"]'
+    ],
+    wenxin: [
+      'button[aria-label*="停止"]',
+      'button[aria-label*="Stop"]',
+      '[class*="stop"]'
+    ],
+    metaso: [
+      'button[aria-label*="停止"]',
+      'button[aria-label*="Stop"]',
+      '[class*="stop"]'
+    ]
+  };
+
+  let completionObserver = null;
+  let completionStableTimer = null;
+  let completionPhase = null;            // 'button-watch-appear' | 'button-watch-disappear' | 'mutation-fallback' | null
+  let completionProvider = null;
+  let completionButtonTimeout = null;    // timeout for falling back to MutationObserver
+  let completionButtonObserver = null;   // MutationObserver watching for stop button DOM changes
+
+  function stopCompletionMonitor() {
+    if (completionObserver) {
+      completionObserver.disconnect();
+      completionObserver = null;
+    }
+    if (completionStableTimer) {
+      clearTimeout(completionStableTimer);
+      completionStableTimer = null;
+    }
+    if (completionButtonTimeout) {
+      clearTimeout(completionButtonTimeout);
+      completionButtonTimeout = null;
+    }
+    if (completionButtonObserver) {
+      completionButtonObserver.disconnect();
+      completionButtonObserver = null;
+    }
+    completionPhase = null;
+    completionProvider = null;
+  }
+
+  /**
+   * Check if a stop button is currently visible on the page.
+   */
+  function isStopButtonPresent(provider) {
+    const selectors = STOP_BUTTON_SELECTORS[provider];
+    if (!selectors) return false;
+
+    for (const selector of selectors) {
+      try {
+        const elements = document.querySelectorAll(selector);
+        for (const el of elements) {
+          if (isVisibleElement(el)) {
+            return true;
+          }
+        }
+      } catch (_) {}
+    }
+
+    return false;
+  }
+
+  /**
+   * Phase 2 fallback: MutationObserver on the answer container.
+   * Same logic as the original implementation.
+   */
+  function startMutationFallback(provider) {
+    stopCompletionMonitor();
+    completionProvider = provider;
+    completionPhase = 'mutation-fallback';
+
+    const selectors = DIRECT_ANSWER_SELECTORS[provider];
+    if (!selectors || selectors.length === 0) {
+      console.warn('[CompletionMonitor] No answer selectors for fallback:', provider);
+      return;
+    }
+
+    let targetNode = null;
+    for (const sel of selectors) {
+      try {
+        const elements = document.querySelectorAll(sel);
+        for (const el of elements) {
+          if (isVisibleElement(el)) {
+            targetNode = el;
+            break;
+          }
+        }
+      } catch (_) {}
+      if (targetNode) break;
+    }
+
+    if (!targetNode) {
+      targetNode = document.body;
+    }
+
+    const STABLE_DELAY_MS = 3000;
+
+    const resetStableTimer = () => {
+      if (completionStableTimer) {
+        clearTimeout(completionStableTimer);
+      }
+      completionStableTimer = setTimeout(() => {
+        let hasContent = false;
+        for (const sel of selectors) {
+          try {
+            const elements = document.querySelectorAll(sel);
+            for (const el of elements) {
+              if (isVisibleElement(el)) {
+                const text = (el.textContent || '').trim();
+                if (text.length > 0) {
+                  hasContent = true;
+                  break;
+                }
+              }
+            }
+          } catch (_) {}
+          if (hasContent) break;
+        }
+
+        if (!hasContent) {
+          resetStableTimer();
+          return;
+        }
+
+        console.log('[CompletionMonitor] MutationObserver fallback: answer stable for', STABLE_DELAY_MS, 'ms. Provider:', provider);
+        stopCompletionMonitor();
+
+        if (window.parent !== window) {
+          window.parent.postMessage({
+            type: 'COMPLETION_DETECTED',
+            provider,
+            context: 'multi-panel-completion'
+          }, '*');
+        }
+      }, STABLE_DELAY_MS);
+    };
+
+    completionObserver = new MutationObserver(() => {
+      resetStableTimer();
+    });
+
+    completionObserver.observe(targetNode, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    resetStableTimer();
+    console.log('[CompletionMonitor] MutationObserver fallback active for provider:', provider);
+  }
+
+  /**
+   * Primary method: Button-state monitoring.
+   *
+   * Flow:
+   *  1. Start watching for the stop button to appear (AI started generating).
+   *  2. Once stop button appears, switch to watching for it to disappear (AI finished).
+   *  3. When stop button disappears, send COMPLETION_DETECTED.
+   *
+   * If no stop button is detected within BUTTON_APPEAR_TIMEOUT_MS, fall back to
+   * MutationObserver approach.
+   */
+  const BUTTON_APPEAR_TIMEOUT_MS = 20000;
+  const BUTTON_DISAPPEAR_SETTLE_MS = 500;
+
+  function startButtonStateMonitor(provider) {
+    stopCompletionMonitor();
+    completionProvider = provider;
+    completionPhase = 'button-watch-appear';
+
+    const stopSelectors = STOP_BUTTON_SELECTORS[provider];
+    if (!stopSelectors || stopSelectors.length === 0) {
+      console.log('[CompletionMonitor] No stop button selectors for', provider, '— using MutationObserver fallback');
+      startMutationFallback(provider);
+      return;
+    }
+
+    // Helper: check and transition phases
+    function evaluateButtonState() {
+      const stopPresent = isStopButtonPresent(provider);
+
+      if (completionPhase === 'button-watch-appear' && stopPresent) {
+        // Stop button appeared — AI is now generating. Switch to watching for disappearance.
+        console.log('[CompletionMonitor] Stop button detected — AI is generating. Watching for completion...');
+        completionPhase = 'button-watch-disappear';
+        // Clear the appear-timeout since we found the button
+        if (completionButtonTimeout) {
+          clearTimeout(completionButtonTimeout);
+          completionButtonTimeout = null;
+        }
+      }
+
+      if (completionPhase === 'button-watch-disappear' && !stopPresent) {
+        // Stop button gone — AI finished. Add a short settle delay then report completion.
+        if (completionStableTimer) {
+          clearTimeout(completionStableTimer);
+        }
+        completionStableTimer = setTimeout(() => {
+          // Double-check: is the stop button still absent?
+          if (isStopButtonPresent(provider)) {
+            // It came back (maybe a new generation started). Re-enter watch-disappear.
+            completionPhase = 'button-watch-disappear';
+            evaluateButtonState();
+            return;
+          }
+
+          console.log('[CompletionMonitor] Stop button disappeared — generation complete. Provider:', provider);
+          stopCompletionMonitor();
+
+          if (window.parent !== window) {
+            window.parent.postMessage({
+              type: 'COMPLETION_DETECTED',
+              provider,
+              context: 'multi-panel-completion'
+            }, '*');
+          }
+        }, BUTTON_DISAPPEAR_SETTLE_MS);
+      }
+    }
+
+    // Observe the entire body for button DOM changes (appear/disappear are structural changes)
+    const observerTarget = document.body;
+    if (observerTarget) {
+      completionButtonObserver = new MutationObserver(() => {
+        if (completionPhase !== 'button-watch-appear' && completionPhase !== 'button-watch-disappear') {
+          return;
+        }
+        evaluateButtonState();
+      });
+
+      completionButtonObserver.observe(observerTarget, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['aria-label', 'data-testid', 'class', 'style', 'disabled', 'aria-disabled']
+      });
+    }
+
+    // Immediate check — the stop button might already be visible (e.g., if we started
+    // monitoring right when generation was already in progress).
+    evaluateButtonState();
+
+    // If we are still in the "appear" phase, set a timeout to fall back to MutationObserver.
+    if (completionPhase === 'button-watch-appear') {
+      completionButtonTimeout = setTimeout(() => {
+        if (completionPhase !== 'button-watch-appear') {
+          return; // Phase already changed — button was found
+        }
+        console.log('[CompletionMonitor] No stop button appeared within', BUTTON_APPEAR_TIMEOUT_MS, 'ms — falling back to MutationObserver');
+        startMutationFallback(provider);
+      }, BUTTON_APPEAR_TIMEOUT_MS);
+    }
+
+    console.log('[CompletionMonitor] Button-state monitoring started for provider:', provider, 'phase:', completionPhase);
+  }
+
+  function startCompletionMonitor() {
+    stopCompletionMonitor();
+
+    const provider = detectProvider();
+    if (!provider) {
+      console.warn('[CompletionMonitor] Provider not detected');
+      return;
+    }
+
+    startButtonStateMonitor(provider);
+  }
+
   // Listen for messages from the multi-panel host
-  window.addEventListener('message', handleTextInjection);
+  window.addEventListener('message', (event) => {
+    if (!event || !event.data || typeof event.data !== 'object') return;
+
+    if (event.data.type === 'MONITOR_COMPLETION' && event.data.context === 'multi-panel') {
+      startCompletionMonitor();
+      return;
+    }
+
+    if (event.data.type === 'STOP_MONITORING' && event.data.context === 'multi-panel') {
+      stopCompletionMonitor();
+      return;
+    }
+
+    // Delegate to existing handler
+    handleTextInjection(event);
+  });
 })();

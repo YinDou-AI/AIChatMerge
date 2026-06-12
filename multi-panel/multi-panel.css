@@ -692,6 +692,66 @@ body {
   font-size: 18px;
 }
 
+/* Merge target select */
+.merge-select {
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 12px;
+  background: #fff;
+  cursor: pointer;
+  color: #333;
+  flex-shrink: 0;
+  max-width: 100px;
+}
+
+.merge-select:focus {
+  outline: none;
+  border-color: #1976d2;
+}
+
+/* Merge button */
+.merge-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #4caf50;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.merge-btn:hover {
+  background: #388e3c;
+}
+
+.merge-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.merge-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.merge-btn.active {
+  background: #ff9800;
+  animation: pulse-merge 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-merge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
 #unified-input:focus {
   outline: none;
   border-color: #1976d2;
@@ -1297,6 +1357,21 @@ body {
   border-color: #64b5f6;
   color: #64b5f6;
   background: #1a3a5a;
+}
+
+[data-theme="dark"] .merge-select {
+  background: #2d2d2d;
+  border-color: #555;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .merge-btn {
+  background: #388e3c;
+  color: #fff;
+}
+
+[data-theme="dark"] .merge-btn:hover {
+  background: #2e7d32;
 }
 
 [data-theme="dark"] #unified-input:focus {
