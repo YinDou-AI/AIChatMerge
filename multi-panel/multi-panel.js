@@ -100,7 +100,6 @@ const I18N = {
     variableInstruction: '此提示词包含变量，请填写：',
     apply: '应用',
     // Toast messages
-    maxPanelsReached: '已达到最大面板数量（$1）',
     minOnePanel: '至少需要保留一个面板',
     selectImageFile: '请选择图片文件',
     imageSizeLimit: '图片大小不能超过20MB',
@@ -209,7 +208,6 @@ const I18N = {
     variableInstruction: 'This prompt contains variables, please fill in:',
     apply: 'Apply',
     // Toast messages
-    maxPanelsReached: 'Maximum panel limit reached ($1)',
     minOnePanel: 'At least one panel is required',
     selectImageFile: 'Please select an image file',
     imageSizeLimit: 'Image size cannot exceed 20MB',
@@ -351,7 +349,6 @@ let isPopupWindow = false;   // 当前窗口是否为弹出窗口
 
 // Default panel configuration
 const DEFAULT_PROVIDERS = DEFAULT_PROVIDER_IDS;
-const MAX_PANELS = 8;
 const PENDING_MULTI_PANEL_ACTION_KEY = 'pendingMultiPanelAction';
 const SEND_FOCUS_RESTORE_DELAYS = [0, 80, 200, 400, 800, 1500, 2500, 4000, 6000, 8000, 10000, 12000];
 const SEND_FOCUS_NO_BUSY_TIMEOUT_MS = 2000;
@@ -1402,11 +1399,6 @@ async function initializePanels() {
 // ===== Panel Management =====
 
 async function addPanel(providerId) {
-  if (panels.length >= MAX_PANELS) {
-    showToast(t('maxPanelsReached', MAX_PANELS));
-    return;
-  }
-
   const provider = getProviderById(providerId);
   if (!provider) {
     console.error('Provider not found:', providerId);
@@ -2568,12 +2560,6 @@ async function triggerMerge() {
 
   // 没有已有面板，创建新的
   // 检查是否超过最大面板数
-  if (panels.length >= MAX_PANELS) {
-    console.warn('[Merge] Max panels reached, cannot create merge panel');
-    showToast(t('maxPanelsReached', MAX_PANELS));
-    return;
-  }
-
   const provider = getProviderById(targetProvider);
   if (!provider) {
     console.error('[Merge] Provider not found:', targetProvider);
