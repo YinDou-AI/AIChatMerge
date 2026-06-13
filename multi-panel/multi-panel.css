@@ -94,6 +94,7 @@ body {
   border: none;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.9);
+  opacity: 0.3;
   cursor: pointer;
   color: #666;
   display: flex;
@@ -105,6 +106,7 @@ body {
 
 .panel-scroll-arrow:hover {
   background: #fff;
+  opacity: 1;
   color: #333;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
@@ -119,11 +121,13 @@ body {
 
 [data-theme="dark"] .panel-scroll-arrow {
   background: rgba(30, 30, 30, 0.9);
+  opacity: 0.3;
   color: #aaa;
 }
 
 [data-theme="dark"] .panel-scroll-arrow:hover {
   background: #333;
+  opacity: 1;
   color: #e0e0e0;
 }
 
@@ -1405,9 +1409,13 @@ body {
   background: #f0f0f0;
 }
 
-.add-panel-item.disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.added-badge {
+  font-size: 10px;
+  color: #999;
+  background: #f0f0f0;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-left: 4px;
 }
 
 .add-panel-item img {
@@ -1435,5 +1443,10 @@ body {
 }
 
 [data-theme="dark"] .add-panel-item:hover {
+  background: #404040;
+}
+
+[data-theme="dark"] .added-badge {
+  color: #888;
   background: #404040;
 }
