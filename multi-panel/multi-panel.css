@@ -387,11 +387,11 @@ body {
   height: 36px;
   padding: 0;
   border: none;
-  border-radius: 8px;
-  background: var(--surface);
+  border-radius: 6px;
+  background: transparent;
   cursor: pointer;
   color: var(--text-muted);
-  transition: all 0.2s;
+  transition: background 0.2s, color 0.2s;
   flex-shrink: 0;
 }
 
