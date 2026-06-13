@@ -60,219 +60,13 @@ body {
   height: 100vh;
 }
 
-/* ===== Toolbar Styles ===== */
-#toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 16px;
-  background: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
-  flex-shrink: 0;
-  height: 52px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: #c0c0c0 transparent;
-}
-
-/* Custom scrollbar for webkit browsers */
-#toolbar::-webkit-scrollbar {
-  height: 4px;
-}
-
-#toolbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-#toolbar::-webkit-scrollbar-thumb {
-  background: #c0c0c0;
-  border-radius: 2px;
-}
-
-#toolbar::-webkit-scrollbar-thumb:hover {
-  background: #a0a0a0;
-}
-
-.toolbar-left,
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.toolbar-center {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  justify-content: center;
-  min-width: 0;
-}
-
-.app-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  margin-left: 8px;
-}
-
-.toolbar-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  cursor: pointer;
-  color: #666;
-  transition: background 0.2s, color 0.2s;
-}
-
-.toolbar-icon-svg {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
-}
-
-.toolbar-btn:hover {
-  background: #f0f0f0;
-  color: #333;
-}
-
-.toolbar-btn.active {
-  background: #e3f2fd;
-  color: #1976d2;
-}
-
-/* Toggle Open Mode Button */
-#toggle-open-mode-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: auto;
-  padding: 0 12px;
-  white-space: nowrap;
-}
-
-#toggle-open-mode-btn .btn-text {
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* Toolbar Collapsed State */
-#toolbar.collapsed {
-  display: none;
-}
-
-/* Expand Bar (shown when toolbar is collapsed) */
-#toolbar-expand-bar {
-  height: 24px;
-  background: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-#toolbar-expand-bar.hidden {
-  display: none;
-}
-
-#toolbar-expand-bar:hover {
-  background: #e8e8e8;
-}
-
-#toolbar-expand-bar button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #666;
-  display: flex;
-  align-items: center;
-  padding: 2px 8px;
-}
-
-#toolbar-expand-bar button:hover {
-  color: #333;
-}
-
-/* Panel Selectors */
-#panel-selectors {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  overflow-x: auto;
-  overflow-y: hidden;
-  flex-wrap: nowrap;
-  max-width: 100%;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-#panel-selectors::-webkit-scrollbar {
-  display: none;
-}
-
-.panel-selector {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 20px;
-  background: #fff;
-  cursor: pointer;
-  font-size: 13px;
-  color: #333;
-  transition: all 0.2s;
-}
-
-.panel-selector:hover {
-  border-color: #1976d2;
-  background: #e3f2fd;
-}
-
-.panel-selector .provider-icon {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-}
-
-.panel-selector .remove-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-  color: #999;
-  font-size: 14px;
-  margin-left: 4px;
-}
-
-.panel-selector .remove-panel:hover {
-  background: #ffebee;
-  color: #d32f2f;
-}
-
-.panel-selector .remove-panel .material-symbols-outlined {
-  font-size: 14px;
-}
-
 /* ===== Main Content Area ===== */
 #main-content {
   display: flex;
+  align-items: center;
   flex: 1;
   overflow: hidden;
+  position: relative;
 }
 
 /* ===== Panel Grid ===== */
@@ -287,6 +81,52 @@ body {
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   scrollbar-width: thin;
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== Panel Grid Scroll Arrows ===== */
+.panel-scroll-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  width: 36px;
+  height: 60px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.panel-scroll-arrow:hover {
+  background: #fff;
+  color: #333;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.panel-scroll-left {
+  left: 4px;
+}
+
+.panel-scroll-right {
+  right: 4px;
+}
+
+[data-theme="dark"] .panel-scroll-arrow {
+  background: rgba(30, 30, 30, 0.9);
+  color: #aaa;
+}
+
+[data-theme="dark"] .panel-scroll-arrow:hover {
+  background: #333;
+  color: #e0e0e0;
 }
 
 /* Layout variations */
@@ -320,73 +160,12 @@ body {
   grid-template-rows: 1fr;
 }
 
-/* 1x6 六列 - 最小宽度 400px */
-.layout-1x6 {
-  grid-template-columns: repeat(6, minmax(400px, 1fr));
-  grid-template-rows: 1fr;
-}
-
-/* 1x7 七列 - 最小宽度 350px */
-.layout-1x7 {
-  grid-template-columns: repeat(7, minmax(350px, 1fr));
-  grid-template-rows: 1fr;
-}
-
-/* 1x8 八列 - 最小宽度 320px */
-.layout-1x8 {
-  grid-template-columns: repeat(8, minmax(320px, 1fr));
-  grid-template-rows: 1fr;
-}
-
-.layout-2x1 {
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-.layout-2x2 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-.layout-3x1 {
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
-}
-
-.layout-2x3 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
-}
-
-.layout-2x4 {
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-.layout-3x2 {
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-.layout-3x3 {
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
-}
-
-.layout-4x2 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr 1fr;
-}
-
 /* 所有 1xN 布局的面板添加 scroll-snap */
 .layout-1x1 .panel-item,
 .layout-1x2 .panel-item,
 .layout-1x3 .panel-item,
 .layout-1x4 .panel-item,
-.layout-1x5 .panel-item,
-.layout-1x6 .panel-item,
-.layout-1x7 .panel-item,
-.layout-1x8 .panel-item {
+.layout-1x5 .panel-item {
   scroll-snap-align: start;
 }
 
@@ -809,62 +588,6 @@ body {
   font-size: 18px;
 }
 
-/* Fill Button - fills input boxes without sending */
-.fill-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background: #f5f5f5;
-  color: #333;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.fill-btn:hover {
-  background: #e0e0e0;
-  border-color: #ccc;
-}
-
-.fill-btn:disabled {
-  background: #f5f5f5;
-  color: #999;
-  cursor: not-allowed;
-}
-
-.fill-btn .material-symbols-outlined {
-  font-size: 18px;
-}
-
-/* Clear Button - clears all input boxes */
-.clear-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background: #f5f5f5;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.clear-btn:hover {
-  background: #ffebee;
-  border-color: #ef9a9a;
-  color: #d32f2f;
-}
-
-.clear-btn .material-symbols-outlined {
-  font-size: 20px;
-}
-
 /* ===== Modal Styles ===== */
 .modal {
   position: fixed;
@@ -1057,23 +780,8 @@ body {
   border-radius: 2px;
 }
 
-.layout-2x2-preview {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
 .layout-1x4-preview {
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: 1fr;
-}
-
-.layout-2x1-preview {
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-.layout-3x1-preview {
-  grid-template-columns: repeat(3, 1fr);
   grid-template-rows: 1fr;
 }
 
@@ -1095,46 +803,6 @@ body {
 .layout-1x5-preview {
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: 1fr;
-}
-
-.layout-1x6-preview {
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: 1fr;
-}
-
-.layout-1x7-preview {
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: 1fr;
-}
-
-.layout-1x8-preview {
-  grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: 1fr;
-}
-
-.layout-2x3-preview {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
-}
-
-.layout-2x4-preview {
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-.layout-3x2-preview {
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-.layout-3x3-preview {
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
-}
-
-.layout-4x2-preview {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr 1fr;
 }
 
 /* Prompt Modal */
@@ -1197,67 +865,6 @@ body {
 [data-theme="dark"] body {
   background: #1e1e1e;
   color: #e0e0e0;
-}
-
-[data-theme="dark"] #toolbar {
-  background: #2d2d2d;
-  border-bottom-color: #444;
-  scrollbar-color: #555 transparent;
-}
-
-[data-theme="dark"] #toolbar::-webkit-scrollbar-thumb {
-  background: #555;
-}
-
-[data-theme="dark"] #toolbar::-webkit-scrollbar-thumb:hover {
-  background: #666;
-}
-
-[data-theme="dark"] .app-title {
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] .toolbar-btn {
-  color: #aaa;
-}
-
-[data-theme="dark"] .toolbar-btn:hover {
-  background: #3a3a3a;
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] .toolbar-btn.active {
-  background: #1a3a5a;
-  color: #64b5f6;
-}
-
-/* Dark theme for toolbar expand bar */
-[data-theme="dark"] #toolbar-expand-bar {
-  background: #2d2d2d;
-  border-bottom-color: #444;
-}
-
-[data-theme="dark"] #toolbar-expand-bar:hover {
-  background: #3a3a3a;
-}
-
-[data-theme="dark"] #toolbar-expand-bar button {
-  color: #aaa;
-}
-
-[data-theme="dark"] #toolbar-expand-bar button:hover {
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] .panel-selector {
-  background: #2d2d2d;
-  border-color: #444;
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] .panel-selector:hover {
-  border-color: #64b5f6;
-  background: #1a3a5a;
 }
 
 [data-theme="dark"] #panel-grid {
@@ -1376,35 +983,6 @@ body {
 
 [data-theme="dark"] #unified-input:focus {
   border-color: #64b5f6;
-}
-
-/* Dark theme for Fill and Clear buttons */
-[data-theme="dark"] .fill-btn {
-  background: #3a3a3a;
-  border-color: #555;
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] .fill-btn:hover {
-  background: #4a4a4a;
-  border-color: #666;
-}
-
-[data-theme="dark"] .fill-btn:disabled {
-  background: #2d2d2d;
-  color: #666;
-}
-
-[data-theme="dark"] .clear-btn {
-  background: #3a3a3a;
-  border-color: #555;
-  color: #aaa;
-}
-
-[data-theme="dark"] .clear-btn:hover {
-  background: #5a2a2a;
-  border-color: #ff6b6b;
-  color: #ff6b6b;
 }
 
 [data-theme="dark"] .modal-content {
@@ -1696,6 +1274,51 @@ body {
   color: #64b5f6;
 }
 
+/* ===== Panel Maximize / Close ===== */
+
+/* 面板放大到全屏 */
+.panel-maximized {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 10000 !important;
+  border-radius: 0 !important;
+  grid-column: 1 / -1 !important;
+  grid-row: 1 / -1 !important;
+}
+
+.panel-maximized .panel-header {
+  border-radius: 0 !important;
+}
+
+.panel-maximized .panel-iframe-container {
+  border-radius: 0 !important;
+}
+
+/* 关闭按钮悬停红色 */
+.close-panel-btn:hover {
+  background: #ff4444 !important;
+  color: #fff !important;
+}
+
+/* 暗色主题 - 面板放大 */
+[data-theme="dark"] .panel-maximized {
+  background: #1e1e1e !important;
+}
+
+[data-theme="dark"] .panel-maximized .panel-header {
+  background: #2d2d2d !important;
+  border-bottom-color: #404040 !important;
+}
+
+/* 暗色主题 - 关闭按钮 */
+[data-theme="dark"] .close-panel-btn:hover {
+  background: #ff4444 !important;
+  color: #fff !important;
+}
+
 [data-theme="dark"] .variable-instruction {
   color: #aaa;
 }
@@ -1722,4 +1345,227 @@ body {
 
 [data-theme="dark"] .btn-secondary:hover {
   background: #3a3a3a;
+}
+
+/* ===== Panel Tab Bar ===== */
+#panel-tab-bar {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+  height: 36px;
+  gap: 4px;
+}
+
+#panel-tabs-container {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex: 1;
+  scrollbar-width: none;
+}
+
+#panel-tabs-container::-webkit-scrollbar {
+  display: none;
+}
+
+.panel-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  flex-shrink: 0;
+  height: 28px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.panel-tab:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.panel-tab .provider-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.panel-tab .tab-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  color: #999;
+  font-size: 14px;
+  line-height: 1;
+  transition: all 0.2s;
+  margin-left: 2px;
+}
+
+.panel-tab .tab-close-btn:hover {
+  background: #ff4444;
+  color: #fff;
+}
+
+.add-panel-tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px dashed #ccc;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: #666;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.add-panel-tab-btn:hover {
+  border-color: #1976d2;
+  color: #1976d2;
+  background: #e3f2fd;
+}
+
+/* ===== Bottom Action Buttons (moved from toolbar) ===== */
+.bottom-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: #666;
+  transition: background 0.2s, color 0.2s;
+}
+
+.bottom-action-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.bottom-action-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* ===== Add Panel Dropdown Menu ===== */
+.add-panel-dropdown {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  padding: 8px;
+  z-index: 1000;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.add-panel-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+  color: #333;
+  transition: background 0.2s;
+}
+
+.add-panel-item:hover {
+  background: #f0f0f0;
+}
+
+.add-panel-item.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.add-panel-item img {
+  width: 24px;
+  height: 24px;
+}
+
+/* ===== Dark Theme ===== */
+[data-theme="dark"] #panel-tab-bar {
+  background: #1e1e1e;
+  border-bottom-color: #333;
+}
+
+[data-theme="dark"] .panel-tab {
+  color: #aaa;
+}
+
+[data-theme="dark"] .panel-tab:hover {
+  background: #333;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .panel-tab .tab-close-btn {
+  color: #888;
+}
+
+[data-theme="dark"] .panel-tab .tab-close-btn:hover {
+  background: #ff4444;
+  color: #fff;
+}
+
+[data-theme="dark"] .add-panel-tab-btn {
+  border-color: #555;
+  color: #aaa;
+}
+
+[data-theme="dark"] .add-panel-tab-btn:hover {
+  border-color: #64b5f6;
+  color: #64b5f6;
+  background: #1a237e;
+}
+
+[data-theme="dark"] .bottom-action-btn {
+  color: #aaa;
+}
+
+[data-theme="dark"] .bottom-action-btn:hover {
+  background: #333;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .add-panel-dropdown {
+  background: #2d2d2d;
+  border-color: #404040;
+}
+
+[data-theme="dark"] .add-panel-item {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .add-panel-item:hover {
+  background: #404040;
 }
