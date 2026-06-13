@@ -14,6 +14,7 @@
   --warning: #ff9800;
 }
 
+/* 深色主题 - 由内联脚本设置 data-theme 属性 */
 :root[data-theme="dark"] {
   --bg: #1e1e1e;
   --surface: #2d2d2d;
@@ -28,25 +29,6 @@
   --danger: #ef5350;
   --success: #66bb6a;
   --warning: #ffb74d;
-}
-
-/* 系统偏好深色但未手动设置 data-theme 时的兜底 */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #1e1e1e;
-    --surface: #2d2d2d;
-    --surface-alt: #3a3a3a;
-    --text: #e0e0e0;
-    --text-muted: #aaaaaa;
-    --text-faint: #777777;
-    --border: #444444;
-    --accent: #64b5f6;
-    --accent-hover: #93bbfd;
-    --accent-bg: #1a3a5a;
-    --danger: #ef5350;
-    --success: #66bb6a;
-    --warning: #ffb74d;
-  }
 }
 
 * {
