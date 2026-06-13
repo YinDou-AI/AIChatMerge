@@ -251,50 +251,50 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   }
 });
 
-// Listen for version check requests
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'fetchLatestCommit') {
-    // Handle version check request from options page
-    handleFetchLatestCommit().then(sendResponse);
-    return true; // Keep channel open for async response
-  }
-  return true;
-});
+// 版本更新功能已禁用 - Listen for version check requests
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//   if (message.action === 'fetchLatestCommit') {
+//     // Handle version check request from options page
+//     handleFetchLatestCommit().then(sendResponse);
+//     return true; // Keep channel open for async response
+//   }
+//   return true;
+// });
 
-// Handle version check by fetching latest commit from GitHub API
-async function handleFetchLatestCommit() {
-  try {
-    const GITHUB_API_URL = 'https://api.github.com/repos/Manho/Panelize/commits/main';
-
-    const response = await fetch(GITHUB_API_URL, {
-      headers: {
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`GitHub API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    return {
-      success: true,
-      data: {
-        sha: data.sha,
-        shortSha: data.sha.substring(0, 7),
-        date: data.commit.committer.date,
-        message: data.commit.message
-      }
-    };
-  } catch (error) {
-    console.error('[Background] Error fetching latest commit:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
+// 版本更新功能已禁用 - Handle version check by fetching latest commit from GitHub API
+// async function handleFetchLatestCommit() {
+//   try {
+//     const GITHUB_API_URL = 'https://api.github.com/repos/Manho/Panelize/commits/main';
+//
+//     const response = await fetch(GITHUB_API_URL, {
+//       headers: {
+//         'Accept': 'application/vnd.github.v3+json'
+//       }
+//     });
+//
+//     if (!response.ok) {
+//       throw new Error(`GitHub API error: ${response.status}`);
+//     }
+//
+//     const data = await response.json();
+//
+//     return {
+//       success: true,
+//       data: {
+//         sha: data.sha,
+//         shortSha: data.sha.substring(0, 7),
+//         date: data.commit.committer.date,
+//         message: data.commit.message
+//       }
+//     };
+//   } catch (error) {
+//     console.error('[Background] Error fetching latest commit:', error);
+//     return {
+//       success: false,
+//       error: error.message
+//     };
+//   }
+// }
 
 // Listen for keyboard shortcuts - simplified for Multi-Panel mode
 chrome.commands.onCommand.addListener(async (command, tab) => {

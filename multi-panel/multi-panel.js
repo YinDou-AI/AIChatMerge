@@ -276,6 +276,17 @@ function applyI18n() {
     const key = el.getAttribute('data-i18n-title');
     el.setAttribute('title', t(key));
   });
+  // 重新渲染所有面板的 header-right（动态生成的 title 需要更新）
+  document.querySelectorAll('.panel-item').forEach(panelEl => {
+    const providerId = panelEl.dataset.providerId;
+    if (providerId) {
+      const headerRight = panelEl.querySelector('.panel-header-right');
+      if (headerRight) {
+        headerRight.innerHTML = getPanelHeaderRightHtml(providerId);
+        bindPanelHeaderActions(panelEl.id);
+      }
+    }
+  });
 }
 
 // ===== State Management =====
@@ -1430,6 +1441,7 @@ async function addPanel(providerId) {
   const panelEl = document.createElement('div');
   panelEl.className = 'panel-item';
   panelEl.id = panelId;
+  panelEl.dataset.providerId = providerId;
   panelEl.innerHTML = `
     <div class="panel-header">
       <div class="panel-header-left">
@@ -1543,6 +1555,7 @@ async function switchPanelProvider(panelId, newProviderId) {
   headerIcon.dataset.providerId = provider.id;
   headerIcon.alt = provider.name;
   headerName.textContent = provider.name;
+  panelEl.dataset.providerId = newProviderId;
   headerRight.innerHTML = getPanelHeaderRightHtml(newProviderId);
 
   // Update iframe
@@ -2582,6 +2595,7 @@ async function triggerMerge() {
   const panelEl = document.createElement('div');
   panelEl.className = 'panel-item';
   panelEl.id = panelId;
+  panelEl.dataset.providerId = targetProvider;
   panelEl.innerHTML = `
     <div class="panel-header">
       <div class="panel-header-left">

@@ -82,13 +82,13 @@ describe('service-worker', () => {
       expect(chrome.runtime.onMessage.addListener).toBeDefined();
     });
 
-    it('should handle fetchLatestCommit message', async () => {
-      const message = {
-        action: 'fetchLatestCommit'
-      };
-
-      expect(message.action).toBe('fetchLatestCommit');
-    });
+    // it('should handle fetchLatestCommit message', async () => {
+    //   const message = {
+    //     action: 'fetchLatestCommit'
+    //   };
+    //
+    //   expect(message.action).toBe('fetchLatestCommit');
+    // });
 
     it('should validate message payload structure', () => {
       const validMessage = {
