@@ -16,7 +16,6 @@ import {
 } from '../modules/google-mode.js';
 import { saveSetting } from '../modules/settings.js';
 import { applyTheme } from '../modules/theme-manager.js';
-import { t, initializeLanguage } from '../modules/i18n.js';
 import {
   getAllPrompts,
   searchPrompts,
@@ -29,6 +28,257 @@ import {
   getPrompt
 } from '../modules/prompt-manager.js';
 
+
+// ===== I18N System =====
+const I18N = {
+  zh: {
+    // Bottom bar buttons
+    sendAll: '发送',
+    merge: '融合',
+    copy: '复制',
+    addPanel: '添加面板',
+    newChat: '新建对话',
+    layout: '布局',
+    settings: '设置',
+    mergeTarget: '融合目标',
+    switchToPopupMode: '弹窗模式',
+    switchToTabMode: '标签页模式',
+    switchToPopupModeTitle: '切换到弹窗模式',
+    switchToTabModeTitle: '切换到标签页模式',
+    // Input area
+    inputPlaceholder: '输入你的问题，同时发送给所有AI...',
+    promptLibrary: '提示词库',
+    uploadImage: '上传图片',
+    sendToAllAI: '发送给所有AI',
+    mergeTooltip: '融合总结：收集所有回答并发送给目标 AI 对比',
+    mergeTargetAI: '融合目标 AI',
+    copyAllAnswers: '复制所有回答',
+    // Panel header
+    copyLink: '复制链接',
+    refresh: '刷新',
+    home: '回到首页',
+    maximize: '放大',
+    restore: '还原',
+    switchProvider: '切换提供商',
+    close: '关闭',
+    // Scroll arrows
+    prevPage: '上一页',
+    nextPage: '下一页',
+    // Layout modal
+    selectLayout: '选择布局',
+    singlePanel: '单面板',
+    twoPanels: '两面板',
+    threePanels: '三面板',
+    fourPanels: '四面板',
+    fivePanels: '五面板',
+    // Prompt library modal
+    promptLibraryTitle: '提示词库',
+    newPrompt: '新建提示词',
+    searchPrompts: '搜索提示词...',
+    allCategories: '所有分类',
+    showFavoritesOnly: '仅显示收藏',
+    recentUsed: '最近使用',
+    noMatchingPrompts: '没有匹配的提示词',
+    noPrompts: '暂无提示词',
+    failedToLoadPrompts: '加载提示词失败',
+    // Prompt editor modal
+    editPrompt: '编辑提示词',
+    newPromptTitle: '新建提示词',
+    title: '标题',
+    titlePlaceholder: '输入提示词标题...',
+    content: '内容',
+    contentPlaceholder: '输入提示词内容... 使用 {variable} 作为变量',
+    category: '分类',
+    categoryPlaceholder: '例如：写作、编程、调研',
+    tags: '标签（逗号分隔）',
+    tagsPlaceholder: '例如：写作、创意、博客',
+    delete: '删除',
+    cancel: '取消',
+    save: '保存',
+    // Variable modal
+    fillVariables: '填写变量',
+    variableInstruction: '此提示词包含变量，请填写：',
+    apply: '应用',
+    // Toast messages
+    maxPanelsReached: '已达到最大面板数量（$1）',
+    minOnePanel: '至少需要保留一个面板',
+    selectImageFile: '请选择图片文件',
+    imageSizeLimit: '图片大小不能超过20MB',
+    maxImagesReached: '最多允许上传 $1 张图片',
+    addImageFailed: '添加图片失败',
+    clearedAllInputs: '已清空所有输入',
+    noAnswersFound: '未找到回答，请确认AI已回复',
+    copiedAnswers: '已复制 $1 个回答到剪贴板',
+    copiedAnswersPartial: '已复制 $1/$2 个回答（$3 个不完整，请重新打开面板后重试）',
+    copiedAnswersPartialShort: '已复制 $1/$2 个回答',
+    newChatCreated: '已为所有AI创建新对话',
+    tempChatDisabled: '临时对话已关闭',
+    tempChatEnabled: '已在支持的平台启用临时对话',
+    promptSaved: '提示词保存成功',
+    promptUpdated: '提示词更新成功',
+    promptDeleted: '提示词已删除',
+    promptSaveFailed: '保存提示词失败',
+    promptDeleteFailed: '删除提示词失败',
+    promptLoadFailed: '加载提示词失败',
+    titleContentRequired: '标题和内容为必填项',
+    confirmDeletePrompt: '确定要删除这个提示词吗？',
+    loadingProvider: '加载 $1 中...',
+    providerLoadFailed: '$1 加载失败',
+    allAIAnswered: '所有AI回答完成，开始融合',
+    waitTimeout: '等待超时，开始融合',
+    // Status messages
+    sending: '发送中...',
+    filling: '填入中...',
+    sentToAI: '已发送到 $1 个AI',
+    filledToInput: '已填入 $1 个输入',
+    sentToPartial: '已发送到 $1/$2',
+    filledPartial: '已填入 $1/$2',
+    sendFailed: '发送失败',
+    fillFailed: '填入失败',
+    errorOccurred: '发生错误',
+    inputOrUploadImage: '请输入消息或上传图片',
+    addedBadge: '已添加',
+    varInputPlaceholder: '输入 $1 的值',
+  },
+  en: {
+    // Bottom bar buttons
+    sendAll: 'Send All',
+    merge: 'Merge',
+    copy: 'Copy',
+    addPanel: 'Add Panel',
+    newChat: 'New Chat',
+    layout: 'Layout',
+    settings: 'Settings',
+    mergeTarget: 'Merge Target',
+    switchToPopupMode: 'Popup Mode',
+    switchToTabMode: 'Tab Mode',
+    switchToPopupModeTitle: 'Switch to popup mode',
+    switchToTabModeTitle: 'Switch to tab mode',
+    // Input area
+    inputPlaceholder: 'Enter your question to send to all AIs...',
+    promptLibrary: 'Prompt Library',
+    uploadImage: 'Upload Image',
+    sendToAllAI: 'Send to all AIs',
+    mergeTooltip: 'Merge: collect all answers and send to target AI for comparison',
+    mergeTargetAI: 'Merge Target AI',
+    copyAllAnswers: 'Copy All Answers',
+    // Panel header
+    copyLink: 'Copy Link',
+    refresh: 'Refresh',
+    home: 'Home',
+    maximize: 'Maximize',
+    restore: 'Restore',
+    switchProvider: 'Switch Provider',
+    close: 'Close',
+    // Scroll arrows
+    prevPage: 'Previous Page',
+    nextPage: 'Next Page',
+    // Layout modal
+    selectLayout: 'Select Layout',
+    singlePanel: 'Single Panel',
+    twoPanels: 'Two Panels',
+    threePanels: 'Three Panels',
+    fourPanels: 'Four Panels',
+    fivePanels: 'Five Panels',
+    // Prompt library modal
+    promptLibraryTitle: 'Prompt Library',
+    newPrompt: 'New Prompt',
+    searchPrompts: 'Search prompts...',
+    allCategories: 'All Categories',
+    showFavoritesOnly: 'Show Favorites Only',
+    recentUsed: 'Recently Used',
+    noMatchingPrompts: 'No matching prompts',
+    noPrompts: 'No prompts yet',
+    failedToLoadPrompts: 'Failed to load prompts',
+    // Prompt editor modal
+    editPrompt: 'Edit Prompt',
+    newPromptTitle: 'New Prompt',
+    title: 'Title',
+    titlePlaceholder: 'Enter prompt title...',
+    content: 'Content',
+    contentPlaceholder: 'Enter prompt content... Use {variable} for variables',
+    category: 'Category',
+    categoryPlaceholder: 'e.g. Writing, Coding, Research',
+    tags: 'Tags (comma separated)',
+    tagsPlaceholder: 'e.g. Writing, Creative, Blog',
+    delete: 'Delete',
+    cancel: 'Cancel',
+    save: 'Save',
+    // Variable modal
+    fillVariables: 'Fill Variables',
+    variableInstruction: 'This prompt contains variables, please fill in:',
+    apply: 'Apply',
+    // Toast messages
+    maxPanelsReached: 'Maximum panel limit reached ($1)',
+    minOnePanel: 'At least one panel is required',
+    selectImageFile: 'Please select an image file',
+    imageSizeLimit: 'Image size cannot exceed 20MB',
+    maxImagesReached: 'Maximum $1 images allowed',
+    addImageFailed: 'Failed to add image',
+    clearedAllInputs: 'All inputs cleared',
+    noAnswersFound: 'No answers found, please confirm AIs have replied',
+    copiedAnswers: 'Copied $1 answers to clipboard',
+    copiedAnswersPartial: 'Copied $1/$2 answers ($3 incomplete, please reopen panels and retry)',
+    copiedAnswersPartialShort: 'Copied $1/$2 answers',
+    newChatCreated: 'New chat created for all AIs',
+    tempChatDisabled: 'Temporary chat disabled',
+    tempChatEnabled: 'Temporary chat enabled on supported platforms',
+    promptSaved: 'Prompt saved successfully',
+    promptUpdated: 'Prompt updated successfully',
+    promptDeleted: 'Prompt deleted',
+    promptSaveFailed: 'Failed to save prompt',
+    promptDeleteFailed: 'Failed to delete prompt',
+    promptLoadFailed: 'Failed to load prompt',
+    titleContentRequired: 'Title and content are required',
+    confirmDeletePrompt: 'Are you sure you want to delete this prompt?',
+    loadingProvider: 'Loading $1...',
+    providerLoadFailed: '$1 failed to load',
+    allAIAnswered: 'All AIs answered, starting merge',
+    waitTimeout: 'Wait timeout, starting merge',
+    // Status messages
+    sending: 'Sending...',
+    filling: 'Filling...',
+    sentToAI: 'Sent to $1 AIs',
+    filledToInput: 'Filled $1 inputs',
+    sentToPartial: 'Sent to $1/$2',
+    filledPartial: 'Filled $1/$2',
+    sendFailed: 'Send failed',
+    fillFailed: 'Fill failed',
+    errorOccurred: 'An error occurred',
+    inputOrUploadImage: 'Please enter a message or upload an image',
+    addedBadge: 'Added',
+    varInputPlaceholder: 'Enter value for $1',
+  }
+};
+
+let currentLocale = 'zh';
+
+function t(key, ...subs) {
+  let msg = I18N[currentLocale]?.[key] || I18N.zh[key] || key;
+  subs.forEach((sub, i) => {
+    msg = msg.replace(`$${i + 1}`, sub);
+  });
+  return msg;
+}
+
+function detectLocale() {
+  return navigator.language.startsWith('en') ? 'en' : 'zh';
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    el.setAttribute('placeholder', t(key));
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    el.setAttribute('title', t(key));
+  });
+}
 
 // ===== State Management =====
 let currentLayout = '1x3';
@@ -147,7 +397,16 @@ function normalizeLayout(layout) {
 async function init() {
   document.addEventListener('panelize:themechange', refreshThemeAwareProviderIcons);
   await applyTheme();
-  await initializeLanguage();
+
+  // Initialize i18n
+  const { localeMode = 'auto' } = await chrome.storage.local.get('localeMode');
+  if (localeMode === 'auto') {
+    currentLocale = detectLocale();
+  } else {
+    currentLocale = localeMode;
+  }
+  applyI18n();
+
   registerRuntimeMessageListener();
   registerStorageChangeListener();
 
@@ -322,22 +581,22 @@ function getPanelHeaderRightHtml(providerId) {
 
   return `
     ${googleModeSelect}
-    <button class="copy-link-btn" title="复制链接">
+    <button class="copy-link-btn" title="${t('copyLink')}">
       <span class="material-symbols-outlined">content_copy</span>
     </button>
-    <button class="refresh-panel-btn" title="刷新">
+    <button class="refresh-panel-btn" title="${t('refresh')}">
       <span class="material-symbols-outlined">refresh</span>
     </button>
-    <button class="home-btn" title="回到首页">
+    <button class="home-btn" title="${t('home')}">
       <span class="material-symbols-outlined">home</span>
     </button>
-    <button class="maximize-btn" title="放大">
+    <button class="maximize-btn" title="${t('maximize')}">
       <span class="material-symbols-outlined">open_in_full</span>
     </button>
-    <button class="switch-provider-btn" title="切换提供商">
+    <button class="switch-provider-btn" title="${t('switchProvider')}">
       <span class="material-symbols-outlined">swap_horiz</span>
     </button>
-    <button class="close-panel-btn" title="关闭">
+    <button class="close-panel-btn" title="${t('close')}">
       <span class="material-symbols-outlined">close</span>
     </button>
   `;
@@ -359,7 +618,7 @@ function showPanelLoadingState(panelEl, provider) {
   }
 
   loadingEl.classList.remove('hidden');
-  loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">加载 ${provider.name} 中...</span>`;
+  loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">${t('loadingProvider', provider.name)}</span>`;
 }
 
 function reloadPanelIframe(panel, overrideUrl = null) {
@@ -431,7 +690,7 @@ function bindPanelHeaderActions(panelId) {
       const isMaximized = panelItem.classList.toggle('panel-maximized');
       const icon = maximizeBtn.querySelector('.material-symbols-outlined');
       icon.textContent = isMaximized ? 'close_fullscreen' : 'open_in_full';
-      maximizeBtn.title = isMaximized ? '还原' : '放大';
+      maximizeBtn.title = isMaximized ? t('restore') : t('maximize');
     });
   }
 
@@ -449,7 +708,7 @@ function bindPanelHeaderActions(panelId) {
     closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (panels.length <= 1) {
-        showToast('至少需要保留一个面板');
+        showToast(t('minOnePanel'));
         return;
       }
       removePanel(panelId);
@@ -990,12 +1249,12 @@ function updateToggleButton() {
 
   if (isPopupWindow) {
     if (icon) icon.textContent = 'tab';
-    if (text) text.textContent = t('switchToTabMode') || '标签页模式';
-    btn.title = t('switchToTabModeTitle') || '切换到标签页模式';
+    if (text) text.textContent = t('switchToTabMode');
+    btn.title = t('switchToTabModeTitle');
   } else {
     if (icon) icon.textContent = 'open_in_new';
-    if (text) text.textContent = t('switchToPopupMode') || '弹窗模式';
-    btn.title = t('switchToPopupModeTitle') || '切换到弹窗模式';
+    if (text) text.textContent = t('switchToPopupMode');
+    btn.title = t('switchToPopupModeTitle');
   }
 }
 
@@ -1144,7 +1403,7 @@ async function initializePanels() {
 
 async function addPanel(providerId) {
   if (panels.length >= MAX_PANELS) {
-    showToast(`已达到最大面板数量（${MAX_PANELS}）`);
+    showToast(t('maxPanelsReached', MAX_PANELS));
     return;
   }
 
@@ -1173,7 +1432,7 @@ async function addPanel(providerId) {
     <div class="panel-iframe-container">
       <div class="panel-loading">
         <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}">
-        <span class="loading-text">加载 ${provider.name} 中...</span>
+        <span class="loading-text">${t('loadingProvider', provider.name)}</span>
       </div>
       <iframe
         src="${getProviderFrameUrl(providerId)}"
@@ -1205,7 +1464,7 @@ async function addPanel(providerId) {
   });
 
   iframe.addEventListener('error', () => {
-    loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">${provider.name} 加载失败</span>`;
+    loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">${t('providerLoadFailed', provider.name)}</span>`;
     loadingPanelIds.delete(panelId);
   });
 
@@ -1327,7 +1586,7 @@ async function broadcastMessage(text, autoSubmit = true) {
       await triggerSendButtons();
       return;
     }
-    showToast('请输入消息或上传图片');
+    showToast(t('inputOrUploadImage'));
     return;
   }
 
@@ -1342,7 +1601,7 @@ async function broadcastMessage(text, autoSubmit = true) {
   try {
     // Disable buttons during send
     sendBtn.disabled = true;
-    statusEl.textContent = shouldAutoSubmit ? '发送中...' : '填入中...';
+    statusEl.textContent = shouldAutoSubmit ? t('sending') : t('filling');
     statusEl.className = 'send-status';
 
     // Prepare images payload
@@ -1367,16 +1626,16 @@ async function broadcastMessage(text, autoSubmit = true) {
     // Update status
     if (failed === 0) {
       statusEl.textContent = shouldAutoSubmit
-        ? `已发送到 ${totalSuccessful} 个AI`
-        : `已填入 ${totalSuccessful} 个输入`;
+        ? t('sentToAI', totalSuccessful)
+        : t('filledToInput', totalSuccessful);
       statusEl.className = 'send-status success';
     } else if (totalSuccessful > 0) {
       statusEl.textContent = shouldAutoSubmit
-        ? `已发送到 ${totalSuccessful}/${totalCount}`
-        : `已填入 ${totalSuccessful}/${totalCount}`;
+        ? t('sentToPartial', totalSuccessful, totalCount)
+        : t('filledPartial', totalSuccessful, totalCount);
       statusEl.className = 'send-status partial';
     } else {
-      statusEl.textContent = shouldAutoSubmit ? '发送失败' : '填入失败';
+      statusEl.textContent = shouldAutoSubmit ? t('sendFailed') : t('fillFailed');
       statusEl.className = 'send-status error';
     }
 
@@ -1398,7 +1657,7 @@ async function broadcastMessage(text, autoSubmit = true) {
     }
   } catch (error) {
     console.error('Error in broadcastMessage:', error);
-    statusEl.textContent = '发生错误';
+    statusEl.textContent = t('errorOccurred');
     statusEl.className = 'send-status error';
     setTimeout(() => {
       statusEl.textContent = '';
@@ -1462,7 +1721,7 @@ async function clearAllInputs() {
       }, '*');
     }
   });
-  showToast('已清空所有输入');
+  showToast(t('clearedAllInputs'));
 }
 
 // ===== Image Management =====
@@ -1473,19 +1732,19 @@ async function addImage(file) {
   try {
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      showToast('请选择图片文件');
+      showToast(t('selectImageFile'));
       return false;
     }
 
     // Validate file size
     if (file.size > MAX_IMAGE_SIZE) {
-      showToast('图片大小不能超过20MB');
+      showToast(t('imageSizeLimit'));
       return false;
     }
 
     // Validate image count
     if (uploadedImages.length >= MAX_IMAGE_COUNT) {
-      showToast(`最多允许上传 ${MAX_IMAGE_COUNT} 张图片`);
+      showToast(t('maxImagesReached', MAX_IMAGE_COUNT));
       return false;
     }
 
@@ -1506,7 +1765,7 @@ async function addImage(file) {
     return true;
   } catch (error) {
     console.error('Error adding image:', error);
-    showToast('添加图片失败');
+    showToast(t('addImageFailed'));
     return false;
   }
 }
@@ -1541,7 +1800,7 @@ function renderImagePreviews() {
   container.innerHTML = uploadedImages.map(img => `
     <div class="image-preview-item" data-image-id="${img.id}">
       <img src="${img.dataUrl}" alt="${img.name}">
-      <button class="remove-image" onclick="window.removeImageById('${img.id}')" title="Remove">
+      <button class="remove-image" onclick="window.removeImageById('${img.id}')" title="${t('close')}">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
@@ -1569,7 +1828,7 @@ async function newChatAllProviders() {
   });
 
   restoreUnifiedInputFocusAfterNewChat();
-  showToast('已为所有AI创建新对话');
+  showToast(t('newChatCreated'));
 
   // Re-enable button
   setTimeout(() => {
@@ -1612,7 +1871,7 @@ async function temporaryChatAllProviders() {
     });
 
     restoreUnifiedInputFocusAfterNewChat();
-    showToast('临时对话已关闭');
+    showToast(t('tempChatDisabled'));
 
     scheduleTemporaryChatButtonRestore();
     return;
@@ -1627,7 +1886,7 @@ async function temporaryChatAllProviders() {
 
   restoreUnifiedInputFocusAfterNewChat();
 
-  showToast('已在支持的平台启用临时对话');
+  showToast(t('tempChatEnabled'));
 }
 
 // Trigger send buttons only (no text injection) - used after Fill
@@ -1638,7 +1897,7 @@ async function triggerSendButtons() {
 
   try {
     sendBtn.disabled = true;
-    statusEl.textContent = '发送中...';
+    statusEl.textContent = t('sending');
     statusEl.className = 'send-status';
 
     // Send TRIGGER_SEND message to all panels (skip merge panels)
@@ -1655,7 +1914,7 @@ async function triggerSendButtons() {
     });
 
     // Update status
-    statusEl.textContent = `已发送到 ${targetPanels.length} 个AI`;
+    statusEl.textContent = t('sentToAI', targetPanels.length);
     statusEl.className = 'send-status success';
 
     setTimeout(() => {
@@ -1664,7 +1923,7 @@ async function triggerSendButtons() {
     }, 3000);
   } catch (error) {
     console.error('Error in triggerSendButtons:', error);
-    statusEl.textContent = '发生错误';
+    statusEl.textContent = t('errorOccurred');
     statusEl.className = 'send-status error';
     setTimeout(() => {
       statusEl.textContent = '';
@@ -1770,7 +2029,7 @@ async function loadCategoryFilter() {
     const prompts = await getAllPrompts();
     const categories = [...new Set(prompts.map(p => p.category).filter(Boolean))];
 
-    categorySelect.innerHTML = '<option value="">所有分类</option>' +
+    categorySelect.innerHTML = `<option value="">${t('allCategories')}</option>` +
       categories.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join('');
   } catch (error) {
     console.error('Error loading categories:', error);
@@ -1806,7 +2065,7 @@ async function renderPromptList(searchQuery = '') {
       promptList.innerHTML = `
         <div class="prompt-empty">
           <span class="material-symbols-outlined">auto_awesome</span>
-          <p>${searchQuery ? '没有匹配的提示词' : '暂无提示词'}</p>
+          <p>${searchQuery ? t('noMatchingPrompts') : t('noPrompts')}</p>
         </div>
       `;
       return;
@@ -1847,7 +2106,7 @@ async function renderPromptList(searchQuery = '') {
     });
   } catch (error) {
     console.error('Error loading prompts:', error);
-    promptList.innerHTML = '<div class="prompt-empty">加载提示词失败</div>';
+    promptList.innerHTML = `<div class="prompt-empty">${t('failedToLoadPrompts')}</div>`;
   }
 }
 
@@ -1876,7 +2135,7 @@ function showVariableModal(prompt) {
   inputsContainer.innerHTML = prompt.variables.map(variable => `
     <div class="variable-input-group">
       <label for="var-${escapeHtml(variable)}">${escapeHtml(variable)}</label>
-      <input type="text" id="var-${escapeHtml(variable)}" data-variable="${escapeHtml(variable)}" placeholder="输入 ${escapeHtml(variable)} 的值">
+      <input type="text" id="var-${escapeHtml(variable)}" data-variable="${escapeHtml(variable)}" placeholder="${t('varInputPlaceholder', escapeHtml(variable))}">
     </div>
   `).join('');
 
@@ -2061,7 +2320,7 @@ async function copyAllAnswers() {
   const answers = await extractAllAnswers();
   const validAnswers = answers.filter(a => a.answer && a.answer.trim().length > 0);
   if (validAnswers.length === 0) {
-    showToast('未找到回答，请确认AI已回复');
+    showToast(t('noAnswersFound'));
     return;
   }
 
@@ -2073,8 +2332,8 @@ async function copyAllAnswers() {
     await navigator.clipboard.writeText(text);
     const missing = answers.length - validAnswers.length;
     const msg = missing > 0
-      ? `已复制 ${validAnswers.length}/${answers.length} 个回答（${missing} 个不完整，请重新打开面板后重试）`
-      : `已复制 ${validAnswers.length} 个回答到剪贴板`;
+      ? t('copiedAnswersPartial', validAnswers.length, answers.length, missing)
+      : t('copiedAnswers', validAnswers.length);
     showToast(msg);
   } catch (err) {
     const textarea = document.createElement('textarea');
@@ -2085,8 +2344,8 @@ async function copyAllAnswers() {
     document.body.removeChild(textarea);
     const missing = answers.length - validAnswers.length;
     const msg = missing > 0
-      ? `已复制 ${validAnswers.length}/${answers.length} 个回答`
-      : `已复制 ${validAnswers.length} 个回答`;
+      ? t('copiedAnswersPartialShort', validAnswers.length, answers.length)
+      : t('copiedAnswers', validAnswers.length);
     showToast(msg);
   }
 }
@@ -2159,7 +2418,7 @@ function startMergeMonitor() {
   mergeTimeoutTimer = setTimeout(() => {
     if (!mergeIsActive) return;
     console.log('[Merge] Timeout, triggering merge');
-    showToast('等待超时，开始融合');
+    showToast(t('waitTimeout'));
     stopMergeMonitor();
     triggerMerge();
   }, MERGE_MAX_WAIT);
@@ -2183,7 +2442,7 @@ function handleMergeCompletionDetected(data) {
 
   if (mergeCompletedPanels.size >= nonMergeCount) {
     console.log('[Merge] All panels completed, triggering merge');
-    showToast('所有AI回答完成，开始融合');
+    showToast(t('allAIAnswered'));
     stopMergeMonitor();
     triggerMerge();
   }
@@ -2311,7 +2570,7 @@ async function triggerMerge() {
   // 检查是否超过最大面板数
   if (panels.length >= MAX_PANELS) {
     console.warn('[Merge] Max panels reached, cannot create merge panel');
-    showToast(`已达到最大面板数量（${MAX_PANELS}）`);
+    showToast(t('maxPanelsReached', MAX_PANELS));
     return;
   }
 
@@ -2332,14 +2591,14 @@ async function triggerMerge() {
     <div class="panel-header">
       <div class="panel-header-left">
         <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="provider-icon" data-provider-id="${provider.id}">
-        <span>${provider.name} (融合)</span>
+        <span>${provider.name} (${t('merge')})</span>
       </div>
       <div class="panel-header-right">${getPanelHeaderRightHtml(targetProvider)}</div>
     </div>
     <div class="panel-iframe-container">
       <div class="panel-loading">
         <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}">
-        <span class="loading-text">加载 ${provider.name} 中...</span>
+        <span class="loading-text">${t('loadingProvider', provider.name)}</span>
       </div>
       <iframe
         src="${getProviderFrameUrl(targetProvider)}"
@@ -2830,7 +3089,7 @@ function showAddPanelMenu() {
     item.innerHTML = `
       <img src="${iconSrc}" alt="${provider.name}">
       <span>${provider.name}</span>
-      ${isAdded ? '<span class="added-badge">已添加</span>' : ''}
+      ${isAdded ? `<span class="added-badge">${t('addedBadge')}</span>` : ''}
     `;
 
     item.addEventListener('click', async () => {
@@ -2903,13 +3162,13 @@ function openPromptEditor(promptId = null) {
 
   if (promptId) {
     // 编辑模式
-    title.textContent = '编辑提示词';
+    title.textContent = t('editPrompt');
     deleteBtn.style.display = 'block';
     // 加载现有提示词数据
     loadPromptForEditing(promptId);
   } else {
     // 新增模式
-    title.textContent = '新建提示词';
+    title.textContent = t('newPromptTitle');
     deleteBtn.style.display = 'none';
     clearPromptEditor();
   }
@@ -2929,7 +3188,7 @@ async function loadPromptForEditing(promptId) {
     }
   } catch (error) {
     console.error('Error loading prompt for editing:', error);
-    showToast('加载提示词失败');
+    showToast(t('promptLoadFailed'));
   }
 }
 
@@ -2955,7 +3214,7 @@ async function savePromptFromEditor() {
   const tagsStr = document.getElementById('prompt-tags-input').value.trim();
 
   if (!title || !content) {
-    alert('标题和内容为必填项');
+    alert(t('titleContentRequired'));
     return;
   }
 
@@ -2966,17 +3225,17 @@ async function savePromptFromEditor() {
   try {
     if (currentEditingPromptId) {
       await updatePrompt(currentEditingPromptId, promptData);
-      showToast('提示词更新成功');
+      showToast(t('promptUpdated'));
     } else {
       await savePrompt(promptData);
-      showToast('提示词保存成功');
+      showToast(t('promptSaved'));
     }
 
     closePromptEditor();
     await renderPromptList();
   } catch (error) {
     console.error('Error saving prompt:', error);
-    showToast('保存提示词失败');
+    showToast(t('promptSaveFailed'));
   }
 }
 
@@ -2984,15 +3243,15 @@ async function savePromptFromEditor() {
 async function deletePromptFromEditor() {
   if (!currentEditingPromptId) return;
 
-  if (confirm('确定要删除这个提示词吗？')) {
+  if (confirm(t('confirmDeletePrompt'))) {
     try {
       await deletePrompt(currentEditingPromptId);
-      showToast('提示词已删除');
+      showToast(t('promptDeleted'));
       closePromptEditor();
       await renderPromptList();
     } catch (error) {
       console.error('Error deleting prompt:', error);
-      showToast('删除提示词失败');
+      showToast(t('promptDeleteFailed'));
     }
   }
 }

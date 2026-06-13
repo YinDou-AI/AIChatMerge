@@ -1,4 +1,58 @@
 /* T050-T064: Settings Page Styles */
+:root {
+  --bg: #f5f5f5;
+  --surface: #ffffff;
+  --surface-alt: #f9f9f9;
+  --text: #333333;
+  --text-muted: #666666;
+  --text-faint: #999999;
+  --border: #e0e0e0;
+  --accent: #1976d2;
+  --accent-hover: #1565c0;
+  --accent-bg: #e3f2fd;
+  --danger: #f44336;
+  --danger-hover: #d32f2f;
+  --success: #4caf50;
+  --warning: #ff9800;
+}
+
+:root[data-theme="dark"] {
+  --bg: #1e1e1e;
+  --surface: #2d2d2d;
+  --surface-alt: #3a3a3a;
+  --text: #e0e0e0;
+  --text-muted: #aaaaaa;
+  --text-faint: #777777;
+  --border: #444444;
+  --accent: #64b5f6;
+  --accent-hover: #93bbfd;
+  --accent-bg: #1a3a5a;
+  --danger: #ef5350;
+  --danger-hover: #d32f2f;
+  --success: #66bb6a;
+  --warning: #ffb74d;
+}
+
+/* 系统偏好深色但未手动设置 data-theme 时的兜底 */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1e1e1e;
+    --surface: #2d2d2d;
+    --surface-alt: #3a3a3a;
+    --text: #e0e0e0;
+    --text-muted: #aaaaaa;
+    --text-faint: #777777;
+    --border: #444444;
+    --accent: #64b5f6;
+    --accent-hover: #93bbfd;
+    --accent-bg: #1a3a5a;
+    --danger: #ef5350;
+    --danger-hover: #d32f2f;
+    --success: #66bb6a;
+    --warning: #ffb74d;
+  }
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -24,8 +78,8 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background: #f5f5f5;
-  color: #333;
+  background: var(--bg);
+  color: var(--text);
   padding: 40px 20px;
   min-height: 100vh;
 }
@@ -33,14 +87,14 @@ body {
 .container {
   max-width: 800px;
   margin: 0 auto;
-  background: white;
+  background: var(--surface);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
 header {
-  background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
   color: white;
   padding: 32px;
 }
@@ -71,10 +125,10 @@ header p {
 .section-title {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--text);
   margin-bottom: 16px;
   padding-bottom: 8px;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid var(--border);
 }
 
 .setting-item {
@@ -82,7 +136,7 @@ header p {
   justify-content: space-between;
   align-items: center;
   padding: 16px 0;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--bg);
 }
 
 .setting-item:last-child {
@@ -96,13 +150,13 @@ header p {
 .setting-label {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--text);
   margin-bottom: 4px;
 }
 
 .setting-description {
   font-size: 12px;
-  color: #666;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
@@ -146,7 +200,7 @@ header p {
 }
 
 .switch input:checked + .slider {
-  background-color: #1a73e8;
+  background-color: var(--accent);
 }
 
 .switch input:checked + .slider::before {
@@ -169,7 +223,7 @@ header p {
 }
 
 .toggle-switch.active {
-  background: #1a73e8;
+  background: var(--accent);
 }
 
 .toggle-switch::after {
@@ -191,14 +245,15 @@ header p {
 /* Select Dropdown */
 select {
   padding: 8px 36px 8px 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   border-radius: 4px;
   font-size: 14px;
-  background: white;
+  background: var(--surface);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23333' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-position: right 12px center;
   background-repeat: no-repeat;
   background-size: 16px 16px;
+  color: var(--text);
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
@@ -211,17 +266,7 @@ select {
 
 select:focus {
   outline: none;
-  border-color: #1a73e8;
-}
-
-[data-theme="dark"] select {
-  background-color: #2d2d2d;
-  border-color: #555;
-  color: #e0e0e0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23e0e0e0' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-position: right 12px center;
-  background-repeat: no-repeat;
-  background-size: 16px 16px;
+  border-color: var(--accent);
 }
 
 /* Buttons */
@@ -241,30 +286,30 @@ select:focus {
 }
 
 .btn-primary {
-  background: #1a73e8;
+  background: var(--accent);
   color: white;
 }
 
 .btn-primary:hover {
-  background: #1557b0;
+  background: var(--accent-hover);
 }
 
 .btn-secondary {
-  background: #f5f5f5;
-  color: #666;
+  background: var(--bg);
+  color: var(--text-muted);
 }
 
 .btn-secondary:hover {
-  background: #e0e0e0;
+  background: var(--border);
 }
 
 .btn-danger {
-  background: #d32f2f;
+  background: var(--danger);
   color: white;
 }
 
 .btn-danger:hover {
-  background: #b71c1c;
+  background: var(--danger-hover);
 }
 
 .btn-group {
@@ -284,7 +329,7 @@ select:focus {
   align-items: center;
   justify-content: space-between;
   padding: 12px;
-  background: #f5f5f5;
+  background: var(--bg);
   border-radius: 4px;
   transition: background 0.2s, box-shadow 0.2s;
 }
@@ -299,12 +344,12 @@ select:focus {
 
 .provider-item.dragging {
   opacity: 0.5;
-  background: #e3f2fd;
+  background: var(--accent-bg);
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .drag-handle {
-  color: #999;
+  color: var(--text-faint);
   font-size: 18px;
   margin-right: 8px;
   cursor: grab;
@@ -325,7 +370,7 @@ select:focus {
   width: 32px;
   height: 32px;
   border-radius: 4px;
-  background: white;
+  background: var(--surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -334,7 +379,7 @@ select:focus {
 .provider-name {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--text);
 }
 
 .provider-controls {
@@ -349,7 +394,7 @@ select:focus {
 
 /* Data Management Section */
 .data-stats {
-  background: #f9f9f9;
+  background: var(--surface-alt);
   padding: 16px;
   border-radius: 4px;
   margin-bottom: 16px;
@@ -364,12 +409,12 @@ select:focus {
 }
 
 .data-stat-label {
-  color: #666;
+  color: var(--text-muted);
 }
 
 .data-stat-value {
   font-weight: 600;
-  color: #333;
+  color: var(--text);
 }
 
 /* Danger Zone - ensure all buttons have same width */
@@ -451,17 +496,17 @@ select:focus {
 }
 
 .toast-success {
-  background: #4caf50;
+  background: var(--success);
   color: white;
 }
 
 .toast-error {
-  background: #f44336;
+  background: var(--danger);
   color: white;
 }
 
 .toast-info {
-  background: #2196f3;
+  background: var(--accent);
   color: white;
 }
 
@@ -481,13 +526,13 @@ select:focus {
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  background: #f9f9f9;
+  background: var(--surface-alt);
   border-radius: 4px;
 }
 
 .shortcut-label {
   font-size: 14px;
-  color: #333;
+  color: var(--text);
 }
 
 .shortcut-keys {
@@ -497,12 +542,12 @@ select:focus {
 
 .key {
   padding: 4px 8px;
-  background: white;
-  border: 1px solid #e0e0e0;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 3px;
   font-size: 12px;
   font-family: monospace;
-  color: #666;
+  color: var(--text-muted);
 }
 
 /* About Section */
@@ -524,13 +569,13 @@ select:focus {
 .version {
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--text);
   margin-bottom: 4px;
 }
 
 .commit-hash {
   font-size: 11px;
-  color: #999;
+  color: var(--text-faint);
   font-family: monospace;
 }
 
@@ -546,7 +591,7 @@ select:focus {
 }
 
 .version-download a {
-  color: #1a73e8;
+  color: var(--accent);
   text-decoration: none;
   font-size: 13px;
 }
@@ -590,7 +635,7 @@ select:focus {
 }
 
 .about-links a {
-  color: #1a73e8;
+  color: var(--accent);
   text-decoration: none;
   font-size: 14px;
 }
@@ -599,119 +644,12 @@ select:focus {
   text-decoration: underline;
 }
 
-/* Dark Theme - both system preference and explicit theme setting */
-@media (prefers-color-scheme: dark),
-[data-theme="dark"] body {
-  background: #1e1e1e;
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] body {
-  background: #1e1e1e;
-  color: #e0e0e0;
-}
-
-/* Explicit dark-theme overrides for settings UI.
-   The nested dark-theme block below is not consistently applied in all contexts,
-   which can leave the page in a light surface state while icons have already
-   switched to their dark variants. Keep the provider list readable by forcing
-   the key surfaces to dark when the explicit theme is dark. */
-[data-theme="dark"] .container {
-  background: #2d2d2d;
-}
-
-[data-theme="dark"] .section-title {
-  color: #e0e0e0;
-  border-bottom-color: #444;
-}
-
-[data-theme="dark"] .setting-label {
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] .setting-description {
-  color: #aaa;
-}
-
+/* Dark Theme - handled by CSS variables, keeping non-color overrides */
 [data-theme="dark"] select {
-  background-color: #1e1e1e;
-  border-color: #444;
-  color: #e0e0e0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23e0e0e0' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-position: right 12px center;
   background-repeat: no-repeat;
   background-size: 16px 16px;
-}
-
-[data-theme="dark"] .provider-item {
-  background: #3a3a3a;
-}
-
-[data-theme="dark"] .provider-item.dragging {
-  background: #1a3a5a;
-}
-
-[data-theme="dark"] .drag-handle {
-  color: #888;
-}
-
-[data-theme="dark"] .provider-icon {
-  background: #2d2d2d;
-}
-
-[data-theme="dark"] .provider-name {
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] .setting-item {
-  border-bottom-color: #3a3a3a;
-}
-
-[data-theme="dark"] .data-stats {
-  background: #3a3a3a;
-}
-
-[data-theme="dark"] .data-stat-label {
-  color: #aaa;
-}
-
-[data-theme="dark"] .data-stat-value {
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] .shortcut-item {
-  background: #3a3a3a;
-}
-
-[data-theme="dark"] .shortcut-label {
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] .key {
-  background: #2d2d2d;
-  border-color: #444;
-  color: #aaa;
-}
-
-[data-theme="dark"] .btn-secondary {
-  background: #3a3a3a;
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] .btn-secondary:hover {
-  background: #444;
-}
-
-[data-theme="dark"] .version {
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] .commit-hash {
-  color: #aaa;
-}
-
-[data-theme="dark"] .version-download a {
-  color: #90caf9;
 }
 
 [data-theme="dark"] .update-status.update-available {
@@ -728,184 +666,26 @@ select:focus {
 
 [data-theme="dark"] .update-status.update-error {
   background: #5f1a1a;
-  border-color: #d32f2f;
+  border-color: var(--danger);
   color: #ef9a9a;
 }
 
-[data-theme="dark"] .library-import-card {
-  background: #3a3a3a;
-  border-color: #444;
-}
-
-[data-theme="dark"] .library-import-card:hover {
-  border-color: #1a73e8;
-  background: #2d2d2d;
-}
-
-[data-theme="dark"] .library-header h3 {
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] .library-count {
-  background: #2d2d2d;
-  border-color: #555;
-  color: #aaa;
-}
-
-[data-theme="dark"] .library-description {
-  color: #aaa;
-}
-
-[data-theme="dark"] .library-helper {
-  color: #999;
-}
-
-[data-theme="dark"] .key-mapping-card {
-  background: #2d2d2d;
-  border-color: #444;
-}
-
-[data-theme="dark"] .key-mapping-card h3 {
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] .key-mapping-controls label {
-  color: #aaa;
-}
-
-@media (prefers-color-scheme: dark),
-[data-theme="dark"] {
-  .container {
-    background: #2d2d2d;
-  }
-
-  .section-title {
-    color: #e0e0e0;
-    border-bottom-color: #444;
-  }
-
-  .setting-label {
-    color: #e0e0e0;
-  }
-
-  .setting-description {
-    color: #aaa;
-  }
-
-  .setting-item {
-    border-bottom-color: #3a3a3a;
-  }
-
-  select {
-    background-color: #1e1e1e;
-    border-color: #444;
-    color: #e0e0e0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23e0e0e0' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-position: right 12px center;
-    background-repeat: no-repeat;
-    background-size: 16px 16px;
-  }
-
-  .provider-item {
-    background: #3a3a3a;
-  }
-
-  .provider-item.dragging {
-    background: #1a3a5a;
-  }
-
-  .drag-handle {
-    color: #888;
-  }
-
-  .provider-icon {
-    background: #2d2d2d;
-  }
-
-  .provider-name {
-    color: #e0e0e0;
-  }
-
-  .data-stats {
-    background: #3a3a3a;
-  }
-
-  .data-stat-label {
-    color: #aaa;
-  }
-
-  .data-stat-value {
-    color: #e0e0e0;
-  }
-
-  .shortcut-item {
-    background: #3a3a3a;
-  }
-
-  .shortcut-label {
-    color: #e0e0e0;
-  }
-
-  .key {
-    background: #2d2d2d;
-    border-color: #444;
-    color: #aaa;
-  }
-
-  .btn-secondary {
-    background: #3a3a3a;
-    color: #aaa;
-  }
-
-  .btn-secondary:hover {
-    background: #444;
-  }
-
-  .version {
-    color: #e0e0e0;
-  }
-
-  .commit-hash {
-    color: #aaa;
-  }
-
-  .version-download a {
-    color: #90caf9;
-  }
-
-  .update-status.update-available {
-    background: #1a237e;
-    border-color: #3f51b5;
-    color: #90caf9;
-  }
-
-  .update-status.update-current {
-    background: #1b5e20;
-    border-color: #388e3c;
-    color: #81c784;
-  }
-
-  .update-status.update-error {
-    background: #b71c1c;
-    border-color: #d32f2f;
-    color: #ef9a9a;
-  }
-}
+/* @media dark theme handled by CSS variables */
 
 /* T071: Library Import Cards */
 .library-import-card {
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--border);
   border-radius: 6px;
   padding: 20px;
   margin-bottom: 16px;
   transition: all 0.2s;
-  background: #f9f9f9;
+  background: var(--surface-alt);
 }
 
 .library-import-card:hover {
-  border-color: #1a73e8;
+  border-color: var(--accent);
   box-shadow: 0 4px 8px rgba(26, 115, 232, 0.1);
-  background: white;
+  background: var(--surface);
 }
 
 .library-header {
@@ -919,28 +699,28 @@ select:focus {
   font-size: 16px;
   font-weight: 600;
   margin: 0;
-  color: #333;
+  color: var(--text);
 }
 
 .library-count {
   font-size: 12px;
-  color: #666;
-  background: white;
+  color: var(--text-muted);
+  background: var(--surface);
   padding: 4px 10px;
   border-radius: 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
 }
 
 .library-description {
   font-size: 13px;
-  color: #666;
+  color: var(--text-muted);
   margin-bottom: 16px;
   line-height: 1.5;
 }
 
 .library-helper {
   font-size: 12px;
-  color: #888;
+  color: var(--text-faint);
   margin: 12px 0;
   font-style: italic;
   line-height: 1.5;
@@ -951,46 +731,17 @@ select:focus {
 }
 
 .library-import-card .btn-primary {
-  background: #1a73e8;
+  background: var(--accent);
   font-weight: 600;
 }
 
 .library-import-card .btn-secondary:disabled {
-  background: #4caf50;
+  background: var(--success);
   color: white;
   cursor: default;
 }
 
-@media (prefers-color-scheme: dark),
-[data-theme="dark"] {
-  .library-import-card {
-    background: #3a3a3a;
-    border-color: #444;
-  }
-
-  .library-import-card:hover {
-    border-color: #1a73e8;
-    background: #2d2d2d;
-  }
-
-  .library-header h3 {
-    color: #e0e0e0;
-  }
-
-  .library-count {
-    background: #2d2d2d;
-    border-color: #555;
-    color: #aaa;
-  }
-
-  .library-description {
-    color: #aaa;
-  }
-
-  .library-helper {
-    color: #999;
-  }
-}
+/* Library dark theme handled by CSS variables */
 
 /* Enter Key Behavior Settings */
 #enter-behavior-settings {
@@ -999,17 +750,17 @@ select:focus {
 }
 
 .key-mapping-card {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 16px;
   margin-bottom: 12px;
-  background: #f9f9f9;
+  background: var(--surface-alt);
 }
 
 .key-mapping-card h3 {
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--text);
   margin: 0 0 12px 0;
 }
 
@@ -1025,7 +776,7 @@ select:focus {
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #666;
+  color: var(--text-muted);
   cursor: pointer;
 }
 
@@ -1033,18 +784,4 @@ select:focus {
   cursor: pointer;
 }
 
-@media (prefers-color-scheme: dark),
-[data-theme="dark"] {
-  .key-mapping-card {
-    background: #2d2d2d;
-    border-color: #444;
-  }
-
-  .key-mapping-card h3 {
-    color: #e0e0e0;
-  }
-
-  .key-mapping-controls label {
-    color: #aaa;
-  }
-}
+/* Key-mapping dark theme handled by CSS variables */

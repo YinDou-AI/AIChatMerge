@@ -32,14 +32,14 @@
   <div id="app">
     <!-- Main Content Area -->
     <div id="main-content">
-      <button id="scroll-left-btn" class="panel-scroll-arrow panel-scroll-left" title="上一页">
+      <button id="scroll-left-btn" class="panel-scroll-arrow panel-scroll-left" data-i18n-title="prevPage" title="上一页">
         <span class="material-symbols-outlined">chevron_left</span>
       </button>
       <!-- Panel Grid Container -->
       <div id="panel-grid" class="layout-1x3">
         <!-- Panels will be dynamically generated -->
       </div>
-      <button id="scroll-right-btn" class="panel-scroll-arrow panel-scroll-right" title="下一页">
+      <button id="scroll-right-btn" class="panel-scroll-arrow panel-scroll-right" data-i18n-title="nextPage" title="下一页">
         <span class="material-symbols-outlined">chevron_right</span>
       </button>
     </div>
@@ -47,31 +47,31 @@
     <!-- Bottom Input Bar -->
     <footer id="input-bar">
       <div class="input-container">
-        <button id="prompt-library-btn" class="input-btn" title="提示词库">
+        <button id="prompt-library-btn" class="input-btn" data-i18n-title="promptLibrary" title="提示词库">
           <span class="material-symbols-outlined">auto_awesome</span>
         </button>
-        <button id="image-upload-btn" class="input-btn" title="上传图片">
+        <button id="image-upload-btn" class="input-btn" data-i18n-title="uploadImage" title="上传图片">
           <span class="material-symbols-outlined">add_photo_alternate</span>
         </button>
         <input type="file" id="image-file-input" accept="image/*" multiple style="display: none;">
         <div class="input-wrapper">
           <div id="image-preview-container" class="image-preview-container"></div>
-          <textarea id="unified-input" placeholder="输入你的问题，同时发送给所有AI..." rows="1"></textarea>
+          <textarea id="unified-input" data-i18n-placeholder="inputPlaceholder" placeholder="输入你的问题，同时发送给所有AI..." rows="1"></textarea>
         </div>
         <div class="input-actions">
           <span id="send-status" class="send-status"></span>
           <!-- Send All Button -->
-          <button id="send-all-btn" class="send-btn" title="发送给所有AI">
+          <button id="send-all-btn" class="send-btn" data-i18n-title="sendToAllAI" title="发送给所有AI">
             <span class="material-symbols-outlined">send</span>
-            <span class="btn-text">发送</span>
+            <span class="btn-text" data-i18n="sendAll">发送</span>
           </button>
           <!-- Merge Button -->
-          <button id="merge-btn" class="merge-btn" title="融合总结：收集所有回答并发送给目标 AI 对比">
+          <button id="merge-btn" class="merge-btn" data-i18n-title="mergeTooltip" title="融合总结：收集所有回答并发送给目标 AI 对比">
             <span class="material-symbols-outlined">call_merge</span>
-            <span class="btn-text">融合</span>
+            <span class="btn-text" data-i18n="merge">融合</span>
           </button>
           <!-- Merge Target AI Select -->
-          <select id="merge-target-select" class="merge-select" title="融合目标 AI">
+          <select id="merge-target-select" class="merge-select" data-i18n-title="mergeTargetAI" title="融合目标 AI">
             <option value="deepseek">DeepSeek</option>
             <option value="kimi">Kimi</option>
             <option value="qianwen">千问</option>
@@ -81,24 +81,24 @@
             <option value="metaso">秘塔</option>
           </select>
           <!-- Copy All Answers Button -->
-          <button id="copy-all-btn" class="copy-all-bottom-btn" title="复制所有回答">
+          <button id="copy-all-btn" class="copy-all-bottom-btn" data-i18n-title="copyAllAnswers" title="复制所有回答">
             <span class="material-symbols-outlined">content_copy</span>
           </button>
           <!-- Add Panel Button -->
-          <button id="add-panel-btn" class="bottom-action-btn" title="添加面板">
+          <button id="add-panel-btn" class="bottom-action-btn" data-i18n-title="addPanel" title="添加面板">
             <span class="material-symbols-outlined">add</span>
           </button>
           <!-- Toolbar action buttons (moved from header) -->
-          <button id="new-chat-btn" class="bottom-action-btn" title="全部新建对话">
+          <button id="new-chat-btn" class="bottom-action-btn" data-i18n-title="newChat" title="全部新建对话">
             <span class="material-symbols-outlined">add_comment</span>
           </button>
-          <button id="layout-btn" class="bottom-action-btn" title="切换布局">
+          <button id="layout-btn" class="bottom-action-btn" data-i18n-title="layout" title="切换布局">
             <span class="material-symbols-outlined">grid_view</span>
           </button>
-          <button id="toggle-open-mode-btn" class="bottom-action-btn" title="弹窗模式">
+          <button id="toggle-open-mode-btn" class="bottom-action-btn" data-i18n-title="switchToPopupMode" title="弹窗模式">
             <span class="material-symbols-outlined">open_in_new</span>
           </button>
-          <button id="settings-btn" class="bottom-action-btn" title="设置">
+          <button id="settings-btn" class="bottom-action-btn" data-i18n-title="settings" title="设置">
             <span class="material-symbols-outlined">settings</span>
           </button>
         </div>
@@ -109,38 +109,38 @@
     <div id="layout-modal" class="modal" style="display: none;">
       <div class="modal-content modal-small">
         <div class="modal-header">
-          <h3>选择布局</h3>
+          <h3 data-i18n="selectLayout">选择布局</h3>
           <button class="close-btn" id="close-layout-modal">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
         <div class="modal-body">
           <div class="layout-options">
-            <button class="layout-option" data-layout="1x1" title="单面板">
+            <button class="layout-option" data-layout="1x1" data-i18n-title="singlePanel" title="单面板">
               <div class="layout-preview layout-1x1-preview">
                 <div></div>
               </div>
               <span>1x1</span>
             </button>
-            <button class="layout-option" data-layout="1x2" title="两面板">
+            <button class="layout-option" data-layout="1x2" data-i18n-title="twoPanels" title="两面板">
               <div class="layout-preview layout-1x2-preview">
                 <div></div><div></div>
               </div>
               <span>1x2</span>
             </button>
-            <button class="layout-option" data-layout="1x3" title="三面板">
+            <button class="layout-option" data-layout="1x3" data-i18n-title="threePanels" title="三面板">
               <div class="layout-preview layout-1x3-preview">
                 <div></div><div></div><div></div>
               </div>
               <span>1x3</span>
             </button>
-            <button class="layout-option" data-layout="1x4" title="四面板">
+            <button class="layout-option" data-layout="1x4" data-i18n-title="fourPanels" title="四面板">
               <div class="layout-preview layout-1x4-preview">
                 <div></div><div></div><div></div><div></div>
               </div>
               <span>1x4</span>
             </button>
-            <button class="layout-option" data-layout="1x5" title="五面板">
+            <button class="layout-option" data-layout="1x5" data-i18n-title="fivePanels" title="五面板">
               <div class="layout-preview layout-1x5-preview">
                 <div></div><div></div><div></div><div></div><div></div>
               </div>
@@ -155,9 +155,9 @@
     <div id="prompt-modal" class="modal" style="display: none;">
       <div class="modal-content modal-large">
         <div class="modal-header">
-          <h3>提示词库</h3>
+          <h3 data-i18n="promptLibraryTitle">提示词库</h3>
           <div class="modal-header-actions">
-            <button id="new-prompt-btn" class="header-action-btn" title="新建提示词">
+            <button id="new-prompt-btn" class="header-action-btn" data-i18n-title="newPrompt" title="新建提示词">
               <span class="material-symbols-outlined">add</span>
             </button>
             <button class="close-btn" id="close-prompt-modal">
@@ -168,16 +168,16 @@
         <div class="modal-body">
           <div class="prompt-filters">
             <div class="prompt-search-wrapper">
-              <input type="text" id="prompt-search" placeholder="搜索提示词...">
+              <input type="text" id="prompt-search" data-i18n-placeholder="searchPrompts" placeholder="搜索提示词...">
             </div>
             <div class="prompt-filter-buttons">
               <select id="prompt-category-filter">
-                <option value="">所有分类</option>
+                <option value="" data-i18n="allCategories">所有分类</option>
               </select>
-              <button id="prompt-favorites-btn" class="filter-btn" title="仅显示收藏">
+              <button id="prompt-favorites-btn" class="filter-btn" data-i18n-title="showFavoritesOnly" title="仅显示收藏">
                 <span class="material-symbols-outlined">star</span>
               </button>
-              <button id="prompt-recent-btn" class="filter-btn active" title="最近使用">
+              <button id="prompt-recent-btn" class="filter-btn active" data-i18n-title="recentUsed" title="最近使用">
                 <span class="material-symbols-outlined">schedule</span>
               </button>
             </div>
@@ -193,33 +193,33 @@
     <div id="prompt-editor-modal" class="modal" style="display: none;">
       <div class="modal-content modal-large">
         <div class="modal-header">
-          <h3 id="prompt-editor-title">新建提示词</h3>
+          <h3 id="prompt-editor-title" data-i18n="newPromptTitle">新建提示词</h3>
           <button class="close-btn" id="close-prompt-editor">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label for="prompt-title-input">标题</label>
-            <input type="text" id="prompt-title-input" placeholder="输入提示词标题...">
+            <label for="prompt-title-input" data-i18n="title">标题</label>
+            <input type="text" id="prompt-title-input" data-i18n-placeholder="titlePlaceholder" placeholder="输入提示词标题...">
           </div>
           <div class="form-group">
-            <label for="prompt-content-input">内容</label>
-            <textarea id="prompt-content-input" rows="8" placeholder="输入提示词内容... 使用 {variable} 作为变量"></textarea>
+            <label for="prompt-content-input" data-i18n="content">内容</label>
+            <textarea id="prompt-content-input" rows="8" data-i18n-placeholder="contentPlaceholder" placeholder="输入提示词内容... 使用 {variable} 作为变量"></textarea>
           </div>
           <div class="form-group">
-            <label for="prompt-category-input">分类</label>
-            <input type="text" id="prompt-category-input" placeholder="例如：写作、编程、调研">
+            <label for="prompt-category-input" data-i18n="category">分类</label>
+            <input type="text" id="prompt-category-input" data-i18n-placeholder="categoryPlaceholder" placeholder="例如：写作、编程、调研">
           </div>
           <div class="form-group">
-            <label for="prompt-tags-input">标签（逗号分隔）</label>
-            <input type="text" id="prompt-tags-input" placeholder="例如：写作、创意、博客">
+            <label for="prompt-tags-input" data-i18n="tags">标签（逗号分隔）</label>
+            <input type="text" id="prompt-tags-input" data-i18n-placeholder="tagsPlaceholder" placeholder="例如：写作、创意、博客">
           </div>
         </div>
         <div class="modal-footer">
-          <button id="delete-prompt-btn" class="btn-danger" style="margin-right: auto; display: none;">删除</button>
-          <button id="cancel-prompt-editor" class="btn-secondary">取消</button>
-          <button id="save-prompt-btn" class="btn-primary">保存</button>
+          <button id="delete-prompt-btn" class="btn-danger" style="margin-right: auto; display: none;" data-i18n="delete">删除</button>
+          <button id="cancel-prompt-editor" class="btn-secondary" data-i18n="cancel">取消</button>
+          <button id="save-prompt-btn" class="btn-primary" data-i18n="save">保存</button>
         </div>
       </div>
     </div>
@@ -228,20 +228,20 @@
     <div id="variable-modal" class="modal" style="display: none;">
       <div class="modal-content modal-small">
         <div class="modal-header">
-          <h3>填写变量</h3>
+          <h3 data-i18n="fillVariables">填写变量</h3>
           <button class="close-btn" id="close-variable-modal">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
         <div class="modal-body">
-          <p class="variable-instruction">此提示词包含变量，请填写：</p>
+          <p class="variable-instruction" data-i18n="variableInstruction">此提示词包含变量，请填写：</p>
           <div id="variable-inputs">
             <!-- Variable inputs will be dynamically generated -->
           </div>
         </div>
         <div class="modal-footer">
-          <button id="cancel-variable-btn" class="btn-secondary">取消</button>
-          <button id="apply-variable-btn" class="btn-primary">应用</button>
+          <button id="cancel-variable-btn" class="btn-secondary" data-i18n="cancel">取消</button>
+          <button id="apply-variable-btn" class="btn-primary" data-i18n="apply">应用</button>
         </div>
       </div>
     </div>
