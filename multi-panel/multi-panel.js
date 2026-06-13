@@ -1912,15 +1912,17 @@ async function searchPromptLibrary(query) {
 
 async function extractAllAnswers() {
   const requestId = ++answerExtractionRequestId;
+  const EXTRACT_TIMEOUT = 25000;
+  const RETRY_DELAY = 10000;
 
   return new Promise((resolve) => {
     const timeout = setTimeout(() => {
       const entry = pendingAnswerExtractions.get(requestId);
       if (entry) {
         const responded = entry.respondedPanels ? entry.respondedPanels.size : 0;
-        console.log('[CopyAll] Timeout. Responded:', responded, '/', panels.length, 'Answers:', entry.answers.length);
+        console.log('[CopyAll] Timeout. Responded:', responded, '/', getNonMergePanels().length, 'Answers:', entry.answers.length);
         if (entry.respondedPanels) {
-          panels.forEach(p => {
+          getNonMergePanels().forEach(p => {
             if (!entry.respondedPanels.has(p.id)) {
               console.warn('[CopyAll] No response from panel:', p.id, 'provider:', p.providerId);
             }
@@ -1931,7 +1933,7 @@ async function extractAllAnswers() {
         resolve([]);
       }
       pendingAnswerExtractions.delete(requestId);
-    }, 15000);
+    }, EXTRACT_TIMEOUT);
 
     const answers = [];
     pendingAnswerExtractions.set(requestId, {
@@ -1940,8 +1942,9 @@ async function extractAllAnswers() {
       answers
     });
 
+    const targetPanels = getNonMergePanels();
     let sentCount = 0;
-    getNonMergePanels().forEach(panel => {
+    targetPanels.forEach(panel => {
       if (panel.iframe && panel.iframe.contentWindow) {
         console.log('[CopyAll] Sending EXTRACT_ANSWER to panel:', panel.id, 'provider:', panel.providerId);
         panel.iframe.contentWindow.postMessage({
@@ -1959,7 +1962,27 @@ async function extractAllAnswers() {
       clearTimeout(timeout);
       pendingAnswerExtractions.delete(requestId);
       resolve([]);
+      return;
     }
+
+    // 10秒后对未响应的面板重试一次
+    setTimeout(() => {
+      const entry = pendingAnswerExtractions.get(requestId);
+      if (!entry) return; // 已完成或超时
+      const respondedIds = entry.respondedPanels || new Set();
+      const missingPanels = targetPanels.filter(p => !respondedIds.has(p.id) && p.iframe && p.iframe.contentWindow);
+      if (missingPanels.length > 0) {
+        console.log('[CopyAll] Retrying extraction for', missingPanels.length, 'panels:', missingPanels.map(p => p.providerId).join(', '));
+        missingPanels.forEach(panel => {
+          panel.iframe.contentWindow.postMessage({
+            type: 'EXTRACT_ANSWER',
+            requestId,
+            panelId: panel.id,
+            context: 'multi-panel'
+          }, '*');
+        });
+      }
+    }, RETRY_DELAY);
   });
 }
 
