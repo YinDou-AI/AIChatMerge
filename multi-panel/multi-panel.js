@@ -1724,7 +1724,7 @@ function renderCurrentPage() {
         panelEl.style.visibility = 'hidden';
         panelEl.style.opacity = '0';
         panelEl.style.pointerEvents = 'none';
-        panelEl.style.left = '0';
+        panelEl.style.left = '-9999px';
         panelEl.style.top = '0';
         panelEl.style.width = '100%';
         panelEl.style.height = '100%';
@@ -2032,11 +2032,17 @@ function handleExtractedAnswer(data) {
   console.log('[CopyAll] Received answer from panel:', data.panelId, 'provider:', data.provider, 'answer length:', data.answer ? data.answer.length : 0, 'hasAnswer:', hasAnswer);
 
   if (data.provider && hasAnswer) {
-    entry.answers.push({
-      providerId: data.provider,
-      providerName: getProviderById(data.provider)?.name || data.provider,
-      answer: data.answer
-    });
+    // 用 Map 去重：同一 panelId 只收集一次答案
+    if (!entry.answerMap) entry.answerMap = new Map();
+    if (!entry.answerMap.has(data.panelId)) {
+      const answerEntry = {
+        providerId: data.provider,
+        providerName: getProviderById(data.provider)?.name || data.provider,
+        answer: data.answer
+      };
+      entry.answerMap.set(data.panelId, answerEntry);
+      entry.answers.push(answerEntry);
+    }
   } else if (data.provider && !hasAnswer) {
     console.warn('[CopyAll] Panel responded but answer is empty:', data.provider, 'panelId:', data.panelId);
   }

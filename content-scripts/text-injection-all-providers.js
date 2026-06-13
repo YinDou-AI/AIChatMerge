@@ -2966,7 +2966,7 @@
       try {
         const elements = document.querySelectorAll(sel);
         for (const el of elements) {
-          if (isVisibleElement(el)) {
+          if (isExtractMode || isVisibleElement(el)) {
             targetNode = el;
             break;
           }
