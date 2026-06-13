@@ -2935,7 +2935,8 @@
       try {
         const elements = document.querySelectorAll(selector);
         for (const el of elements) {
-          if (isVisibleElement(el)) {
+          // In extract mode (hidden iframes), check DOM existence only
+          if (isExtractMode || isVisibleElement(el)) {
             return true;
           }
         }
@@ -2990,7 +2991,7 @@
           try {
             const elements = document.querySelectorAll(sel);
             for (const el of elements) {
-              if (isVisibleElement(el)) {
+              if (isExtractMode || isVisibleElement(el)) {
                 const text = (el.textContent || '').trim();
                 if (text.length > 0) {
                   hasContent = true;
@@ -3146,6 +3147,29 @@
     if (!provider) {
       console.warn('[CompletionMonitor] Provider not detected');
       return;
+    }
+
+    // Quick check: if stop button is NOT present and answer has content, AI already finished
+    if (!isStopButtonPresent(provider)) {
+      const selectors = DIRECT_ANSWER_SELECTORS[provider];
+      if (selectors) {
+        for (const sel of selectors) {
+          try {
+            const el = document.querySelector(sel);
+            if (el && (isExtractMode || isVisibleElement(el)) && (el.textContent || '').trim().length > 0) {
+              console.log('[CompletionMonitor] AI already finished (no stop button, content present). Provider:', provider);
+              if (window.parent !== window) {
+                window.parent.postMessage({
+                  type: 'COMPLETION_DETECTED',
+                  provider,
+                  context: 'multi-panel-completion'
+                }, '*');
+              }
+              return;
+            }
+          } catch (_) {}
+        }
+      }
     }
 
     startButtonStateMonitor(provider);

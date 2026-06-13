@@ -1705,13 +1705,30 @@ function renderCurrentPage() {
   const endIndex = startIndex + panelsPerPage;
 
   // 显示/隐藏面板
+  // 非当前页用 opacity:0 + position:absolute 而非 display:none，确保 iframe 继续加载
   panels.forEach((panel, index) => {
     const panelEl = document.getElementById(panel.id);
     if (panelEl) {
       if (index >= startIndex && index < endIndex) {
-        panelEl.style.display = '';
+        panelEl.style.visibility = '';
+        panelEl.style.position = '';
+        panelEl.style.width = '';
+        panelEl.style.height = '';
+        panelEl.style.overflow = '';
+        panelEl.style.opacity = '';
+        panelEl.style.pointerEvents = '';
+        panelEl.style.left = '';
+        panelEl.style.top = '';
       } else {
-        panelEl.style.display = 'none';
+        panelEl.style.position = 'absolute';
+        panelEl.style.visibility = 'hidden';
+        panelEl.style.opacity = '0';
+        panelEl.style.pointerEvents = 'none';
+        panelEl.style.left = '0';
+        panelEl.style.top = '0';
+        panelEl.style.width = '100%';
+        panelEl.style.height = '100%';
+        panelEl.style.overflow = 'hidden';
       }
     }
   });
@@ -2090,12 +2107,12 @@ function startMergeMonitor() {
   const mergeBtn = document.getElementById('merge-btn');
   if (mergeBtn) mergeBtn.classList.add('active');
 
-  console.log('[Merge] Monitoring started, waiting 15s before starting detection...');
+  console.log('[Merge] Monitoring started, waiting 3s before starting detection...');
 
   // 开启提取模式，让隐藏页的停止按钮也能被检测到
   setExtractMode(true);
 
-  // 延迟 15 秒再开始监控，等 AI 开始回答
+  // 延迟 3 秒再开始监控（内容脚本有快速检测：如果 AI 已完成会立即报告）
   mergeStartDelayTimer = setTimeout(() => {
     if (!mergeIsActive) return;
     const nonMergePanels = getNonMergePanels();
@@ -2108,7 +2125,7 @@ function startMergeMonitor() {
         }, '*');
       }
     });
-  }, 15000);
+  }, 3000);
 
   // Safety net: force merge after max wait (从 Send All 开始计时)
   mergeTimeoutTimer = setTimeout(() => {

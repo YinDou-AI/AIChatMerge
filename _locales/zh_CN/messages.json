@@ -775,6 +775,9 @@
       }
     }
   },
+  "sectionMultiPanel": {
+    "message": "多面板"
+  },
   "labelOpenMode": {
     "message": "打开模式"
   },
