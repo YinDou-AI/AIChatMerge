@@ -4,6 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-i18n="optionsPageTitle">Panelize - 设置</title>
+  <script>
+    (function() {
+      try {
+        chrome.storage.sync.get({ theme: 'auto' }, function(s) {
+          var t = s.theme;
+          if (t === 'auto') t = window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', t);
+        });
+      } catch(e) {}
+    })();
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet">
   <link rel="stylesheet" href="options.css">
 </head>
@@ -49,14 +60,14 @@
             <select id="language-select">
               <option value="en" data-i18n="langEnglish">English</option>
               <option value="zh_CN" data-i18n="langSimplifiedChinese">简体中文 (Simplified Chinese)</option>
-              <option value="zh_TW" data-i18n="langTraditionalChinese">繁體中文 (Traditional Chinese)</option>
-              <option value="ko" data-i18n="langKorean">한국어 (Korean)</option>
-              <option value="ja" data-i18n="langJapanese">日本語 (Japanese)</option>
-              <option value="es" data-i18n="langSpanish">Español (Spanish)</option>
-              <option value="fr" data-i18n="langFrench">Français (French)</option>
-              <option value="de" data-i18n="langGerman">Deutsch (German)</option>
-              <option value="it" data-i18n="langItalian">Italiano (Italian)</option>
-              <option value="ru" data-i18n="langRussian">Русский (Russian)</option>
+              <option value="zh_TW" data-i18n="langTraditionalChinese" style="display:none">繁體中文 (Traditional Chinese)</option>
+              <option value="ko" data-i18n="langKorean" style="display:none">한국어 (Korean)</option>
+              <option value="ja" data-i18n="langJapanese" style="display:none">日本語 (Japanese)</option>
+              <option value="es" data-i18n="langSpanish" style="display:none">Español (Spanish)</option>
+              <option value="fr" data-i18n="langFrench" style="display:none">Français (French)</option>
+              <option value="de" data-i18n="langGerman" style="display:none">Deutsch (German)</option>
+              <option value="it" data-i18n="langItalian" style="display:none">Italiano (Italian)</option>
+              <option value="ru" data-i18n="langRussian" style="display:none">Русский (Russian)</option>
             </select>
           </div>
         </div>

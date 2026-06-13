@@ -398,7 +398,7 @@ body {
   width: 36px;
   height: 36px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 8px;
   background: var(--surface);
   cursor: pointer;
@@ -408,7 +408,6 @@ body {
 }
 
 .input-btn:hover {
-  border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-bg);
 }
@@ -509,7 +508,7 @@ body {
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 8px;
   background: var(--bg);
   color: var(--text-muted);
@@ -519,7 +518,6 @@ body {
 }
 
 .copy-all-bottom-btn:hover {
-  border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-bg);
 }
