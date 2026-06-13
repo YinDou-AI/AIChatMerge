@@ -482,8 +482,17 @@
     return true;
   }
 
+  let isExtractMode = false;
+
+  window.addEventListener('message', (event) => {
+    if (event?.data?.type === 'SET_EXTRACT_MODE') {
+      isExtractMode = event.data.enabled === true;
+    }
+  });
+
   function isVisibleElement(element) {
     if (!element) return false;
+    if (isExtractMode) return true;
 
     const style = window.getComputedStyle(element);
     if (style.display === 'none' || style.visibility === 'hidden') return false;

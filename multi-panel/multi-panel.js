@@ -1910,8 +1910,22 @@ async function searchPromptLibrary(query) {
 
 // ===== Answer Extraction & Copy All =====
 
+function setExtractMode(enabled) {
+  panels.forEach(panel => {
+    if (panel.iframe && panel.iframe.contentWindow) {
+      panel.iframe.contentWindow.postMessage({
+        type: 'SET_EXTRACT_MODE',
+        enabled
+      }, '*');
+    }
+  });
+}
+
 async function extractAllAnswers() {
   const requestId = ++answerExtractionRequestId;
+
+  // 开启提取模式：让所有面板（包括隐藏页的）都能提取到答案
+  setExtractMode(true);
 
   return new Promise((resolve) => {
     const timeout = setTimeout(() => {
@@ -1924,6 +1938,7 @@ async function extractAllAnswers() {
         resolve([]);
       }
       pendingAnswerExtractions.delete(requestId);
+      setExtractMode(false);
     }, 25000);
 
     const answers = [];
@@ -1952,6 +1967,7 @@ async function extractAllAnswers() {
     if (sentCount === 0) {
       clearTimeout(timeout);
       pendingAnswerExtractions.delete(requestId);
+      setExtractMode(false);
       resolve([]);
     }
   });
@@ -1992,6 +2008,7 @@ function handleExtractedAnswer(data) {
     console.log('[CopyAll] All panels responded. Valid answers:', entry.answers.length, 'of', nonMergeCount);
     entry.resolve(entry.answers);
     pendingAnswerExtractions.delete(data.requestId);
+    setExtractMode(false);
   }
 }
 
@@ -2075,6 +2092,9 @@ function startMergeMonitor() {
 
   console.log('[Merge] Monitoring started, waiting 15s before starting detection...');
 
+  // 开启提取模式，让隐藏页的停止按钮也能被检测到
+  setExtractMode(true);
+
   // 延迟 15 秒再开始监控，等 AI 开始回答
   mergeStartDelayTimer = setTimeout(() => {
     if (!mergeIsActive) return;
@@ -2125,6 +2145,7 @@ function handleMergeCompletionDetected(data) {
 function stopMergeMonitor() {
   mergeIsActive = false;
   mergeCompletedPanels.clear();
+  setExtractMode(false);
 
   if (mergeStartDelayTimer) {
     clearTimeout(mergeStartDelayTimer);
