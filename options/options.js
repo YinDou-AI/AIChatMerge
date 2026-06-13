@@ -8,10 +8,11 @@ import {
   clearAllPrompts,
   importDefaultLibrary
 } from '../modules/prompt-manager.js';
-import {
-  loadVersionInfo,
-  checkForUpdates
-} from '../modules/version-checker.js';
+// 版本更新功能已禁用 - version-checker 导入
+// import {
+//   loadVersionInfo,
+//   checkForUpdates
+// } from '../modules/version-checker.js';
 import { t, translatePage, getCurrentLanguage, initializeLanguage } from '../modules/i18n.js';
 
 
@@ -141,46 +142,46 @@ function setupShortcutHelpers() {
   }
 }
 
-// Helper to detect if extension is installed from Chrome Web Store
-async function isWebStoreInstall() {
-  try {
-    const info = await chrome.management.getSelf();
-    // installType: 'normal' = Chrome Web Store, 'development' = loaded unpacked
-    return info.installType === 'normal';
-  } catch (error) {
-    console.error('Error detecting install type:', error);
-    // Default to false (show update checking) if detection fails
-    return false;
-  }
-}
+// 版本更新功能已禁用 - Helper to detect if extension is installed from Chrome Web Store
+// async function isWebStoreInstall() {
+//   try {
+//     const info = await chrome.management.getSelf();
+//     // installType: 'normal' = Chrome Web Store, 'development' = loaded unpacked
+//     return info.installType === 'normal';
+//   } catch (error) {
+//     console.error('Error detecting install type:', error);
+//     // Default to false (show update checking) if detection fails
+//     return false;
+//   }
+// }
 
-// Hide update checking UI for web store installations
-async function hideUpdateCheckingIfNeeded() {
-  const isFromStore = await isWebStoreInstall();
-
-  if (isFromStore) {
-    // Hide "Check for Updates" button
-    const checkUpdatesBtn = document.getElementById('check-updates-btn');
-    if (checkUpdatesBtn) {
-      checkUpdatesBtn.style.display = 'none';
-    }
-
-    // Hide update status message area
-    const updateStatus = document.getElementById('update-status');
-    if (updateStatus) {
-      updateStatus.style.display = 'none';
-    }
-
-    // Hide "Download Latest Version" link
-    const downloadLink = document.getElementById('download-latest-link');
-    if (downloadLink) {
-      const downloadContainer = downloadLink.closest('.version-download');
-      if (downloadContainer) {
-        downloadContainer.style.display = 'none';
-      }
-    }
-  }
-}
+// 版本更新功能已禁用 - Hide update checking UI for web store installations
+// async function hideUpdateCheckingIfNeeded() {
+//   const isFromStore = await isWebStoreInstall();
+//
+//   if (isFromStore) {
+//     // Hide "Check for Updates" button
+//     const checkUpdatesBtn = document.getElementById('check-updates-btn');
+//     if (checkUpdatesBtn) {
+//       checkUpdatesBtn.style.display = 'none';
+//     }
+//
+//     // Hide update status message area
+//     const updateStatus = document.getElementById('update-status');
+//     if (updateStatus) {
+//       updateStatus.style.display = 'none';
+//     }
+//
+//     // Hide "Download Latest Version" link
+//     const downloadLink = document.getElementById('download-latest-link');
+//     if (downloadLink) {
+//       const downloadContainer = downloadLink.closest('.version-download');
+//       if (downloadContainer) {
+//         downloadContainer.style.display = 'none';
+//       }
+//     }
+//   }
+// }
 
 function updateShortcutHelperVisibility(isEnabled) {
   const edgeHelper = document.getElementById('edge-shortcut-helper');
@@ -201,8 +202,8 @@ async function init() {
   translatePage();  // Translate all static text
   await loadSettings();
   await loadDataStats();
-  await loadVersionDisplay();  // T073: Load and display version info
-  await hideUpdateCheckingIfNeeded();  // Hide update checking for web store installations
+  // await loadVersionDisplay();  // 版本更新功能已禁用 - T073: Load and display version info
+  // await hideUpdateCheckingIfNeeded();  // 版本更新功能已禁用 - Hide update checking for web store installations
   setupEventListeners();
   setupShortcutHelpers();
   refreshAutoSizedSelects();
@@ -443,11 +444,11 @@ function setupEventListeners() {
     }
   });
 
-  // T073: Version check button
-  const checkUpdatesBtn = document.getElementById('check-updates-btn');
-  if (checkUpdatesBtn) {
-    checkUpdatesBtn.addEventListener('click', performVersionCheck);
-  }
+  // 版本更新功能已禁用 - T073: Version check button
+  // const checkUpdatesBtn = document.getElementById('check-updates-btn');
+  // if (checkUpdatesBtn) {
+  //   checkUpdatesBtn.addEventListener('click', performVersionCheck);
+  // }
 
   // Multi-Panel: Open mode selection
   const openModeSelect = document.getElementById('open-mode-select');
@@ -898,66 +899,67 @@ async function saveCustomEnterSettings() {
   showStatus('success', t('msgCustomMappingSaved'));
 }
 
-// T073: Version Check Functions
-async function loadVersionDisplay() {
-  const versionInfo = await loadVersionInfo();
-  if (!versionInfo) {
-    document.getElementById('version').textContent = t('msgVersionUnknown');
-    document.getElementById('commit-hash').textContent = '';
-    return;
-  }
+// 版本更新功能已禁用 - T073: Version Check Functions
+// async function loadVersionDisplay() {
+//   const versionInfo = await loadVersionInfo();
+//   if (!versionInfo) {
+//     document.getElementById('version').textContent = t('msgVersionUnknown');
+//     document.getElementById('commit-hash').textContent = '';
+//     return;
+//   }
+//
+//   document.getElementById('version').textContent = t('labelVersion', versionInfo.version);
+//   // Hide commit-hash element since we no longer use it
+//   const commitHashEl = document.getElementById('commit-hash');
+//   if (commitHashEl) {
+//     commitHashEl.style.display = 'none';
+//   }
+//
+//   // Automatically check for updates on page load
+//   await performVersionCheck();
+// }
 
-  document.getElementById('version').textContent = t('labelVersion', versionInfo.version);
-  // Hide commit-hash element since we no longer use it
-  const commitHashEl = document.getElementById('commit-hash');
-  if (commitHashEl) {
-    commitHashEl.style.display = 'none';
-  }
-
-  // Automatically check for updates on page load
-  await performVersionCheck();
-}
-
-async function performVersionCheck() {
-  const button = document.getElementById('check-updates-btn');
-  const statusDiv = document.getElementById('update-status');
-
-  try {
-    button.disabled = true;
-    button.textContent = t('msgChecking');
-    statusDiv.style.display = 'none';
-
-    const result = await checkForUpdates();
-
-    if (result.error) {
-      statusDiv.textContent = result.error;
-      statusDiv.className = 'update-status update-error';
-      statusDiv.style.display = 'block';
-      showStatus('error', result.error);
-    } else if (result.updateAvailable) {
-      const latest = result.latestVersion;
-      const current = result.currentVersion;
-      statusDiv.innerHTML = t('msgUpdateStatusAvailable', [latest, current]);
-      statusDiv.className = 'update-status update-available';
-      statusDiv.style.display = 'block';
-      showStatus('success', t('msgUpdateAvailable'));
-    } else {
-      statusDiv.textContent = t('msgLatestVersion');
-      statusDiv.className = 'update-status update-current';
-      statusDiv.style.display = 'block';
-      showStatus('success', t('msgUpToDate'));
-    }
-  } catch (error) {
-    statusDiv.textContent = t('msgCheckUpdatesFailed');
-    statusDiv.className = 'update-status update-error';
-    statusDiv.style.display = 'block';
-    showStatus('error', t('msgCheckUpdatesFailed'));
-    console.error('Version check error:', error);
-  } finally {
-    button.disabled = false;
-    button.textContent = t('btnCheckUpdates');
-  }
-}
+// 版本更新功能已禁用 - performVersionCheck
+// async function performVersionCheck() {
+//   const button = document.getElementById('check-updates-btn');
+//   const statusDiv = document.getElementById('update-status');
+//
+//   try {
+//     button.disabled = true;
+//     button.textContent = t('msgChecking');
+//     statusDiv.style.display = 'none';
+//
+//     const result = await checkForUpdates();
+//
+//     if (result.error) {
+//       statusDiv.textContent = result.error;
+//       statusDiv.className = 'update-status update-error';
+//       statusDiv.style.display = 'block';
+//       showStatus('error', result.error);
+//     } else if (result.updateAvailable) {
+//       const latest = result.latestVersion;
+//       const current = result.currentVersion;
+//       statusDiv.innerHTML = t('msgUpdateStatusAvailable', [latest, current]);
+//       statusDiv.className = 'update-status update-available';
+//       statusDiv.style.display = 'block';
+//       showStatus('success', t('msgUpdateAvailable'));
+//     } else {
+//       statusDiv.textContent = t('msgLatestVersion');
+//       statusDiv.className = 'update-status update-current';
+//       statusDiv.style.display = 'block';
+//       showStatus('success', t('msgUpToDate'));
+//     }
+//   } catch (error) {
+//     statusDiv.textContent = t('msgCheckUpdatesFailed');
+//     statusDiv.className = 'update-status update-error';
+//     statusDiv.style.display = 'block';
+//     showStatus('error', t('msgCheckUpdatesFailed'));
+//     console.error('Version check error:', error);
+//   } finally {
+//     button.disabled = false;
+//     button.textContent = t('btnCheckUpdates');
+//   }
+// }
 
 // Initialize on load
 init();
