@@ -33,6 +33,7 @@ import {
 // ===== State Management =====
 let currentLayout = '1x3';
 let panels = []; // Array of { id, providerId, iframe, state }
+let currentPanelPage = 0; // 当前页码，从0开始
 let uploadedImages = []; // Array of uploaded images { id, name, type, dataUrl }
 let loadingPanelIds = new Set(); // Track iframes still loading, used for focus protection
 let newChatFocusRestoreTimerIds = [];
@@ -160,6 +161,9 @@ async function init() {
 
   // Initialize panels
   await initializePanels();
+
+  // 渲染第一页
+  renderCurrentPage();
 
   // Setup event listeners
   setupEventListeners();
@@ -529,20 +533,11 @@ function cancelUnifiedInputFocusRestoreAfterSend() {
 }
 
 function setTemporaryChatButtonDisabled(disabled) {
-  const temporaryChatBtn = document.getElementById('temporary-chat-btn');
-  if (temporaryChatBtn) {
-    temporaryChatBtn.disabled = disabled;
-  }
+  // temporary chat button removed
 }
 
 function updateTemporaryChatButtonState() {
-  const temporaryChatBtn = document.getElementById('temporary-chat-btn');
-  if (!temporaryChatBtn) {
-    return;
-  }
-
-  temporaryChatBtn.classList.toggle('active', isTemporaryChatModeEnabled);
-  temporaryChatBtn.setAttribute('aria-pressed', isTemporaryChatModeEnabled ? 'true' : 'false');
+  // temporary chat button removed
 }
 
 function setTemporaryChatModeEnabled(enabled) {
@@ -1134,16 +1129,13 @@ async function initializePanels() {
       providerIds = settings.enabledProviders || settings.multiPanelProviders;
     }
 
-    const panelCount = LAYOUT_PANEL_COUNTS[currentLayout] || 4;
-    const count = Math.min(providerIds.length, panelCount);
+    const count = Math.min(providerIds.length, MAX_PANELS);
 
     // Create all panels and load in parallel for fastest total time
     for (let i = 0; i < count; i++) {
       await addPanel(providerIds[i]);
     }
 
-    // Update panel selectors in toolbar
-    updatePanelTabs();
   } catch (error) {
     console.error('Error initializing panels:', error);
   }
@@ -1151,89 +1143,10 @@ async function initializePanels() {
 
 // ===== Panel Management =====
 
-/**
- * Calculates whether layout adjustment is needed based on current layout and panel count
- * Only auto-expands columns in 1xN layout sequence
- * @param {string} currentLayout - Current layout, e.g., '1x2'
- * @param {number} newPanelCount - Total panel count after adding
- * @returns {string|null} - New layout name, or null if no adjustment needed
- */
-function getAutoAdjustedLayout(currentLayout, newPanelCount) {
-  // 只处理 1xN 布局
-  const match = currentLayout.match(/^1x(\d)$/);
-  if (!match) return null;
-
-  const currentCols = parseInt(match[1]);
-  const currentCapacity = LAYOUT_PANEL_COUNTS[currentLayout];
-
-  // 如果新面板数不超过容量，无需调整
-  if (newPanelCount <= currentCapacity) return null;
-
-  // 已达 1x5 上限，保持不变
-  if (currentLayout === '1x5') return null;
-
-  // 计算下一级布局
-  const nextCols = currentCols + 1;
-  const nextLayout = `1x${nextCols}`;
-
-  if (LAYOUT_PANEL_COUNTS[nextLayout]) {
-    return nextLayout;
-  }
-
-  return null; // 已达上限，无法自动调整
-}
-
-/**
- * Calculates whether layout shrink is needed based on current layout and panel count
- * Only auto-shrinks columns in 1xN layout sequence
- * @param {string} currentLayout - Current layout, e.g., '1x3'
- * @param {number} newPanelCount - Total panel count after removing
- * @returns {string|null} - New layout name, or null if no adjustment needed
- */
-function getAutoShrunkLayout(currentLayout, newPanelCount) {
-  // Only handle 1xN layouts (consistent with auto-expand behavior)
-  const match = currentLayout.match(/^1x(\d)$/);
-  if (!match) return null;
-
-  const currentCols = parseInt(match[1]);
-
-  // No need to shrink if panel count already matches or exceeds column count
-  if (newPanelCount >= currentCols) return null;
-
-  // Shrink to match panel count (minimum 1x1)
-  const targetCols = Math.max(newPanelCount, 1);
-  const targetLayout = `1x${targetCols}`;
-
-  if (LAYOUT_PANEL_COUNTS[targetLayout]) {
-    return targetLayout;
-  }
-
-  return null;
-}
-
 async function addPanel(providerId) {
   if (panels.length >= MAX_PANELS) {
     showToast(`已达到最大面板数量（${MAX_PANELS}）`);
     return;
-  }
-
-  // Auto layout adjustment: upgrade from 1xN to 1x(N+1) when adding panel exceeds capacity
-  const newPanelCount = panels.length + 1;
-  const adjustedLayout = getAutoAdjustedLayout(currentLayout, newPanelCount);
-
-  if (adjustedLayout) {
-    // Apply layout directly without calling setLayout (to avoid recursion from adjustPanelCount)
-    currentLayout = adjustedLayout;
-    const panelGrid = document.getElementById('panel-grid');
-    panelGrid.className = `layout-${adjustedLayout}`;
-
-    // Update layout button states (if layout modal is open)
-    document.querySelectorAll('.layout-option').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.layout === adjustedLayout);
-    });
-
-    // Save configuration
-    await saveProviderConfiguration();
   }
 
   const provider = getProviderById(providerId);
@@ -1310,9 +1223,10 @@ async function addPanel(providerId) {
   // Save provider configuration
   await saveProviderConfiguration();
 
-  // Update panel selectors to show logo and name
-  updatePanelTabs();
-  updateScrollArrows();
+  // 跳转到最后一页显示新面板
+  const panelsPerPage = LAYOUT_PANEL_COUNTS[currentLayout] || 3;
+  currentPanelPage = Math.floor((panels.length - 1) / panelsPerPage);
+  renderCurrentPage();
 }
 
 function removePanel(panelId) {
@@ -1330,29 +1244,10 @@ function removePanel(panelId) {
   loadingPanelIds.delete(panelId);
   mergePanelIds.delete(panelId);
 
-  // Auto-shrink layout if applicable
-  const shrunkLayout = getAutoShrunkLayout(currentLayout, panels.length);
-  if (shrunkLayout) {
-    currentLayout = shrunkLayout;
-    const panelGrid = document.getElementById('panel-grid');
-    panelGrid.className = `layout-${shrunkLayout}`;
-
-    // Update layout button states
-    document.querySelectorAll('.layout-option').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.layout === shrunkLayout);
-    });
-
-    // Save configuration with the new layout
-    saveProviderConfiguration();
-  }
-
-  // Update selectors
-  updatePanelTabs();
-
   // Save configuration
   saveProviderConfiguration();
 
-  updateScrollArrows();
+  renderCurrentPage();
 }
 
 async function switchPanelProvider(panelId, newProviderId) {
@@ -1388,61 +1283,7 @@ async function switchPanelProvider(panelId, newProviderId) {
   bindPanelHeaderActions(panelId);
   reloadPanelIframe(panel);
 
-  // Update selectors and save
-  updatePanelTabs();
   await saveProviderConfiguration();
-}
-
-function updatePanelTabs() {
-  const container = document.getElementById('panel-tabs-container');
-  if (!container) return;
-  container.innerHTML = '';
-
-  panels.forEach(panel => {
-    const provider = getProviderById(panel.providerId);
-    const tab = document.createElement('div');
-    tab.className = 'panel-tab';
-    tab.dataset.panelId = panel.id;
-
-    const icon = document.createElement('img');
-    icon.src = getThemeAwareProviderIcon(provider);
-    icon.alt = provider?.name || panel.providerId;
-    icon.className = 'provider-icon';
-
-    const name = document.createElement('span');
-    name.textContent = isMergePanel(panel) ? `${provider?.name || panel.providerId} (融合)` : (provider?.name || panel.providerId);
-
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'tab-close-btn';
-    closeBtn.innerHTML = '&times;';
-    closeBtn.title = '关闭';
-    closeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (panels.length <= 1) {
-        showToast('至少需要保留一个面板');
-        return;
-      }
-      removePanel(panel.id);
-    });
-
-    tab.appendChild(icon);
-    tab.appendChild(name);
-    tab.appendChild(closeBtn);
-
-    tab.addEventListener('click', () => {
-      const panelEl = document.getElementById(panel.id);
-      if (panelEl) {
-        panelEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-      }
-    });
-
-    container.appendChild(tab);
-  });
-
-  // 更新滚动箭头可见性
-  if (typeof updateScrollArrows === 'function') {
-    updateScrollArrows();
-  }
 }
 
 async function saveProviderConfiguration() {
@@ -1833,62 +1674,61 @@ async function triggerSendButtons() {
 
 // ===== Layout Management =====
 function updateScrollArrows() {
-  const grid = document.getElementById('panel-grid');
   const leftBtn = document.getElementById('scroll-left-btn');
   const rightBtn = document.getElementById('scroll-right-btn');
-  if (!grid || !leftBtn || !rightBtn) return;
+  if (!leftBtn || !rightBtn) return;
 
-  const hasOverflow = grid.scrollWidth > grid.clientWidth;
-  leftBtn.style.display = hasOverflow ? 'flex' : 'none';
-  rightBtn.style.display = hasOverflow ? 'flex' : 'none';
+  const panelsPerPage = LAYOUT_PANEL_COUNTS[currentLayout] || 3;
+  const totalPages = Math.max(1, Math.ceil(panels.length / panelsPerPage));
+
+  leftBtn.style.display = currentPanelPage > 0 ? 'flex' : 'none';
+  rightBtn.style.display = currentPanelPage < totalPages - 1 ? 'flex' : 'none';
+}
+
+function renderCurrentPage() {
+  const panelsPerPage = LAYOUT_PANEL_COUNTS[currentLayout] || 3;
+  const totalPages = Math.max(1, Math.ceil(panels.length / panelsPerPage));
+
+  // 确保当前页码有效
+  if (currentPanelPage >= totalPages) {
+    currentPanelPage = totalPages - 1;
+  }
+  if (currentPanelPage < 0) {
+    currentPanelPage = 0;
+  }
+
+  const startIndex = currentPanelPage * panelsPerPage;
+  const endIndex = startIndex + panelsPerPage;
+
+  // 显示/隐藏面板
+  panels.forEach((panel, index) => {
+    const panelEl = document.getElementById(panel.id);
+    if (panelEl) {
+      if (index >= startIndex && index < endIndex) {
+        panelEl.style.display = '';
+      } else {
+        panelEl.style.display = 'none';
+      }
+    }
+  });
+
+  // 更新翻页箭头可见性
+  updateScrollArrows();
 }
 
 function setLayout(layout) {
   if (!LAYOUT_PANEL_COUNTS[layout]) return;
-
   currentLayout = layout;
-
   const panelGrid = document.getElementById('panel-grid');
   panelGrid.className = `layout-${layout}`;
-
-  // Update layout button active states
+  // 更新布局按钮高亮
   document.querySelectorAll('.layout-option').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.layout === layout);
   });
-
-  // Adjust panel count if needed
-  const targetCount = LAYOUT_PANEL_COUNTS[layout];
-  adjustPanelCount(targetCount);
-
-  // Save layout
+  // 重新渲染当前页
+  renderCurrentPage();
   saveProviderConfiguration();
-
-  // Close modal
   closeLayoutModal();
-
-  updateScrollArrows();
-}
-
-async function adjustPanelCount(targetCount) {
-  const enabledProviders = await getEnabledProviders();
-  const maxAllowedCount = Math.min(targetCount, MAX_PANELS, enabledProviders.length);
-
-  // Remove excess panels
-  while (panels.length > maxAllowedCount) {
-    const panel = panels[panels.length - 1];
-    removePanel(panel.id);
-  }
-
-  // Add missing panels
-  while (panels.length < maxAllowedCount) {
-    // Find a provider not already in use
-    const usedProviders = panels.map(p => p.providerId);
-    const availableProvider = enabledProviders.find(p => !usedProviders.includes(p.id));
-
-    if (availableProvider) {
-      await addPanel(availableProvider.id);
-    }
-  }
 }
 
 // ===== Prompt Library =====
@@ -2346,6 +2186,15 @@ async function triggerMerge() {
   const existingPanel = panels.find(p => p.providerId === targetProvider && mergePanelIds.has(p.id));
 
   if (existingPanel) {
+    // 导航到融合面板所在的页面
+    const panelIndex = panels.indexOf(existingPanel);
+    const panelsPerPage = LAYOUT_PANEL_COUNTS[currentLayout] || 3;
+    const targetPage = Math.floor(panelIndex / panelsPerPage);
+    if (currentPanelPage !== targetPage) {
+      currentPanelPage = targetPage;
+      renderCurrentPage();
+    }
+
     // 复用已有面板：直接注入提示词
     console.log('[Merge] Reusing existing merge panel:', existingPanel.id, 'provider:', existingPanel.providerId);
     console.log('[Merge] iframe exists:', !!existingPanel.iframe, 'contentWindow exists:', !!existingPanel.iframe?.contentWindow);
@@ -2387,23 +2236,17 @@ async function triggerMerge() {
   }
 
   // 没有已有面板，创建新的
+  // 检查是否超过最大面板数
+  if (panels.length >= MAX_PANELS) {
+    console.warn('[Merge] Max panels reached, cannot create merge panel');
+    showToast(`已达到最大面板数量（${MAX_PANELS}）`);
+    return;
+  }
+
   const provider = getProviderById(targetProvider);
   if (!provider) {
     console.error('[Merge] Provider not found:', targetProvider);
     return;
-  }
-
-  // 布局自动调整
-  const newPanelCount = panels.length + 1;
-  const adjustedLayout = getAutoAdjustedLayout(currentLayout, newPanelCount);
-  if (adjustedLayout) {
-    currentLayout = adjustedLayout;
-    const panelGrid = document.getElementById('panel-grid');
-    panelGrid.className = `layout-${adjustedLayout}`;
-    document.querySelectorAll('.layout-option').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.layout === adjustedLayout);
-    });
-    await saveProviderConfiguration();
   }
 
   const panelId = `panel-merge-${Date.now()}`;
@@ -2454,6 +2297,10 @@ async function triggerMerge() {
   bindPanelHeaderActions(panelId);
   await saveProviderConfiguration();
 
+  // 跳转到第一页显示融合面板
+  currentPanelPage = 0;
+  renderCurrentPage();
+
   // 等 iframe 加载完成后注入提示词
   iframe.addEventListener('load', () => {
     loadingEl.classList.add('hidden');
@@ -2490,18 +2337,20 @@ function setupEventListeners() {
 
   if (scrollLeftBtn) {
     scrollLeftBtn.addEventListener('click', () => {
-      const grid = document.getElementById('panel-grid');
-      if (grid) {
-        grid.scrollBy({ left: -grid.clientWidth, behavior: 'smooth' });
+      if (currentPanelPage > 0) {
+        currentPanelPage--;
+        renderCurrentPage();
       }
     });
   }
 
   if (scrollRightBtn) {
     scrollRightBtn.addEventListener('click', () => {
-      const grid = document.getElementById('panel-grid');
-      if (grid) {
-        grid.scrollBy({ left: grid.clientWidth, behavior: 'smooth' });
+      const panelsPerPage = LAYOUT_PANEL_COUNTS[currentLayout] || 3;
+      const totalPages = Math.max(1, Math.ceil(panels.length / panelsPerPage));
+      if (currentPanelPage < totalPages - 1) {
+        currentPanelPage++;
+        renderCurrentPage();
       }
     });
   }

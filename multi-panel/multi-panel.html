@@ -30,16 +30,6 @@
 </head>
 <body data-theme="auto">
   <div id="app">
-    <!-- Panel Tab Bar -->
-    <div id="panel-tab-bar">
-      <div id="panel-tabs-container">
-        <!-- 面板标签将由JS动态生成 -->
-      </div>
-      <button id="add-panel-btn" class="add-panel-tab-btn" title="添加面板">
-        <span class="material-symbols-outlined">add</span>
-      </button>
-    </div>
-
     <!-- Main Content Area -->
     <div id="main-content">
       <button id="scroll-left-btn" class="panel-scroll-arrow panel-scroll-left" title="上一页">
@@ -93,6 +83,10 @@
           <button id="merge-btn" class="merge-btn" title="融合总结：收集所有回答并发送给目标 AI 对比">
             <span class="material-symbols-outlined">call_merge</span>
             <span class="btn-text">融合</span>
+          </button>
+          <!-- Add Panel Button -->
+          <button id="add-panel-btn" class="bottom-action-btn" title="添加面板">
+            <span class="material-symbols-outlined">add</span>
           </button>
           <!-- Toolbar action buttons (moved from header) -->
           <button id="new-chat-btn" class="bottom-action-btn" title="全部新建对话">
