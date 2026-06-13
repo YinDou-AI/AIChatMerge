@@ -1986,7 +1986,29 @@ async function extractAllAnswers() {
       pendingAnswerExtractions.delete(requestId);
       setExtractMode(false);
       resolve([]);
+      return;
     }
+
+    // 3秒后对未响应的面板重试一次（iframe content script 可能还没加载完）
+    setTimeout(() => {
+      const entry = pendingAnswerExtractions.get(requestId);
+      if (!entry) return; // 已完成或超时
+      const responded = entry.respondedPanels || new Set();
+      const missing = targetPanels.filter(p => !responded.has(p.id));
+      if (missing.length > 0) {
+        console.log('[CopyAll] Retrying', missing.length, 'panels that did not respond');
+        missing.forEach(panel => {
+          if (panel.iframe && panel.iframe.contentWindow) {
+            panel.iframe.contentWindow.postMessage({
+              type: 'EXTRACT_ANSWER',
+              requestId,
+              panelId: panel.id,
+              context: 'multi-panel'
+            }, '*');
+          }
+        });
+      }
+    }, 3000);
   });
 }
 
@@ -2131,6 +2153,7 @@ function startMergeMonitor() {
   mergeTimeoutTimer = setTimeout(() => {
     if (!mergeIsActive) return;
     console.log('[Merge] Timeout, triggering merge');
+    showToast('等待超时，开始融合');
     stopMergeMonitor();
     triggerMerge();
   }, MERGE_MAX_WAIT);
@@ -2154,6 +2177,7 @@ function handleMergeCompletionDetected(data) {
 
   if (mergeCompletedPanels.size >= nonMergeCount) {
     console.log('[Merge] All panels completed, triggering merge');
+    showToast('所有AI回答完成，开始融合');
     stopMergeMonitor();
     triggerMerge();
   }
