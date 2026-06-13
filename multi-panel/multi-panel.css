@@ -395,8 +395,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
@@ -550,26 +551,26 @@ body {
 .merge-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   border: none;
-  border-radius: 8px;
-  background: var(--success);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 500;
+  border-radius: 6px;
+  background: transparent;
   cursor: pointer;
-  transition: background 0.2s;
+  color: var(--text-muted);
+  transition: background 0.2s, color 0.2s;
   flex-shrink: 0;
-  white-space: nowrap;
 }
 
 .merge-btn:hover {
-  background: #388e3c;
+  background: var(--border);
+  color: var(--text);
 }
 
 .merge-btn:disabled {
-  background: #ccc;
+  color: var(--text-faint);
   cursor: not-allowed;
 }
 
@@ -579,6 +580,7 @@ body {
 
 .merge-btn.active {
   background: #ff9800;
+  color: #fff;
   animation: pulse-merge 1.5s ease-in-out infinite;
 }
 
@@ -619,24 +621,25 @@ body {
 .send-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   border: none;
-  border-radius: 8px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: 6px;
+  background: transparent;
   cursor: pointer;
-  transition: background 0.2s;
+  color: var(--text-muted);
+  transition: background 0.2s, color 0.2s;
 }
 
 .send-btn:hover {
-  background: var(--accent-hover);
+  background: var(--border);
+  color: var(--text);
 }
 
 .send-btn:disabled {
-  background: #ccc;
+  color: var(--text-faint);
   cursor: not-allowed;
 }
 
@@ -1156,8 +1159,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   border: none;
   border-radius: 6px;
   background: transparent;

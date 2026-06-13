@@ -2979,7 +2979,7 @@
       targetNode = document.body;
     }
 
-    const STABLE_DELAY_MS = 3000;
+    const STABLE_DELAY_MS = 5000;
 
     const resetStableTimer = () => {
       if (completionStableTimer) {
@@ -3149,30 +3149,55 @@
       return;
     }
 
-    // Quick check: if stop button is NOT present and answer has content, AI already finished
-    if (!isStopButtonPresent(provider)) {
-      const selectors = DIRECT_ANSWER_SELECTORS[provider];
-      if (selectors) {
-        for (const sel of selectors) {
-          try {
-            const el = document.querySelector(sel);
-            if (el && (isExtractMode || isVisibleElement(el)) && (el.textContent || '').trim().length > 0) {
-              console.log('[CompletionMonitor] AI already finished (no stop button, content present). Provider:', provider);
-              if (window.parent !== window) {
-                window.parent.postMessage({
-                  type: 'COMPLETION_DETECTED',
-                  provider,
-                  context: 'multi-panel-completion'
-                }, '*');
-              }
-              return;
-            }
-          } catch (_) {}
-        }
+    const selectors = DIRECT_ANSWER_SELECTORS[provider];
+    let targetNode = null;
+    if (selectors) {
+      for (const sel of selectors) {
+        try {
+          const el = document.querySelector(sel);
+          if (el) { targetNode = el; break; }
+        } catch (_) {}
       }
     }
+    if (!targetNode) targetNode = document.body;
 
-    startButtonStateMonitor(provider);
+    const STABLE_DELAY_MS = 5000;
+    let stableTimer = null;
+
+    const resetStableTimer = () => {
+      if (stableTimer) clearTimeout(stableTimer);
+      stableTimer = setTimeout(() => {
+        // Check for content
+        let hasContent = false;
+        if (selectors) {
+          for (const sel of selectors) {
+            try {
+              const el = document.querySelector(sel);
+              if (el && (el.textContent || '').trim().length > 0) {
+                hasContent = true;
+                break;
+              }
+            } catch (_) {}
+          }
+        }
+        if (!hasContent) {
+          resetStableTimer();
+          return;
+        }
+        stopCompletionMonitor();
+        if (window.parent !== window) {
+          window.parent.postMessage({
+            type: 'COMPLETION_DETECTED',
+            provider,
+            context: 'multi-panel-completion'
+          }, '*');
+        }
+      }, STABLE_DELAY_MS);
+    };
+
+    completionObserver = new MutationObserver(() => resetStableTimer());
+    completionObserver.observe(targetNode, { childList: true, subtree: true, characterData: true });
+    resetStableTimer();
   }
 
   // Listen for messages from the multi-panel host
