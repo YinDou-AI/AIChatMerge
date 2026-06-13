@@ -1279,6 +1279,7 @@ function removePanel(panelId) {
   // Remove from arrays and sets
   panels.splice(panelIndex, 1);
   loadingPanelIds.delete(panelId);
+  mergePanelIds.delete(panelId);
 
   // Auto-shrink layout if applicable
   const shrunkLayout = getAutoShrunkLayout(currentLayout, panels.length);
@@ -1401,6 +1402,17 @@ function toggleToolbar() {
   }
 }
 
+// ===== Merge Panel Detection =====
+const mergePanelIds = new Set();
+
+function isMergePanel(panel) {
+  return mergePanelIds.has(panel.id);
+}
+
+function getNonMergePanels() {
+  return panels.filter(p => !isMergePanel(p));
+}
+
 // ===== Message Broadcasting =====
 async function broadcastMessage(text, autoSubmit = true) {
   const sendBtn = document.getElementById('send-all-btn');
@@ -1442,15 +1454,16 @@ async function broadcastMessage(text, autoSubmit = true) {
       type: img.type
     }));
 
-    // Send to all panels
+    // Send to all panels (skip merge panels)
+    const targetPanels = getNonMergePanels();
     const panelResults = await Promise.allSettled(
-      panels.map(panel => sendToPanel(panel, text, imagesPayload, shouldAutoSubmit, sendFocusRequestId))
+      targetPanels.map(panel => sendToPanel(panel, text, imagesPayload, shouldAutoSubmit, sendFocusRequestId))
     );
 
     // Count results (panels only)
     const panelSuccessful = panelResults.filter(r => r.status === 'fulfilled' && r.value).length;
     const totalSuccessful = panelSuccessful;
-    const totalCount = panels.length;
+    const totalCount = targetPanels.length;
     const failed = totalCount - totalSuccessful;
 
     // Update status
@@ -1541,8 +1554,8 @@ async function clearAllInputs() {
   // Clear uploaded images
   clearAllImages();
 
-  // Send clear message to all panels
-  panels.forEach(panel => {
+  // Send clear message to all panels (skip merge panels)
+  getNonMergePanels().forEach(panel => {
     if (panel.iframe && panel.iframe.contentWindow) {
       panel.iframe.contentWindow.postMessage({
         type: 'CLEAR_INPUT',
@@ -1654,7 +1667,7 @@ async function newChatAllProviders() {
     startTemporaryChatActivationCycle();
   }
 
-  panels.forEach(panel => {
+  getNonMergePanels().forEach(panel => {
     startFreshChatForPanel(panel, { preferInPageNewChat: true });
   });
 
@@ -1733,8 +1746,9 @@ async function triggerSendButtons() {
     statusEl.textContent = 'Sending...';
     statusEl.className = 'send-status';
 
-    // Send TRIGGER_SEND message to all panels
-    panels.forEach(panel => {
+    // Send TRIGGER_SEND message to all panels (skip merge panels)
+    const targetPanels = getNonMergePanels();
+    targetPanels.forEach(panel => {
       if (panel.iframe && panel.iframe.contentWindow) {
         panel.iframe.contentWindow.postMessage({
           type: 'TRIGGER_SEND',
@@ -1746,7 +1760,7 @@ async function triggerSendButtons() {
     });
 
     // Update status
-    statusEl.textContent = `Sent to ${panels.length} AIs`;
+    statusEl.textContent = `Sent to ${targetPanels.length} AIs`;
     statusEl.className = 'send-status success';
 
     setTimeout(() => {
@@ -2021,7 +2035,7 @@ async function extractAllAnswers() {
     });
 
     let sentCount = 0;
-    panels.forEach(panel => {
+    getNonMergePanels().forEach(panel => {
       if (panel.iframe && panel.iframe.contentWindow) {
         console.log('[CopyAll] Sending EXTRACT_ANSWER to panel:', panel.id, 'provider:', panel.providerId);
         panel.iframe.contentWindow.postMessage({
@@ -2033,7 +2047,7 @@ async function extractAllAnswers() {
         sentCount++;
       }
     });
-    console.log('[CopyAll] Sent extraction request to', sentCount, 'panels, total panels:', panels.length);
+    console.log('[CopyAll] Sent extraction request to', sentCount, 'panels (excluded merge panels)');
 
     if (sentCount === 0) {
       clearTimeout(timeout);
@@ -2158,8 +2172,9 @@ function startMergeMonitor() {
   // 延迟 15 秒再开始监控，等 AI 开始回答
   mergeStartDelayTimer = setTimeout(() => {
     if (!mergeIsActive) return;
-    console.log('[Merge] Sending MONITOR_COMPLETION to', panels.length, 'panels');
-    panels.forEach(panel => {
+    const nonMergePanels = getNonMergePanels();
+    console.log('[Merge] Sending MONITOR_COMPLETION to', nonMergePanels.length, 'panels (excluded merge panels)');
+    nonMergePanels.forEach(panel => {
       if (panel.iframe && panel.iframe.contentWindow) {
         panel.iframe.contentWindow.postMessage({
           type: 'MONITOR_COMPLETION',
@@ -2182,7 +2197,7 @@ function handleMergeCompletionDetected(data) {
   console.log('[Merge] COMPLETION_DETECTED received:', data.provider, 'active:', mergeIsActive);
   if (!mergeIsActive || data.context !== 'multi-panel-completion') return;
 
-  const panel = panels.find(p => p.providerId === data.provider);
+  const panel = panels.find(p => p.providerId === data.provider && !isMergePanel(p));
   if (!panel) {
     console.warn('[Merge] No panel found for provider:', data.provider);
     return;
@@ -2191,9 +2206,10 @@ function handleMergeCompletionDetected(data) {
   if (mergeCompletedPanels.has(panel.id)) return;
 
   mergeCompletedPanels.add(panel.id);
-  console.log('[Merge] Panel completed:', panel.id, 'provider:', data.provider, '(', mergeCompletedPanels.size, '/', panels.length, ')');
+  const nonMergeCount = getNonMergePanels().length;
+  console.log('[Merge] Panel completed:', panel.id, 'provider:', data.provider, '(', mergeCompletedPanels.size, '/', nonMergeCount, ')');
 
-  if (mergeCompletedPanels.size >= panels.length) {
+  if (mergeCompletedPanels.size >= nonMergeCount) {
     console.log('[Merge] All panels completed, triggering merge');
     stopMergeMonitor();
     triggerMerge();
@@ -2214,8 +2230,8 @@ function stopMergeMonitor() {
     mergeTimeoutTimer = null;
   }
 
-  // Tell all panels to stop monitoring
-  panels.forEach(panel => {
+  // Tell non-merge panels to stop monitoring
+  getNonMergePanels().forEach(panel => {
     if (panel.iframe && panel.iframe.contentWindow) {
       panel.iframe.contentWindow.postMessage({
         type: 'STOP_MONITORING',
@@ -2264,7 +2280,51 @@ async function triggerMerge() {
 
   console.log('[Merge] Target:', targetProvider, 'Answers:', validAnswers.length);
 
-  // 在当前面板网格最左边添加新面板
+  // 查找已有的融合面板（providerId 匹配 + 在 mergePanelIds 中）
+  const existingPanel = panels.find(p => p.providerId === targetProvider && mergePanelIds.has(p.id));
+
+  if (existingPanel) {
+    // 复用已有面板：直接注入提示词
+    console.log('[Merge] Reusing existing merge panel:', existingPanel.id, 'provider:', existingPanel.providerId);
+    console.log('[Merge] iframe exists:', !!existingPanel.iframe, 'contentWindow exists:', !!existingPanel.iframe?.contentWindow);
+    console.log('[Merge] Prompt length:', prompt.length, 'first 100 chars:', prompt.substring(0, 100));
+
+    // Diagnostic: listen for response from content script
+    const mergeRequestId = `merge-reuse-${Date.now()}`;
+    let gotResponse = false;
+    const diagHandler = (event) => {
+      if (event?.data?.type === 'INJECT_TEXT_RECEIVED' && event?.data?.mergeRequestId === mergeRequestId) {
+        gotResponse = true;
+        window.removeEventListener('message', diagHandler);
+        console.log('[Merge] Content script confirmed receipt. Input found:', event.data.inputFound, 'injectSuccess:', event.data.injectSuccess, 'provider:', event.data.provider);
+      }
+    };
+    window.addEventListener('message', diagHandler);
+
+    existingPanel.iframe.contentWindow.postMessage({
+      type: 'INJECT_TEXT',
+      text: prompt,
+      autoSubmit: true,
+      context: 'auto-merge',
+      mergeRequestId
+    }, '*');
+    console.log('[Merge] postMessage sent to iframe, requestId:', mergeRequestId);
+
+    // Timeout check: if no response in 3s, log warning
+    setTimeout(() => {
+      if (!gotResponse) {
+        window.removeEventListener('message', diagHandler);
+        console.warn('[Merge] No response from content script after 3s! iframe may not have received the message.');
+        console.warn('[Merge] iframe.readyState may be:', existingPanel.iframe?.readyState);
+        console.warn('[Merge] iframe src:', existingPanel.iframe?.src);
+      }
+    }, 3000);
+
+    existingPanel.iframe.closest('.panel-item')?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    return;
+  }
+
+  // 没有已有面板，创建新的
   const provider = getProviderById(targetProvider);
   if (!provider) {
     console.error('[Merge] Provider not found:', targetProvider);
@@ -2315,6 +2375,7 @@ async function triggerMerge() {
   // 插入到最左边（prepend）
   panelGrid.insertBefore(panelEl, panelGrid.firstChild);
   panelEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+  mergePanelIds.add(panelId);
   console.log('[Merge] Panel created at leftmost position:', panelId);
 
   const iframe = panelEl.querySelector('iframe');
