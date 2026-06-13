@@ -1092,9 +1092,15 @@
         { type: 'text', textKey: 'send' }
       ]);
 
-      if (sendButton && isElementEnabled(sendButton)) {
-        sendButton.click();
-        return true;
+      if (sendButton) {
+        const enabled = isElementEnabled(sendButton);
+        console.log('[Text Injection] Doubao ButtonFinderUtils found send button, enabled:', enabled);
+        if (enabled) {
+          sendButton.click();
+          return true;
+        }
+      } else {
+        console.log('[Text Injection] Doubao ButtonFinderUtils: no send button found');
       }
     }
 
@@ -2241,8 +2247,13 @@
     const shouldAutoSubmit = autoSubmit && (context === 'multi-panel' || context === 'auto-merge');
 
     const provider = detectProvider();
+    const mergeRequestId = event.data.mergeRequestId;
+    console.log('[Text Injection] INJECT_TEXT received. provider:', provider, 'context:', context, 'autoSubmit:', autoSubmit, 'textLength:', text.length, 'mergeRequestId:', mergeRequestId);
     if (!provider) {
       console.warn('Unknown provider, cannot inject text');
+      if (mergeRequestId && window.parent !== window) {
+        window.parent.postMessage({ type: 'INJECT_TEXT_RECEIVED', mergeRequestId, inputFound: false, injectSuccess: false, provider: null, error: 'unknown-provider' }, '*');
+      }
       return;
     }
 
@@ -2296,13 +2307,17 @@
       element = findTextInputElement(selector);
       if (element) {
         matchedSelector = selector;
-        console.log('[Text Injection] Found input element with selector:', selector, 'for provider:', provider);
+        console.log('[Text Injection] Found input element with selector:', selector, 'for provider:', provider, 'tagName:', element.tagName, 'isContentEditable:', element.isContentEditable);
         break;
       }
     }
 
     if (element) {
       const success = injectTextIntoElement(element, text);
+      console.log('[Text Injection] injectTextIntoElement result:', success, 'for provider:', provider, 'element value length:', element.value?.length);
+      if (mergeRequestId && window.parent !== window) {
+        window.parent.postMessage({ type: 'INJECT_TEXT_RECEIVED', mergeRequestId, inputFound: true, injectSuccess: success, provider }, '*');
+      }
       if (success) {
         console.log('[Text Injection] Text injected into', provider, 'using selector:', matchedSelector);
 
@@ -2348,6 +2363,9 @@
             console.error(`[Text Injection] ${provider} editor not found after ${retryDelays.length} retries`);
             console.error('[Text Injection] Available textareas:', document.querySelectorAll('textarea'));
             console.error('[Text Injection] Available contenteditable:', document.querySelectorAll('[contenteditable="true"]'));
+            if (mergeRequestId && window.parent !== window) {
+              window.parent.postMessage({ type: 'INJECT_TEXT_RECEIVED', mergeRequestId, inputFound: false, injectSuccess: false, provider, error: 'editor-not-found-after-retry' }, '*');
+            }
           }
         }, delay);
       });
