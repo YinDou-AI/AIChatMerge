@@ -1912,8 +1912,6 @@ async function searchPromptLibrary(query) {
 
 async function extractAllAnswers() {
   const requestId = ++answerExtractionRequestId;
-  const EXTRACT_TIMEOUT = 25000;
-  const RETRY_DELAY = 10000;
 
   return new Promise((resolve) => {
     const timeout = setTimeout(() => {
@@ -1921,19 +1919,12 @@ async function extractAllAnswers() {
       if (entry) {
         const responded = entry.respondedPanels ? entry.respondedPanels.size : 0;
         console.log('[CopyAll] Timeout. Responded:', responded, '/', getNonMergePanels().length, 'Answers:', entry.answers.length);
-        if (entry.respondedPanels) {
-          getNonMergePanels().forEach(p => {
-            if (!entry.respondedPanels.has(p.id)) {
-              console.warn('[CopyAll] No response from panel:', p.id, 'provider:', p.providerId);
-            }
-          });
-        }
         resolve(entry.answers);
       } else {
         resolve([]);
       }
       pendingAnswerExtractions.delete(requestId);
-    }, EXTRACT_TIMEOUT);
+    }, 25000);
 
     const answers = [];
     pendingAnswerExtractions.set(requestId, {
@@ -1956,33 +1947,13 @@ async function extractAllAnswers() {
         sentCount++;
       }
     });
-    console.log('[CopyAll] Sent extraction request to', sentCount, 'panels (excluded merge panels)');
+    console.log('[CopyAll] Sent extraction request to', sentCount, 'of', targetPanels.length, 'panels');
 
     if (sentCount === 0) {
       clearTimeout(timeout);
       pendingAnswerExtractions.delete(requestId);
       resolve([]);
-      return;
     }
-
-    // 10秒后对未响应的面板重试一次
-    setTimeout(() => {
-      const entry = pendingAnswerExtractions.get(requestId);
-      if (!entry) return; // 已完成或超时
-      const respondedIds = entry.respondedPanels || new Set();
-      const missingPanels = targetPanels.filter(p => !respondedIds.has(p.id) && p.iframe && p.iframe.contentWindow);
-      if (missingPanels.length > 0) {
-        console.log('[CopyAll] Retrying extraction for', missingPanels.length, 'panels:', missingPanels.map(p => p.providerId).join(', '));
-        missingPanels.forEach(panel => {
-          panel.iframe.contentWindow.postMessage({
-            type: 'EXTRACT_ANSWER',
-            requestId,
-            panelId: panel.id,
-            context: 'multi-panel'
-          }, '*');
-        });
-      }
-    }, RETRY_DELAY);
   });
 }
 
@@ -1990,7 +1961,10 @@ function handleExtractedAnswer(data) {
   if (!data.requestId || data.context !== 'multi-panel-answer') return;
 
   const entry = pendingAnswerExtractions.get(data.requestId);
-  if (!entry) return;
+  if (!entry) {
+    console.warn('[CopyAll] Received answer but no pending extraction for requestId:', data.requestId);
+    return;
+  }
 
   if (!entry.respondedPanels) {
     entry.respondedPanels = new Set();
@@ -1999,19 +1973,23 @@ function handleExtractedAnswer(data) {
     entry.respondedPanels.add(data.panelId);
   }
 
-  console.log('[CopyAll] Received answer from panel:', data.panelId, 'provider:', data.provider, 'answer length:', data.answer ? data.answer.length : 0);
+  const hasAnswer = data.answer && data.answer.trim().length > 0;
+  console.log('[CopyAll] Received answer from panel:', data.panelId, 'provider:', data.provider, 'answer length:', data.answer ? data.answer.length : 0, 'hasAnswer:', hasAnswer);
 
-  if (data.provider && data.answer) {
+  if (data.provider && hasAnswer) {
     entry.answers.push({
       providerId: data.provider,
       providerName: getProviderById(data.provider)?.name || data.provider,
       answer: data.answer
     });
+  } else if (data.provider && !hasAnswer) {
+    console.warn('[CopyAll] Panel responded but answer is empty:', data.provider, 'panelId:', data.panelId);
   }
 
-  if (entry.respondedPanels.size >= getNonMergePanels().length) {
+  const nonMergeCount = getNonMergePanels().length;
+  if (entry.respondedPanels.size >= nonMergeCount) {
     clearTimeout(entry.timer);
-    console.log('[CopyAll] All panels responded. Answers:', entry.answers.length, 'of', panels.length);
+    console.log('[CopyAll] All panels responded. Valid answers:', entry.answers.length, 'of', nonMergeCount);
     entry.resolve(entry.answers);
     pendingAnswerExtractions.delete(data.requestId);
   }
