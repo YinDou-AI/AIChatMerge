@@ -30,93 +30,53 @@
 </head>
 <body data-theme="auto">
   <div id="app">
-    <!-- Top Toolbar -->
-    <header id="toolbar">
-      <div class="toolbar-left">
-        <span class="app-title">Panelize</span>
+    <!-- Panel Tab Bar -->
+    <div id="panel-tab-bar">
+      <div id="panel-tabs-container">
+        <!-- 面板标签将由JS动态生成 -->
       </div>
-
-      <div class="toolbar-center">
-        <div id="panel-selectors">
-          <!-- Panel provider selectors will be dynamically generated -->
-        </div>
-        <button id="add-panel-btn" class="toolbar-btn" title="Add Panel">
-          <span class="material-symbols-outlined">add</span>
-        </button>
-      </div>
-
-      <div class="toolbar-right">
-        <button id="toggle-open-mode-btn" class="toolbar-btn" title="Switch Mode">
-          <span class="material-symbols-outlined">open_in_new</span>
-          <span class="btn-text">Mode</span>
-        </button>
-        <button id="toggle-toolbar-btn" class="toolbar-btn" title="Collapse Toolbar">
-          <span class="material-symbols-outlined">expand_less</span>
-        </button>
-        <button id="new-chat-btn" class="toolbar-btn" title="New Chat for All">
-          <span class="material-symbols-outlined">add_comment</span>
-        </button>
-        <button id="temporary-chat-btn" class="toolbar-btn" title="Temporary Chat for All" aria-label="Temporary Chat for All" aria-pressed="false" style="display: none">
-          <svg class="toolbar-icon-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M17.06 13c-1.86 0-3.42 1.33-3.82 3.1c-.95-.41-1.82-.3-2.48-.01C10.35 14.31 8.79 13 6.94 13C4.77 13 3 14.79 3 17s1.77 4 3.94 4c2.06 0 3.74-1.62 3.9-3.68c.34-.24 1.23-.69 2.32.02c.18 2.05 1.84 3.66 3.9 3.66c2.17 0 3.94-1.79 3.94-4s-1.77-4-3.94-4M6.94 19.86c-1.56 0-2.81-1.28-2.81-2.86s1.26-2.86 2.81-2.86c1.56 0 2.81 1.28 2.81 2.86s-1.25 2.86-2.81 2.86m10.12 0c-1.56 0-2.81-1.28-2.81-2.86s1.25-2.86 2.81-2.86s2.82 1.28 2.82 2.86s-1.27 2.86-2.82 2.86M22 10.5H2V12h20zm-6.47-7.87c-.22-.49-.78-.75-1.31-.58L12 2.79l-2.23-.74l-.05-.01c-.53-.15-1.09.13-1.29.64L6 9h12l-2.44-6.32z" />
-          </svg>
-        </button>
-        <button id="layout-btn" class="toolbar-btn" title="Change Layout">
-          <span class="material-symbols-outlined">grid_view</span>
-        </button>
-        <button id="settings-btn" class="toolbar-btn" title="Settings">
-          <span class="material-symbols-outlined">settings</span>
-        </button>
-      </div>
-    </header>
-
-    <!-- Toolbar Expand Bar (shown when toolbar is collapsed) -->
-    <div id="toolbar-expand-bar" class="hidden">
-      <button id="expand-toolbar-btn" title="Expand Toolbar">
-        <span class="material-symbols-outlined">expand_more</span>
+      <button id="add-panel-btn" class="add-panel-tab-btn" title="添加面板">
+        <span class="material-symbols-outlined">add</span>
       </button>
     </div>
 
     <!-- Main Content Area -->
     <div id="main-content">
+      <button id="scroll-left-btn" class="panel-scroll-arrow panel-scroll-left" title="上一页">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
       <!-- Panel Grid Container -->
-      <div id="panel-grid" class="layout-2x2">
+      <div id="panel-grid" class="layout-1x3">
         <!-- Panels will be dynamically generated -->
       </div>
+      <button id="scroll-right-btn" class="panel-scroll-arrow panel-scroll-right" title="下一页">
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
     </div>
 
     <!-- Bottom Input Bar -->
     <footer id="input-bar">
       <div class="input-container">
-        <button id="prompt-library-btn" class="input-btn" title="Prompt Library">
+        <button id="prompt-library-btn" class="input-btn" title="提示词库">
           <span class="material-symbols-outlined">auto_awesome</span>
         </button>
-        <button id="image-upload-btn" class="input-btn" title="Upload Images">
+        <button id="image-upload-btn" class="input-btn" title="上传图片">
           <span class="material-symbols-outlined">add_photo_alternate</span>
         </button>
         <input type="file" id="image-file-input" accept="image/*" multiple style="display: none;">
         <div class="input-wrapper">
           <div id="image-preview-container" class="image-preview-container"></div>
-          <textarea id="unified-input" placeholder="Enter your question to send to all AI providers..." rows="1"></textarea>
+          <textarea id="unified-input" placeholder="输入你的问题，同时发送给所有AI..." rows="1"></textarea>
         </div>
         <div class="input-actions">
           <span id="send-status" class="send-status"></span>
-          <!-- Clear All Inputs Button -->
-          <button id="clear-all-btn" class="clear-btn" title="Clear All Inputs">
-            <span class="material-symbols-outlined">backspace</span>
-          </button>
-          <!-- Fill Input Boxes Button (no auto-send) -->
-          <button id="fill-input-btn" class="fill-btn" title="Fill Input Boxes">
-            <span class="material-symbols-outlined">input</span>
-            <span class="btn-text">Fill</span>
-          </button>
-          <!-- Send All Button (fill + auto-send) -->
-          <button id="send-all-btn" class="send-btn" title="Send to All">
+          <!-- Send All Button -->
+          <button id="send-all-btn" class="send-btn" title="发送给所有AI">
             <span class="material-symbols-outlined">send</span>
-            <span class="btn-text">Send All</span>
+            <span class="btn-text">发送</span>
           </button>
           <!-- Copy All Answers Button -->
-          <button id="copy-all-btn" class="copy-all-bottom-btn" title="Copy All Answers">
+          <button id="copy-all-btn" class="copy-all-bottom-btn" title="复制所有回答">
             <span class="material-symbols-outlined">content_copy</span>
           </button>
           <!-- Merge Target AI Select -->
@@ -134,6 +94,19 @@
             <span class="material-symbols-outlined">call_merge</span>
             <span class="btn-text">融合</span>
           </button>
+          <!-- Toolbar action buttons (moved from header) -->
+          <button id="new-chat-btn" class="bottom-action-btn" title="全部新建对话">
+            <span class="material-symbols-outlined">add_comment</span>
+          </button>
+          <button id="layout-btn" class="bottom-action-btn" title="切换布局">
+            <span class="material-symbols-outlined">grid_view</span>
+          </button>
+          <button id="toggle-open-mode-btn" class="bottom-action-btn" title="弹窗模式">
+            <span class="material-symbols-outlined">open_in_new</span>
+          </button>
+          <button id="settings-btn" class="bottom-action-btn" title="设置">
+            <span class="material-symbols-outlined">settings</span>
+          </button>
         </div>
       </div>
     </footer>
@@ -142,108 +115,42 @@
     <div id="layout-modal" class="modal" style="display: none;">
       <div class="modal-content modal-small">
         <div class="modal-header">
-          <h3>Select Layout</h3>
+          <h3>选择布局</h3>
           <button class="close-btn" id="close-layout-modal">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
         <div class="modal-body">
           <div class="layout-options">
-            <button class="layout-option" data-layout="1x1" title="Single Panel">
+            <button class="layout-option" data-layout="1x1" title="单面板">
               <div class="layout-preview layout-1x1-preview">
                 <div></div>
               </div>
               <span>1x1</span>
             </button>
-            <button class="layout-option" data-layout="1x2" title="1x2 Column">
+            <button class="layout-option" data-layout="1x2" title="两面板">
               <div class="layout-preview layout-1x2-preview">
                 <div></div><div></div>
               </div>
               <span>1x2</span>
             </button>
-            <button class="layout-option" data-layout="1x3" title="1x3 Row">
+            <button class="layout-option" data-layout="1x3" title="三面板">
               <div class="layout-preview layout-1x3-preview">
                 <div></div><div></div><div></div>
               </div>
               <span>1x3</span>
             </button>
-            <button class="layout-option" data-layout="1x4" title="1x4 Row">
+            <button class="layout-option" data-layout="1x4" title="四面板">
               <div class="layout-preview layout-1x4-preview">
                 <div></div><div></div><div></div><div></div>
               </div>
               <span>1x4</span>
             </button>
-            <button class="layout-option" data-layout="1x5" title="1x5 Row">
+            <button class="layout-option" data-layout="1x5" title="五面板">
               <div class="layout-preview layout-1x5-preview">
                 <div></div><div></div><div></div><div></div><div></div>
               </div>
               <span>1x5</span>
-            </button>
-            <button class="layout-option" data-layout="1x6" title="1x6 Row">
-              <div class="layout-preview layout-1x6-preview">
-                <div></div><div></div><div></div><div></div><div></div><div></div>
-              </div>
-              <span>1x6</span>
-            </button>
-            <button class="layout-option" data-layout="1x7" title="1x7 Row">
-              <div class="layout-preview layout-1x7-preview">
-                <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-              </div>
-              <span>1x7</span>
-            </button>
-            <button class="layout-option" data-layout="1x8" title="1x8 Row">
-              <div class="layout-preview layout-1x8-preview">
-                <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-              </div>
-              <span>1x8</span>
-            </button>
-            <button class="layout-option" data-layout="2x1" title="2x1 Column">
-              <div class="layout-preview layout-2x1-preview">
-                <div></div><div></div>
-              </div>
-              <span>2x1</span>
-            </button>
-            <button class="layout-option" data-layout="2x2" title="2x2 Grid">
-              <div class="layout-preview layout-2x2-preview">
-                <div></div><div></div><div></div><div></div>
-              </div>
-              <span>2x2</span>
-            </button>
-            <button class="layout-option" data-layout="2x3" title="2x3 Grid">
-              <div class="layout-preview layout-2x3-preview">
-                <div></div><div></div><div></div><div></div><div></div><div></div>
-              </div>
-              <span>2x3</span>
-            </button>
-            <button class="layout-option" data-layout="2x4" title="2x4 Grid">
-              <div class="layout-preview layout-2x4-preview">
-                <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-              </div>
-              <span>2x4</span>
-            </button>
-            <button class="layout-option" data-layout="3x1" title="3x1 Row">
-              <div class="layout-preview layout-3x1-preview">
-                <div></div><div></div><div></div>
-              </div>
-              <span>3x1</span>
-            </button>
-            <button class="layout-option" data-layout="3x2" title="3x2 Grid">
-              <div class="layout-preview layout-3x2-preview">
-                <div></div><div></div><div></div><div></div><div></div><div></div>
-              </div>
-              <span>3x2</span>
-            </button>
-            <button class="layout-option" data-layout="3x3" title="3x3 Grid">
-              <div class="layout-preview layout-3x3-preview">
-                <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-              </div>
-              <span>3x3</span>
-            </button>
-            <button class="layout-option" data-layout="4x2" title="4x2 Grid">
-              <div class="layout-preview layout-4x2-preview">
-                <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-              </div>
-              <span>4x2</span>
             </button>
           </div>
         </div>
@@ -254,9 +161,9 @@
     <div id="prompt-modal" class="modal" style="display: none;">
       <div class="modal-content modal-large">
         <div class="modal-header">
-          <h3>Prompt Library</h3>
+          <h3>提示词库</h3>
           <div class="modal-header-actions">
-            <button id="new-prompt-btn" class="header-action-btn" title="New Prompt">
+            <button id="new-prompt-btn" class="header-action-btn" title="新建提示词">
               <span class="material-symbols-outlined">add</span>
             </button>
             <button class="close-btn" id="close-prompt-modal">
@@ -267,16 +174,16 @@
         <div class="modal-body">
           <div class="prompt-filters">
             <div class="prompt-search-wrapper">
-              <input type="text" id="prompt-search" placeholder="Search prompts...">
+              <input type="text" id="prompt-search" placeholder="搜索提示词...">
             </div>
             <div class="prompt-filter-buttons">
               <select id="prompt-category-filter">
-                <option value="">All Categories</option>
+                <option value="">所有分类</option>
               </select>
-              <button id="prompt-favorites-btn" class="filter-btn" title="Show favorites only">
+              <button id="prompt-favorites-btn" class="filter-btn" title="仅显示收藏">
                 <span class="material-symbols-outlined">star</span>
               </button>
-              <button id="prompt-recent-btn" class="filter-btn active" title="Recently used">
+              <button id="prompt-recent-btn" class="filter-btn active" title="最近使用">
                 <span class="material-symbols-outlined">schedule</span>
               </button>
             </div>
@@ -292,33 +199,33 @@
     <div id="prompt-editor-modal" class="modal" style="display: none;">
       <div class="modal-content modal-large">
         <div class="modal-header">
-          <h3 id="prompt-editor-title">New Prompt</h3>
+          <h3 id="prompt-editor-title">新建提示词</h3>
           <button class="close-btn" id="close-prompt-editor">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label for="prompt-title-input">Title</label>
-            <input type="text" id="prompt-title-input" placeholder="Enter prompt title...">
+            <label for="prompt-title-input">标题</label>
+            <input type="text" id="prompt-title-input" placeholder="输入提示词标题...">
           </div>
           <div class="form-group">
-            <label for="prompt-content-input">Content</label>
-            <textarea id="prompt-content-input" rows="8" placeholder="Enter prompt content... Use {variable} for variables"></textarea>
+            <label for="prompt-content-input">内容</label>
+            <textarea id="prompt-content-input" rows="8" placeholder="输入提示词内容... 使用 {variable} 作为变量"></textarea>
           </div>
           <div class="form-group">
-            <label for="prompt-category-input">Category</label>
-            <input type="text" id="prompt-category-input" placeholder="e.g., Writing, Coding, Research">
+            <label for="prompt-category-input">分类</label>
+            <input type="text" id="prompt-category-input" placeholder="例如：写作、编程、调研">
           </div>
           <div class="form-group">
-            <label for="prompt-tags-input">Tags (comma separated)</label>
-            <input type="text" id="prompt-tags-input" placeholder="e.g., writing, creative, blog">
+            <label for="prompt-tags-input">标签（逗号分隔）</label>
+            <input type="text" id="prompt-tags-input" placeholder="例如：写作、创意、博客">
           </div>
         </div>
         <div class="modal-footer">
-          <button id="delete-prompt-btn" class="btn-danger" style="margin-right: auto; display: none;">Delete</button>
-          <button id="cancel-prompt-editor" class="btn-secondary">Cancel</button>
-          <button id="save-prompt-btn" class="btn-primary">Save</button>
+          <button id="delete-prompt-btn" class="btn-danger" style="margin-right: auto; display: none;">删除</button>
+          <button id="cancel-prompt-editor" class="btn-secondary">取消</button>
+          <button id="save-prompt-btn" class="btn-primary">保存</button>
         </div>
       </div>
     </div>
@@ -327,20 +234,20 @@
     <div id="variable-modal" class="modal" style="display: none;">
       <div class="modal-content modal-small">
         <div class="modal-header">
-          <h3>Fill in Variables</h3>
+          <h3>填写变量</h3>
           <button class="close-btn" id="close-variable-modal">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
         <div class="modal-body">
-          <p class="variable-instruction">This prompt contains variables. Please fill in the values:</p>
+          <p class="variable-instruction">此提示词包含变量，请填写：</p>
           <div id="variable-inputs">
             <!-- Variable inputs will be dynamically generated -->
           </div>
         </div>
         <div class="modal-footer">
-          <button id="cancel-variable-btn" class="btn-secondary">Cancel</button>
-          <button id="apply-variable-btn" class="btn-primary">Apply</button>
+          <button id="cancel-variable-btn" class="btn-secondary">取消</button>
+          <button id="apply-variable-btn" class="btn-primary">应用</button>
         </div>
       </div>
     </div>

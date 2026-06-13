@@ -130,18 +130,7 @@ const LAYOUT_PANEL_COUNTS = {
   '1x2': 2,
   '1x3': 3,
   '1x4': 4,
-  '1x5': 5,
-  '1x6': 6,
-  '1x7': 7,
-  '1x8': 8,
-  '2x1': 2,
-  '2x2': 4,
-  '2x3': 6,
-  '2x4': 8,
-  '3x1': 3,
-  '3x2': 6,
-  '3x3': 9,
-  '4x2': 8
+  '1x5': 5
 };
 let isInitialized = false;
 
@@ -328,11 +317,23 @@ function getPanelHeaderRightHtml(providerId) {
 
   return `
     ${googleModeSelect}
-    <button class="refresh-panel-btn" title="Refresh">
+    <button class="copy-link-btn" title="复制链接">
+      <span class="material-symbols-outlined">content_copy</span>
+    </button>
+    <button class="refresh-panel-btn" title="刷新">
       <span class="material-symbols-outlined">refresh</span>
     </button>
-    <button class="switch-provider-btn" title="Switch Provider">
+    <button class="home-btn" title="回到首页">
+      <span class="material-symbols-outlined">home</span>
+    </button>
+    <button class="maximize-btn" title="放大">
+      <span class="material-symbols-outlined">open_in_full</span>
+    </button>
+    <button class="switch-provider-btn" title="切换提供商">
       <span class="material-symbols-outlined">swap_horiz</span>
+    </button>
+    <button class="close-panel-btn" title="关闭">
+      <span class="material-symbols-outlined">close</span>
     </button>
   `;
 }
@@ -353,7 +354,7 @@ function showPanelLoadingState(panelEl, provider) {
   }
 
   loadingEl.classList.remove('hidden');
-  loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">Loading ${provider.name}...</span>`;
+  loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">加载 ${provider.name} 中...</span>`;
 }
 
 function reloadPanelIframe(panel, overrideUrl = null) {
@@ -381,17 +382,72 @@ function bindPanelHeaderActions(panelId) {
     return;
   }
 
+  // 复制链接
+  const copyLinkBtn = panelEl.querySelector('.copy-link-btn');
+  if (copyLinkBtn) {
+    copyLinkBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try {
+        const iframe = panelEl.querySelector('iframe');
+        const url = iframe?.src || '';
+        await navigator.clipboard.writeText(url);
+        const icon = copyLinkBtn.querySelector('.material-symbols-outlined');
+        icon.textContent = 'check';
+        setTimeout(() => { icon.textContent = 'content_copy'; }, 1500);
+      } catch (err) {
+        console.warn('[Panel] Failed to copy link:', err);
+      }
+    });
+  }
+
   const refreshBtn = panelEl.querySelector('.refresh-panel-btn');
   if (refreshBtn) {
-    refreshBtn.addEventListener('click', () => {
+    refreshBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       reloadPanelIframe(panel);
+    });
+  }
+
+  // 回到首页
+  const homeBtn = panelEl.querySelector('.home-btn');
+  if (homeBtn) {
+    homeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      reloadPanelIframe(panel, getProviderFrameUrl(panel.providerId));
+    });
+  }
+
+  // 放大/还原
+  const maximizeBtn = panelEl.querySelector('.maximize-btn');
+  if (maximizeBtn) {
+    maximizeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const panelItem = panelEl;
+      const isMaximized = panelItem.classList.toggle('panel-maximized');
+      const icon = maximizeBtn.querySelector('.material-symbols-outlined');
+      icon.textContent = isMaximized ? 'close_fullscreen' : 'open_in_full';
+      maximizeBtn.title = isMaximized ? '还原' : '放大';
     });
   }
 
   const switchBtn = panelEl.querySelector('.switch-provider-btn');
   if (switchBtn) {
-    switchBtn.addEventListener('click', () => {
+    switchBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       showProviderSwitcher(panelId);
+    });
+  }
+
+  // 关闭面板
+  const closeBtn = panelEl.querySelector('.close-panel-btn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (panels.length <= 1) {
+        showToast('至少需要保留一个面板');
+        return;
+      }
+      removePanel(panelId);
     });
   }
 
@@ -589,7 +645,7 @@ function isUnifiedInputOrNewChatControl(target) {
     return false;
   }
 
-  return Boolean(target.closest('#unified-input, #new-chat-btn, #temporary-chat-btn'));
+  return Boolean(target.closest('#unified-input, #new-chat-btn'));
 }
 
 function isUnifiedInputOrSendControl(target) {
@@ -936,15 +992,13 @@ function updateToggleButton() {
   const text = btn.querySelector('.btn-text');
 
   if (isPopupWindow) {
-    // 当前是弹出窗口，提示可以切换到标签页
-    icon.textContent = 'tab';
-    text.textContent = t('switchToTabMode') || 'Tab Mode';
-    btn.title = t('switchToTabModeTitle') || 'Switch to Tab Mode';
+    if (icon) icon.textContent = 'tab';
+    if (text) text.textContent = t('switchToTabMode') || '标签页模式';
+    btn.title = t('switchToTabModeTitle') || '切换到标签页模式';
   } else {
-    // 当前是标签页，提示可以切换到弹出窗口
-    icon.textContent = 'open_in_new';
-    text.textContent = t('switchToPopupMode') || 'Popup Mode';
-    btn.title = t('switchToPopupModeTitle') || 'Switch to Popup Mode';
+    if (icon) icon.textContent = 'open_in_new';
+    if (text) text.textContent = t('switchToPopupMode') || '弹窗模式';
+    btn.title = t('switchToPopupModeTitle') || '切换到弹窗模式';
   }
 }
 
@@ -1089,7 +1143,7 @@ async function initializePanels() {
     }
 
     // Update panel selectors in toolbar
-    updatePanelSelectors();
+    updatePanelTabs();
   } catch (error) {
     console.error('Error initializing panels:', error);
   }
@@ -1108,22 +1162,20 @@ function getAutoAdjustedLayout(currentLayout, newPanelCount) {
   // 只处理 1xN 布局
   const match = currentLayout.match(/^1x(\d)$/);
   if (!match) return null;
-  
+
   const currentCols = parseInt(match[1]);
   const currentCapacity = LAYOUT_PANEL_COUNTS[currentLayout];
-  
+
   // 如果新面板数不超过容量，无需调整
   if (newPanelCount <= currentCapacity) return null;
-  
-  if (currentLayout === '1x7' && newPanelCount === 8) {
-    return '4x2';
-  }
+
+  // 已达 1x5 上限，保持不变
+  if (currentLayout === '1x5') return null;
 
   // 计算下一级布局
   const nextCols = currentCols + 1;
   const nextLayout = `1x${nextCols}`;
 
-  // 1x8 remains a manual layout option; auto-expand still prefers 4x2 for the 8th panel
   if (LAYOUT_PANEL_COUNTS[nextLayout]) {
     return nextLayout;
   }
@@ -1139,10 +1191,6 @@ function getAutoAdjustedLayout(currentLayout, newPanelCount) {
  * @returns {string|null} - New layout name, or null if no adjustment needed
  */
 function getAutoShrunkLayout(currentLayout, newPanelCount) {
-  if (currentLayout === '4x2' && newPanelCount === 7) {
-    return '1x7';
-  }
-
   // Only handle 1xN layouts (consistent with auto-expand behavior)
   const match = currentLayout.match(/^1x(\d)$/);
   if (!match) return null;
@@ -1165,7 +1213,7 @@ function getAutoShrunkLayout(currentLayout, newPanelCount) {
 
 async function addPanel(providerId) {
   if (panels.length >= MAX_PANELS) {
-    showToast(`Maximum number of panels reached (${MAX_PANELS})`);
+    showToast(`已达到最大面板数量（${MAX_PANELS}）`);
     return;
   }
 
@@ -1213,7 +1261,7 @@ async function addPanel(providerId) {
     <div class="panel-iframe-container">
       <div class="panel-loading">
         <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}">
-        <span class="loading-text">Loading ${provider.name}...</span>
+        <span class="loading-text">加载 ${provider.name} 中...</span>
       </div>
       <iframe
         src="${getProviderFrameUrl(providerId)}"
@@ -1245,7 +1293,7 @@ async function addPanel(providerId) {
   });
 
   iframe.addEventListener('error', () => {
-    loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">Failed to load ${provider.name}</span>`;
+    loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">${provider.name} 加载失败</span>`;
     loadingPanelIds.delete(panelId);
   });
 
@@ -1263,7 +1311,8 @@ async function addPanel(providerId) {
   await saveProviderConfiguration();
 
   // Update panel selectors to show logo and name
-  updatePanelSelectors();
+  updatePanelTabs();
+  updateScrollArrows();
 }
 
 function removePanel(panelId) {
@@ -1298,10 +1347,12 @@ function removePanel(panelId) {
   }
 
   // Update selectors
-  updatePanelSelectors();
+  updatePanelTabs();
 
   // Save configuration
   saveProviderConfiguration();
+
+  updateScrollArrows();
 }
 
 async function switchPanelProvider(panelId, newProviderId) {
@@ -1338,42 +1389,60 @@ async function switchPanelProvider(panelId, newProviderId) {
   reloadPanelIframe(panel);
 
   // Update selectors and save
-  updatePanelSelectors();
+  updatePanelTabs();
   await saveProviderConfiguration();
 }
 
-function updatePanelSelectors() {
-  const selectorsContainer = document.getElementById('panel-selectors');
-  selectorsContainer.innerHTML = '';
+function updatePanelTabs() {
+  const container = document.getElementById('panel-tabs-container');
+  if (!container) return;
+  container.innerHTML = '';
 
   panels.forEach(panel => {
     const provider = getProviderById(panel.providerId);
-    if (!provider) return;
+    const tab = document.createElement('div');
+    tab.className = 'panel-tab';
+    tab.dataset.panelId = panel.id;
 
-    const selector = document.createElement('div');
-    selector.className = 'panel-selector';
-    selector.dataset.panelId = panel.id;
-    selector.innerHTML = `
-      <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="provider-icon" data-provider-id="${provider.id}">
-      <span>${provider.name}</span>
-      <button class="remove-panel" title="Remove panel">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    `;
+    const icon = document.createElement('img');
+    icon.src = getThemeAwareProviderIcon(provider);
+    icon.alt = provider?.name || panel.providerId;
+    icon.className = 'provider-icon';
 
-    // Remove button handler
-    const removeBtn = selector.querySelector('.remove-panel');
-    removeBtn.addEventListener('click', (e) => {
+    const name = document.createElement('span');
+    name.textContent = isMergePanel(panel) ? `${provider?.name || panel.providerId} (融合)` : (provider?.name || panel.providerId);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'tab-close-btn';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.title = '关闭';
+    closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (panels.length > 1) {
-        removePanel(panel.id);
-      } else {
-        showToast('At least one panel is required');
+      if (panels.length <= 1) {
+        showToast('至少需要保留一个面板');
+        return;
+      }
+      removePanel(panel.id);
+    });
+
+    tab.appendChild(icon);
+    tab.appendChild(name);
+    tab.appendChild(closeBtn);
+
+    tab.addEventListener('click', () => {
+      const panelEl = document.getElementById(panel.id);
+      if (panelEl) {
+        panelEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       }
     });
 
-    selectorsContainer.appendChild(selector);
+    container.appendChild(tab);
   });
+
+  // 更新滚动箭头可见性
+  if (typeof updateScrollArrows === 'function') {
+    updateScrollArrows();
+  }
 }
 
 async function saveProviderConfiguration() {
@@ -1385,20 +1454,6 @@ async function saveProviderConfiguration() {
     });
   } catch (error) {
     console.error('Error saving provider configuration:', error);
-  }
-}
-
-function toggleToolbar() {
-  const toolbar = document.getElementById('toolbar');
-  const expandBar = document.getElementById('toolbar-expand-bar');
-  const toggleBtn = document.getElementById('toggle-toolbar-btn');
-
-  const isCollapsed = toolbar.classList.toggle('collapsed');
-
-  if (isCollapsed) {
-    expandBar.classList.remove('hidden');
-  } else {
-    expandBar.classList.add('hidden');
   }
 }
 
@@ -1416,7 +1471,6 @@ function getNonMergePanels() {
 // ===== Message Broadcasting =====
 async function broadcastMessage(text, autoSubmit = true) {
   const sendBtn = document.getElementById('send-all-btn');
-  const fillBtn = document.getElementById('fill-input-btn');
   const statusEl = document.getElementById('send-status');
 
   const hasImages = uploadedImages.length > 0;
@@ -1428,7 +1482,7 @@ async function broadcastMessage(text, autoSubmit = true) {
       await triggerSendButtons();
       return;
     }
-    showToast('Please enter a message or upload an image');
+    showToast('请输入消息或上传图片');
     return;
   }
 
@@ -1443,8 +1497,7 @@ async function broadcastMessage(text, autoSubmit = true) {
   try {
     // Disable buttons during send
     sendBtn.disabled = true;
-    fillBtn.disabled = true;
-    statusEl.textContent = shouldAutoSubmit ? 'Sending...' : 'Filling...';
+    statusEl.textContent = shouldAutoSubmit ? '发送中...' : '填入中...';
     statusEl.className = 'send-status';
 
     // Prepare images payload
@@ -1469,16 +1522,16 @@ async function broadcastMessage(text, autoSubmit = true) {
     // Update status
     if (failed === 0) {
       statusEl.textContent = shouldAutoSubmit
-        ? `Sent to ${totalSuccessful} AI${totalSuccessful > 1 ? 's' : ''}`
-        : `Filled ${totalSuccessful} input${totalSuccessful > 1 ? 's' : ''}`;
+        ? `已发送到 ${totalSuccessful} 个AI`
+        : `已填入 ${totalSuccessful} 个输入`;
       statusEl.className = 'send-status success';
     } else if (totalSuccessful > 0) {
       statusEl.textContent = shouldAutoSubmit
-        ? `Sent to ${totalSuccessful}/${totalCount}`
-        : `Filled ${totalSuccessful}/${totalCount}`;
+        ? `已发送到 ${totalSuccessful}/${totalCount}`
+        : `已填入 ${totalSuccessful}/${totalCount}`;
       statusEl.className = 'send-status partial';
     } else {
-      statusEl.textContent = shouldAutoSubmit ? 'Failed to send' : 'Failed to fill';
+      statusEl.textContent = shouldAutoSubmit ? '发送失败' : '填入失败';
       statusEl.className = 'send-status error';
     }
 
@@ -1500,7 +1553,7 @@ async function broadcastMessage(text, autoSubmit = true) {
     }
   } catch (error) {
     console.error('Error in broadcastMessage:', error);
-    statusEl.textContent = 'Error occurred';
+    statusEl.textContent = '发生错误';
     statusEl.className = 'send-status error';
     setTimeout(() => {
       statusEl.textContent = '';
@@ -1509,7 +1562,6 @@ async function broadcastMessage(text, autoSubmit = true) {
   } finally {
     // Always re-enable buttons, even if there was an error
     sendBtn.disabled = false;
-    fillBtn.disabled = false;
   }
 }
 
@@ -1565,7 +1617,7 @@ async function clearAllInputs() {
       }, '*');
     }
   });
-  showToast('All inputs cleared');
+  showToast('已清空所有输入');
 }
 
 // ===== Image Management =====
@@ -1576,19 +1628,19 @@ async function addImage(file) {
   try {
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      showToast('Please select an image file');
+      showToast('请选择图片文件');
       return false;
     }
 
     // Validate file size
     if (file.size > MAX_IMAGE_SIZE) {
-      showToast('Image size must be less than 20MB');
+      showToast('图片大小不能超过20MB');
       return false;
     }
 
     // Validate image count
     if (uploadedImages.length >= MAX_IMAGE_COUNT) {
-      showToast(`Maximum ${MAX_IMAGE_COUNT} images allowed`);
+      showToast(`最多允许上传 ${MAX_IMAGE_COUNT} 张图片`);
       return false;
     }
 
@@ -1609,7 +1661,7 @@ async function addImage(file) {
     return true;
   } catch (error) {
     console.error('Error adding image:', error);
-    showToast('Failed to add image');
+    showToast('添加图片失败');
     return false;
   }
 }
@@ -1672,7 +1724,7 @@ async function newChatAllProviders() {
   });
 
   restoreUnifiedInputFocusAfterNewChat();
-  showToast('New chat created for all AIs');
+  showToast('已为所有AI创建新对话');
 
   // Re-enable button
   setTimeout(() => {
@@ -1715,7 +1767,7 @@ async function temporaryChatAllProviders() {
     });
 
     restoreUnifiedInputFocusAfterNewChat();
-    showToast('Temporary chat disabled');
+    showToast('临时对话已关闭');
 
     scheduleTemporaryChatButtonRestore();
     return;
@@ -1730,20 +1782,18 @@ async function temporaryChatAllProviders() {
 
   restoreUnifiedInputFocusAfterNewChat();
 
-  showToast('Temporary chat enabled where supported');
+  showToast('已在支持的平台启用临时对话');
 }
 
 // Trigger send buttons only (no text injection) - used after Fill
 async function triggerSendButtons() {
   const sendBtn = document.getElementById('send-all-btn');
-  const fillBtn = document.getElementById('fill-input-btn');
   const statusEl = document.getElementById('send-status');
   const sendFocusRequestId = restoreUnifiedInputFocusAfterSend(getChatgptPanelsWithFrames());
 
   try {
     sendBtn.disabled = true;
-    fillBtn.disabled = true;
-    statusEl.textContent = 'Sending...';
+    statusEl.textContent = '发送中...';
     statusEl.className = 'send-status';
 
     // Send TRIGGER_SEND message to all panels (skip merge panels)
@@ -1760,7 +1810,7 @@ async function triggerSendButtons() {
     });
 
     // Update status
-    statusEl.textContent = `Sent to ${targetPanels.length} AIs`;
+    statusEl.textContent = `已发送到 ${targetPanels.length} 个AI`;
     statusEl.className = 'send-status success';
 
     setTimeout(() => {
@@ -1769,7 +1819,7 @@ async function triggerSendButtons() {
     }, 3000);
   } catch (error) {
     console.error('Error in triggerSendButtons:', error);
-    statusEl.textContent = 'Error occurred';
+    statusEl.textContent = '发生错误';
     statusEl.className = 'send-status error';
     setTimeout(() => {
       statusEl.textContent = '';
@@ -1778,11 +1828,21 @@ async function triggerSendButtons() {
   } finally {
     // Always re-enable buttons
     sendBtn.disabled = false;
-    fillBtn.disabled = false;
   }
 }
 
 // ===== Layout Management =====
+function updateScrollArrows() {
+  const grid = document.getElementById('panel-grid');
+  const leftBtn = document.getElementById('scroll-left-btn');
+  const rightBtn = document.getElementById('scroll-right-btn');
+  if (!grid || !leftBtn || !rightBtn) return;
+
+  const hasOverflow = grid.scrollWidth > grid.clientWidth;
+  leftBtn.style.display = hasOverflow ? 'flex' : 'none';
+  rightBtn.style.display = hasOverflow ? 'flex' : 'none';
+}
+
 function setLayout(layout) {
   if (!LAYOUT_PANEL_COUNTS[layout]) return;
 
@@ -1805,6 +1865,8 @@ function setLayout(layout) {
 
   // Close modal
   closeLayoutModal();
+
+  updateScrollArrows();
 }
 
 async function adjustPanelCount(targetCount) {
@@ -1847,7 +1909,7 @@ async function loadCategoryFilter() {
     const prompts = await getAllPrompts();
     const categories = [...new Set(prompts.map(p => p.category).filter(Boolean))];
 
-    categorySelect.innerHTML = '<option value="">All Categories</option>' +
+    categorySelect.innerHTML = '<option value="">所有分类</option>' +
       categories.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join('');
   } catch (error) {
     console.error('Error loading categories:', error);
@@ -1883,7 +1945,7 @@ async function renderPromptList(searchQuery = '') {
       promptList.innerHTML = `
         <div class="prompt-empty">
           <span class="material-symbols-outlined">auto_awesome</span>
-          <p>${searchQuery ? 'No matching prompts' : 'No prompts available'}</p>
+          <p>${searchQuery ? '没有匹配的提示词' : '暂无提示词'}</p>
         </div>
       `;
       return;
@@ -1924,7 +1986,7 @@ async function renderPromptList(searchQuery = '') {
     });
   } catch (error) {
     console.error('Error loading prompts:', error);
-    promptList.innerHTML = '<div class="prompt-empty">Failed to load prompts</div>';
+    promptList.innerHTML = '<div class="prompt-empty">加载提示词失败</div>';
   }
 }
 
@@ -1953,7 +2015,7 @@ function showVariableModal(prompt) {
   inputsContainer.innerHTML = prompt.variables.map(variable => `
     <div class="variable-input-group">
       <label for="var-${escapeHtml(variable)}">${escapeHtml(variable)}</label>
-      <input type="text" id="var-${escapeHtml(variable)}" data-variable="${escapeHtml(variable)}" placeholder="Enter value for ${escapeHtml(variable)}">
+      <input type="text" id="var-${escapeHtml(variable)}" data-variable="${escapeHtml(variable)}" placeholder="输入 ${escapeHtml(variable)} 的值">
     </div>
   `).join('');
 
@@ -2089,11 +2151,11 @@ function handleExtractedAnswer(data) {
 }
 
 async function copyAllAnswers() {
-  showToast('Extracting answers...');
+  showToast('正在提取回答...');
   const answers = await extractAllAnswers();
   const validAnswers = answers.filter(a => a.answer && a.answer.trim().length > 0);
   if (validAnswers.length === 0) {
-    showToast('No answers found - ensure AI has responded');
+    showToast('未找到回答，请确认AI已回复');
     return;
   }
 
@@ -2105,8 +2167,8 @@ async function copyAllAnswers() {
     await navigator.clipboard.writeText(text);
     const missing = answers.length - validAnswers.length;
     const msg = missing > 0
-      ? `Copied ${validAnswers.length}/${answers.length} answers (${missing} incomplete, reopen those panels and retry)`
-      : `Copied ${validAnswers.length} answer${validAnswers.length > 1 ? 's' : ''} to clipboard`;
+      ? `已复制 ${validAnswers.length}/${answers.length} 个回答（${missing} 个不完整，请重新打开面板后重试）`
+      : `已复制 ${validAnswers.length} 个回答到剪贴板`;
     showToast(msg);
   } catch (err) {
     const textarea = document.createElement('textarea');
@@ -2117,8 +2179,8 @@ async function copyAllAnswers() {
     document.body.removeChild(textarea);
     const missing = answers.length - validAnswers.length;
     const msg = missing > 0
-      ? `Copied ${validAnswers.length}/${answers.length} answers`
-      : `Copied ${validAnswers.length} answer${validAnswers.length > 1 ? 's' : ''}`;
+      ? `已复制 ${validAnswers.length}/${answers.length} 个回答`
+      : `已复制 ${validAnswers.length} 个回答`;
     showToast(msg);
   }
 }
@@ -2362,7 +2424,7 @@ async function triggerMerge() {
     <div class="panel-iframe-container">
       <div class="panel-loading">
         <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}">
-        <span class="loading-text">Loading ${provider.name}...</span>
+        <span class="loading-text">加载 ${provider.name} 中...</span>
       </div>
       <iframe
         src="${getProviderFrameUrl(targetProvider)}"
@@ -2422,9 +2484,27 @@ function setupEventListeners() {
   // Add panel button
   document.getElementById('add-panel-btn').addEventListener('click', showAddPanelMenu);
 
-  // Toggle toolbar button and expand bar
-  document.getElementById('toggle-toolbar-btn').addEventListener('click', toggleToolbar);
-  document.getElementById('toolbar-expand-bar').addEventListener('click', toggleToolbar);
+  // Panel grid scroll arrows
+  const scrollLeftBtn = document.getElementById('scroll-left-btn');
+  const scrollRightBtn = document.getElementById('scroll-right-btn');
+
+  if (scrollLeftBtn) {
+    scrollLeftBtn.addEventListener('click', () => {
+      const grid = document.getElementById('panel-grid');
+      if (grid) {
+        grid.scrollBy({ left: -grid.clientWidth, behavior: 'smooth' });
+      }
+    });
+  }
+
+  if (scrollRightBtn) {
+    scrollRightBtn.addEventListener('click', () => {
+      const grid = document.getElementById('panel-grid');
+      if (grid) {
+        grid.scrollBy({ left: grid.clientWidth, behavior: 'smooth' });
+      }
+    });
+  }
 
   // Copy All Answers button
   document.getElementById('copy-all-btn').addEventListener('click', copyAllAnswers);
@@ -2437,15 +2517,6 @@ function setupEventListeners() {
   newChatBtn.addEventListener('pointerdown', preserveNewChatButtonFocus);
   newChatBtn.addEventListener('mousedown', preserveNewChatButtonFocus);
   newChatBtn.addEventListener('click', newChatAllProviders);
-
-  // Temporary Chat button
-  const temporaryChatBtn = document.getElementById('temporary-chat-btn');
-  const preserveTemporaryChatButtonFocus = (event) => {
-    event.preventDefault();
-  };
-  temporaryChatBtn.addEventListener('pointerdown', preserveTemporaryChatButtonFocus);
-  temporaryChatBtn.addEventListener('mousedown', preserveTemporaryChatButtonFocus);
-  temporaryChatBtn.addEventListener('click', temporaryChatAllProviders);
 
   // Settings button
   document.getElementById('settings-btn').addEventListener('click', () => {
@@ -2556,17 +2627,6 @@ function setupEventListeners() {
     if (e.target.id === 'variable-modal') {
       closeVariableModal();
     }
-  });
-
-  // Clear All button
-  document.getElementById('clear-all-btn').addEventListener('click', () => {
-    clearAllInputs();
-  });
-
-  // Fill Input Boxes button (no auto-send)
-  document.getElementById('fill-input-btn').addEventListener('click', () => {
-    const input = document.getElementById('unified-input');
-    broadcastMessage(input.value, false);
   });
 
   const sendAllBtn = document.getElementById('send-all-btn');
@@ -2702,6 +2762,12 @@ function setupEventListeners() {
       closePromptEditor();
     }
   });
+
+  window.addEventListener('resize', () => {
+    if (typeof updateScrollArrows === 'function') {
+      updateScrollArrows();
+    }
+  });
 }
 
 function resizeTextarea() {
@@ -2824,7 +2890,7 @@ async function showProviderSwitcher(panelId) {
 
 async function showAddPanelMenu() {
   if (panels.length >= MAX_PANELS) {
-    showToast(`Maximum number of panels reached (${MAX_PANELS})`);
+    showToast(`已达到最大面板数量（${MAX_PANELS}）`);
     return;
   }
 
@@ -2833,7 +2899,7 @@ async function showAddPanelMenu() {
   const availableProviders = enabledProviders.filter(p => !usedProviders.includes(p.id));
 
   if (availableProviders.length === 0) {
-    showToast('All providers are already in use');
+    showToast('所有提供商已在使用中');
     return;
   }
 
@@ -2942,13 +3008,13 @@ function openPromptEditor(promptId = null) {
 
   if (promptId) {
     // 编辑模式
-    title.textContent = 'Edit Prompt';
+    title.textContent = '编辑提示词';
     deleteBtn.style.display = 'block';
     // 加载现有提示词数据
     loadPromptForEditing(promptId);
   } else {
     // 新增模式
-    title.textContent = 'New Prompt';
+    title.textContent = '新建提示词';
     deleteBtn.style.display = 'none';
     clearPromptEditor();
   }
@@ -2968,7 +3034,7 @@ async function loadPromptForEditing(promptId) {
     }
   } catch (error) {
     console.error('Error loading prompt for editing:', error);
-    showToast('Failed to load prompt');
+    showToast('加载提示词失败');
   }
 }
 
@@ -2994,7 +3060,7 @@ async function savePromptFromEditor() {
   const tagsStr = document.getElementById('prompt-tags-input').value.trim();
 
   if (!title || !content) {
-    alert('Title and content are required');
+    alert('标题和内容为必填项');
     return;
   }
 
@@ -3005,17 +3071,17 @@ async function savePromptFromEditor() {
   try {
     if (currentEditingPromptId) {
       await updatePrompt(currentEditingPromptId, promptData);
-      showToast('Prompt updated successfully');
+      showToast('提示词更新成功');
     } else {
       await savePrompt(promptData);
-      showToast('Prompt saved successfully');
+      showToast('提示词保存成功');
     }
 
     closePromptEditor();
     await renderPromptList();
   } catch (error) {
     console.error('Error saving prompt:', error);
-    showToast('Failed to save prompt');
+    showToast('保存提示词失败');
   }
 }
 
@@ -3023,15 +3089,15 @@ async function savePromptFromEditor() {
 async function deletePromptFromEditor() {
   if (!currentEditingPromptId) return;
 
-  if (confirm('Are you sure you want to delete this prompt?')) {
+  if (confirm('确定要删除这个提示词吗？')) {
     try {
       await deletePrompt(currentEditingPromptId);
-      showToast('Prompt deleted');
+      showToast('提示词已删除');
       closePromptEditor();
       await renderPromptList();
     } catch (error) {
       console.error('Error deleting prompt:', error);
-      showToast('Failed to delete prompt');
+      showToast('删除提示词失败');
     }
   }
 }
