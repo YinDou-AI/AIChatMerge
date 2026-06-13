@@ -483,9 +483,11 @@
   }
 
   function isVisibleElement(element) {
-    if (!element || element.offsetParent === null || element.getAttribute('aria-hidden') === 'true') {
-      return false;
-    }
+    if (!element) return false;
+
+    const style = window.getComputedStyle(element);
+    if (style.display === 'none' || style.visibility === 'hidden') return false;
+    if (element.getAttribute('aria-hidden') === 'true') return false;
 
     const rect = typeof element.getBoundingClientRect === 'function'
       ? element.getBoundingClientRect()
@@ -496,7 +498,7 @@
     }
 
     if (rect.width === 0 && rect.height === 0) {
-      return element.offsetParent !== null;
+      return false;
     }
 
     const viewportWidth = window.innerWidth || document.documentElement?.clientWidth || Number.POSITIVE_INFINITY;
