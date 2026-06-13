@@ -5,7 +5,7 @@
  * allowing users to compare responses from multiple AI providers side by side.
  */
 
-import { PROVIDERS, getProviderById, getEnabledProviders, getProviderIcon } from '../modules/providers.js';
+import { PROVIDERS, getProviderById, getProviderIcon } from '../modules/providers.js';
 import { DEFAULT_PROVIDER_IDS } from '../modules/provider-defaults.js';
 import {
   DEFAULT_GOOGLE_PROVIDER_MODE,
@@ -134,6 +134,7 @@ const LAYOUT_PANEL_COUNTS = {
   '1x5': 5
 };
 let isInitialized = false;
+let isInitializing = false;
 
 function normalizeLayout(layout) {
   if (LAYOUT_PANEL_COUNTS[layout]) {
@@ -947,14 +948,15 @@ async function loadSettings() {
       multiPanelLayout: '1x3',
       multiPanelProviders: DEFAULT_PROVIDERS,
       openMode: 'tab',
-      googleProviderMode: DEFAULT_GOOGLE_PROVIDER_MODE
+      googleProviderMode: DEFAULT_GOOGLE_PROVIDER_MODE,
+      currentPanelPage: 0
     });
 
     currentLayout = normalizeLayout(settings.multiPanelLayout);
     currentOpenMode = settings.openMode || 'tab';
     currentGoogleProviderMode = normalizeGoogleProviderMode(settings.googleProviderMode);
+    currentPanelPage = settings.currentPanelPage || 0;
 
-    // Apply layout
     const panelGrid = document.getElementById('panel-grid');
     panelGrid.className = `layout-${currentLayout}`;
   } catch (error) {
@@ -1113,31 +1115,28 @@ async function restoreStateIfNeeded() {
 async function initializePanels() {
   try {
     const settings = await chrome.storage.sync.get({
-      providerOrder: null,
-      enabledProviders: DEFAULT_PROVIDERS,
       multiPanelProviders: DEFAULT_PROVIDERS
     });
 
-    // Use providerOrder if available (from settings page), fallback to multiPanelProviders
-    let providerIds;
-    if (settings.providerOrder && Array.isArray(settings.providerOrder) && settings.providerOrder.length > 0) {
-      // Use providerOrder directly since it now reflects enabled providers in correct order
-      // Filter to ensure all providers in providerOrder are actually enabled
-      providerIds = settings.providerOrder.filter(id => settings.enabledProviders.includes(id));
-    } else {
-      // Fallback: use enabledProviders in their stored order, or multiPanelProviders
-      providerIds = settings.enabledProviders || settings.multiPanelProviders;
+    const providerIds = settings.multiPanelProviders || DEFAULT_PROVIDERS;
+
+    isInitializing = true;
+    for (const providerId of providerIds) {
+      await addPanel(providerId);
     }
+    isInitializing = false;
 
-    const count = Math.min(providerIds.length, MAX_PANELS);
-
-    // Create all panels and load in parallel for fastest total time
-    for (let i = 0; i < count; i++) {
-      await addPanel(providerIds[i]);
-    }
-
+    saveProviderConfiguration();
+    renderCurrentPage();
   } catch (error) {
+    isInitializing = false;
     console.error('Error initializing panels:', error);
+    // Fallback to default providers
+    for (const providerId of DEFAULT_PROVIDERS) {
+      await addPanel(providerId);
+    }
+    saveProviderConfiguration();
+    renderCurrentPage();
   }
 }
 
@@ -1220,13 +1219,17 @@ async function addPanel(providerId) {
 
   bindPanelHeaderActions(panelId);
 
-  // Save provider configuration
-  await saveProviderConfiguration();
+  // Save provider configuration (skip during init to batch saves)
+  if (!isInitializing) {
+    await saveProviderConfiguration();
+  }
 
-  // 跳转到最后一页显示新面板
-  const panelsPerPage = LAYOUT_PANEL_COUNTS[currentLayout] || 3;
-  currentPanelPage = Math.floor((panels.length - 1) / panelsPerPage);
-  renderCurrentPage();
+  // 跳转到最后一页显示新面板 (skip during init, rendered once at end)
+  if (!isInitializing) {
+    const panelsPerPage = LAYOUT_PANEL_COUNTS[currentLayout] || 3;
+    currentPanelPage = Math.floor((panels.length - 1) / panelsPerPage);
+    renderCurrentPage();
+  }
 }
 
 function removePanel(panelId) {
@@ -1291,7 +1294,8 @@ async function saveProviderConfiguration() {
   try {
     await chrome.storage.sync.set({
       multiPanelProviders: providerIds,
-      multiPanelLayout: currentLayout
+      multiPanelLayout: currentLayout,
+      currentPanelPage: currentPanelPage
     });
   } catch (error) {
     console.error('Error saving provider configuration:', error);
@@ -2656,7 +2660,6 @@ function closePromptModal() {
 
 // ===== Provider Switcher =====
 async function showProviderSwitcher(panelId) {
-  const enabledProviders = await getEnabledProviders();
   const panel = panels.find(p => p.id === panelId);
   if (!panel) return;
   const palette = getDropdownThemePalette();
@@ -2675,7 +2678,7 @@ async function showProviderSwitcher(panelId) {
     padding: 8px 0;
   `;
 
-  menu.innerHTML = enabledProviders.map(provider => `
+  menu.innerHTML = PROVIDERS.map(provider => `
     <div class="provider-switcher-item" data-provider-id="${provider.id}" style="
       display: flex;
       align-items: center;
@@ -2737,80 +2740,55 @@ async function showProviderSwitcher(panelId) {
   setTimeout(() => document.addEventListener('click', closeMenu), 0);
 }
 
-async function showAddPanelMenu() {
-  if (panels.length >= MAX_PANELS) {
-    showToast(`已达到最大面板数量（${MAX_PANELS}）`);
-    return;
-  }
+function showAddPanelMenu() {
+  // 移除已有的下拉菜单
+  const existing = document.querySelector('.add-panel-menu');
+  if (existing) { existing.remove(); return; }
 
-  const enabledProviders = await getEnabledProviders();
-  const usedProviders = panels.map(p => p.providerId);
-  const availableProviders = enabledProviders.filter(p => !usedProviders.includes(p.id));
+  // 统计已添加的提供商
+  const addedProviders = panels.map(p => p.providerId);
 
-  if (availableProviders.length === 0) {
-    showToast('所有提供商已在使用中');
-    return;
-  }
+  const dropdown = document.createElement('div');
+  dropdown.className = 'add-panel-menu';
 
-  const btn = document.getElementById('add-panel-btn');
-  const rect = btn.getBoundingClientRect();
-  const palette = getDropdownThemePalette();
+  PROVIDERS.forEach(provider => {
+    const isAdded = addedProviders.includes(provider.id);
+    const item = document.createElement('button');
+    item.className = 'add-panel-item';
 
-  const menu = document.createElement('div');
-  menu.className = 'add-panel-menu';
-  menu.style.cssText = `
-    position: fixed;
-    top: ${rect.bottom + 4}px;
-    left: ${rect.left}px;
-    background: ${palette.menuBackground};
-    border: 1px solid ${palette.menuBorder};
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 1000;
-    min-width: 160px;
-    padding: 8px 0;
-  `;
+    const providerData = getProviderById(provider.id);
+    const iconSrc = getThemeAwareProviderIcon(providerData);
 
-  menu.innerHTML = availableProviders.map(provider => `
-    <div class="add-panel-item" data-provider-id="${provider.id}" style="
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      cursor: pointer;
-      font-size: 14px;
-      color: ${palette.menuText};
-    ">
-      <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" style="width: 20px; height: 20px;" data-provider-id="${provider.id}">
+    item.innerHTML = `
+      <img src="${iconSrc}" alt="${provider.name}">
       <span>${provider.name}</span>
-    </div>
-  `).join('');
+      ${isAdded ? '<span class="added-badge">已添加</span>' : ''}
+    `;
 
-  document.body.appendChild(menu);
-
-  menu.querySelectorAll('.add-panel-item').forEach(item => {
-    item.addEventListener('click', () => {
-      addPanel(item.dataset.providerId);
-      menu.remove();
+    item.addEventListener('click', async () => {
+      dropdown.remove();
+      await addPanel(provider.id);
     });
 
-    item.addEventListener('mouseenter', () => {
-      item.style.background = palette.itemHoverBackground;
-      item.style.color = palette.menuText;
-    });
-    item.addEventListener('mouseleave', () => {
-      item.style.background = '';
-      item.style.color = palette.menuText;
-    });
+    dropdown.appendChild(item);
   });
 
-  const closeMenu = (e) => {
-    if (!menu.contains(e.target)) {
-      menu.remove();
-      document.removeEventListener('click', closeMenu);
-    }
-  };
-  setTimeout(() => document.addEventListener('click', closeMenu), 0);
+  // 定位到添加按钮上方
+  const btn = document.getElementById('add-panel-btn');
+  if (btn) {
+    btn.style.position = 'relative';
+    btn.appendChild(dropdown);
+  }
+
+  // 点击外部关闭
+  setTimeout(() => {
+    document.addEventListener('click', function closeDropdown(e) {
+      if (!dropdown.contains(e.target) && e.target !== btn) {
+        dropdown.remove();
+        document.removeEventListener('click', closeDropdown);
+      }
+    });
+  }, 0);
 }
 
 // ===== Utility Functions =====

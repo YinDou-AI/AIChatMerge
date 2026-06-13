@@ -1,13 +1,5 @@
 // T050-T064: Settings Page Implementation
-import { PROVIDERS, getProviderIcon } from '../modules/providers.js';
-import { DEFAULT_PROVIDER_IDS } from '../modules/provider-defaults.js';
 import { getSettings, getSetting, saveSettings, saveSetting, resetSettings, exportSettings, importSettings } from '../modules/settings.js';
-import {
-  DEFAULT_GOOGLE_PROVIDER_MODE,
-  GOOGLE_PROVIDER_MODE_AI,
-  GOOGLE_PROVIDER_MODE_SEARCH,
-  normalizeGoogleProviderMode
-} from '../modules/google-mode.js';
 import { applyTheme } from '../modules/theme-manager.js';
 import {
   getAllPrompts,
@@ -21,7 +13,7 @@ import {
   checkForUpdates
 } from '../modules/version-checker.js';
 import { t, translatePage, getCurrentLanguage, initializeLanguage } from '../modules/i18n.js';
-const DEFAULT_ENABLED_PROVIDERS = DEFAULT_PROVIDER_IDS;
+
 
 function fitSelectWidth(select) {
   if (!(select instanceof HTMLSelectElement)) {
@@ -78,25 +70,6 @@ function refreshAutoSizedSelects(root = document) {
   });
 }
 
-function getGoogleProviderModeOrDefault(settings) {
-  return normalizeGoogleProviderMode(settings.googleProviderMode || DEFAULT_GOOGLE_PROVIDER_MODE);
-}
-
-function renderGoogleModeSelectMarkup(currentMode, isEnabled) {
-  const normalizedMode = normalizeGoogleProviderMode(currentMode);
-  return `
-    <select
-      class="google-mode-select"
-      data-google-mode-select="true"
-      ${isEnabled ? '' : 'disabled'}
-      title="Google provider mode"
-    >
-      <option value="${GOOGLE_PROVIDER_MODE_AI}" ${normalizedMode === GOOGLE_PROVIDER_MODE_AI ? 'selected' : ''}>AI Mode</option>
-      <option value="${GOOGLE_PROVIDER_MODE_SEARCH}" ${normalizedMode === GOOGLE_PROVIDER_MODE_SEARCH ? 'selected' : ''}>Search</option>
-    </select>
-  `;
-}
-
 // Helper function to get browser's current language in our supported format
 function getCurrentBrowserLanguage() {
   const browserLang = getCurrentLanguage();
@@ -108,33 +81,6 @@ function getCurrentBrowserLanguage() {
     return 'zh_CN';
   }
   return 'en';
-}
-
-function getEnabledProvidersOrDefault(settings) {
-  if (settings.enabledProviders && Array.isArray(settings.enabledProviders)) {
-    return [...settings.enabledProviders];
-  }
-  return [...DEFAULT_ENABLED_PROVIDERS];
-}
-
-function getProviderDisplayOrder(settings) {
-  const savedOrder = Array.isArray(settings.providerOrder) ? settings.providerOrder : [];
-  const allIds = PROVIDERS.map(provider => provider.id);
-  const orderedIds = [];
-
-  for (const id of savedOrder) {
-    if (allIds.includes(id) && !orderedIds.includes(id)) {
-      orderedIds.push(id);
-    }
-  }
-
-  for (const id of allIds) {
-    if (!orderedIds.includes(id)) {
-      orderedIds.push(id);
-    }
-  }
-
-  return orderedIds;
 }
 
 function isEdgeBrowser() {
@@ -255,12 +201,9 @@ async function init() {
   translatePage();  // Translate all static text
   await loadSettings();
   await loadDataStats();
-  await loadLibraryCount();  // Load default library count
   await loadVersionDisplay();  // T073: Load and display version info
   await hideUpdateCheckingIfNeeded();  // Hide update checking for web store installations
-  await renderProviderList();
   setupEventListeners();
-  setupStorageChangeListener();
   setupShortcutHelpers();
   refreshAutoSizedSelects();
 }
@@ -320,166 +263,6 @@ async function loadSettings() {
   refreshAutoSizedSelects();
 }
 
-// T052-T053: Render provider enable/disable toggles with drag-and-drop reordering
-async function renderProviderList() {
-  const settings = await getSettings();
-  const enabledProviders = getEnabledProvidersOrDefault(settings);
-  const googleProviderMode = getGoogleProviderModeOrDefault(settings);
-  const displayOrder = getProviderDisplayOrder(settings);
-  const listContainer = document.getElementById('provider-list');
-
-  const orderIndex = new Map(displayOrder.map((id, index) => [id, index]));
-  const sortedProviders = [...PROVIDERS].sort((a, b) => {
-    return (orderIndex.get(a.id) ?? 0) - (orderIndex.get(b.id) ?? 0);
-  });
-
-  listContainer.innerHTML = sortedProviders.map(provider => {
-    const isEnabled = enabledProviders.includes(provider.id);
-    const googleModeControl = provider.id === 'google'
-      ? renderGoogleModeSelectMarkup(googleProviderMode, isEnabled)
-      : '';
-
-    return `
-      <div class="provider-item ${isEnabled ? 'draggable' : ''}" data-provider-id="${provider.id}" draggable="${isEnabled}">
-        <div class="provider-info">
-          ${isEnabled ? '<span class="drag-handle material-symbols-outlined">drag_indicator</span>' : ''}
-          <div class="provider-icon">
-            <img src="${getProviderIcon(provider)}" alt="${provider.name}" width="24" height="24"
-                 onerror="this.style.display='none'" />
-          </div>
-          <span class="provider-name">${provider.name}</span>
-        </div>
-        <div class="provider-controls">
-          ${googleModeControl}
-          <div class="toggle-switch ${isEnabled ? 'active' : ''}" data-provider-id="${provider.id}"></div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // Add click listeners to toggles
-  listContainer.querySelectorAll('.toggle-switch').forEach(toggle => {
-    toggle.addEventListener('click', async (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const providerItem = toggle.closest('.provider-item');
-      const providerId = providerItem?.dataset.providerId || toggle.dataset.providerId;
-      if (!providerId) return;
-
-      await toggleProvider(providerId);
-    });
-  });
-
-  listContainer.querySelectorAll('[data-google-mode-select="true"]').forEach(select => {
-    select.addEventListener('mousedown', (event) => {
-      event.stopPropagation();
-    });
-
-    select.addEventListener('click', (event) => {
-      event.stopPropagation();
-    });
-
-    select.addEventListener('change', async (event) => {
-      await saveSetting('googleProviderMode', normalizeGoogleProviderMode(event.target.value));
-      fitSelectWidth(event.target);
-      showStatus('success', 'Google mode updated');
-    });
-  });
-
-  // Setup drag-and-drop for enabled providers
-  setupProviderDragAndDrop(listContainer);
-  refreshAutoSizedSelects(listContainer);
-}
-
-function setupStorageChangeListener() {
-  if (!chrome?.storage?.onChanged?.addListener) {
-    return;
-  }
-
-  chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== 'sync' && areaName !== 'local') {
-      return;
-    }
-
-    if (changes.googleProviderMode) {
-      renderProviderList().catch((error) => {
-        console.error('Error syncing Google mode control:', error);
-      });
-    }
-  });
-}
-
-// Setup drag-and-drop reordering
-function setupProviderDragAndDrop(container) {
-  let draggedItem = null;
-
-  container.querySelectorAll('.provider-item.draggable').forEach(item => {
-    item.addEventListener('dragstart', (e) => {
-      draggedItem = item;
-      item.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    });
-
-    item.addEventListener('dragend', () => {
-      item.classList.remove('dragging');
-      draggedItem = null;
-      // Save new order
-      saveProviderOrder(container);
-    });
-
-    item.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      if (!draggedItem || draggedItem === item) return;
-
-      const rect = item.getBoundingClientRect();
-      const midY = rect.top + rect.height / 2;
-
-      if (e.clientY < midY) {
-        item.parentNode.insertBefore(draggedItem, item);
-      } else {
-        item.parentNode.insertBefore(draggedItem, item.nextSibling);
-      }
-    });
-  });
-}
-
-// Save the new provider order
-async function saveProviderOrder(container) {
-  const settings = await getSettings();
-  const enabledProviders = getEnabledProvidersOrDefault(settings);
-  const items = container.querySelectorAll('.provider-item');
-  const newOrder = Array.from(items).map(item => item.dataset.providerId);
-  const newEnabledOrder = newOrder.filter(id => enabledProviders.includes(id));
-
-  await saveSetting('providerOrder', newOrder);
-  // Also update enabledProviders to match the new order among enabled items
-  await saveSetting('enabledProviders', newEnabledOrder);
-  showStatus('success', t('msgProviderSettingsUpdated'));
-}
-
-async function toggleProvider(providerId) {
-  const settings = await getSettings();
-  let enabledProviders = getEnabledProvidersOrDefault(settings);
-
-  if (enabledProviders.includes(providerId)) {
-    // Disable - but ensure at least one provider remains enabled
-    if (enabledProviders.length === 1) {
-      showStatus('error', t('msgOneProviderRequired'));
-      return;
-    }
-    enabledProviders = enabledProviders.filter(id => id !== providerId);
-
-  } else {
-    // Enable
-    enabledProviders.push(providerId);
-  }
-
-  await saveSetting('enabledProviders', enabledProviders);
-  await renderProviderList();
-  showStatus('success', t('msgProviderSettingsUpdated'));
-}
-
 // T056: Load and display data statistics
 async function loadDataStats() {
   try {
@@ -495,24 +278,6 @@ async function loadDataStats() {
     // Silently handle data stats errors
     document.getElementById('stat-prompts').textContent = '0';
     document.getElementById('stat-storage').textContent = '0 KB';
-  }
-}
-
-// Load default library count
-async function loadLibraryCount() {
-  const countElement = document.getElementById('library-count');
-  if (!countElement) return;
-
-  try {
-    const language = await getDefaultLibraryLanguage();
-    const libraryPath = getDefaultLibraryPath(language);
-    const response = await fetch(chrome.runtime.getURL(libraryPath));
-    const promptsArray = await response.json();
-    const count = Array.isArray(promptsArray) ? promptsArray.length : 0;
-    countElement.textContent = t('msgPromptsCount', count.toString());
-  } catch (error) {
-    console.error('Failed to load library count:', error);
-    countElement.textContent = t('msgUnknownCount');
   }
 }
 
@@ -547,17 +312,10 @@ async function getDefaultLibraryLanguage() {
 
 // T057-T064: Setup event listeners
 function setupEventListeners() {
-  document.addEventListener('panelize:themechange', () => {
-    renderProviderList().catch((error) => {
-      console.error('Failed to refresh provider icons after theme change:', error);
-    });
-  });
-
   // Theme change
   document.getElementById('theme-select').addEventListener('change', async (e) => {
     await saveSetting('theme', e.target.value);
     await applyTheme();  // Re-apply theme immediately
-    await renderProviderList();
     showStatus('success', t('msgThemeUpdated'));
   });
 
@@ -700,21 +458,6 @@ function setupEventListeners() {
     });
   }
 
-  // Multi-Panel: Layout selection
-  const multiPanelLayoutSelect = document.getElementById('multi-panel-layout-select');
-  if (multiPanelLayoutSelect) {
-    // Load saved layout
-    chrome.storage.sync.get({ multiPanelLayout: '1x3' }, (result) => {
-      const storedLayout = result.multiPanelLayout;
-      const hasOption = Array.from(multiPanelLayoutSelect.options).some(option => option.value === storedLayout);
-      multiPanelLayoutSelect.value = hasOption ? storedLayout : '1x3';
-    });
-
-    multiPanelLayoutSelect.addEventListener('change', async (e) => {
-      await chrome.storage.sync.set({ multiPanelLayout: e.target.value });
-      showStatus('success', t('msgLayoutUpdated') || 'Layout updated');
-    });
-  }
 }
 
 // T057: Export all data
@@ -823,7 +566,6 @@ async function resetSettingsOnly() {
   try {
     await resetSettings();
     await loadSettings();
-    await renderProviderList();
     showStatus('success', t('msgSettingsReset'));
   } catch (error) {
     showStatus('error', t('msgResetSettingsFailed'));
