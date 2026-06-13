@@ -396,11 +396,11 @@ async function init() {
   await applyTheme();
 
   // Initialize i18n
-  const { localeMode = 'auto' } = await chrome.storage.local.get('localeMode');
-  if (localeMode === 'auto') {
-    currentLocale = detectLocale();
+  const { language } = await chrome.storage.sync.get({ language: null });
+  if (language) {
+    currentLocale = language.startsWith('zh') ? 'zh' : 'en';
   } else {
-    currentLocale = localeMode;
+    currentLocale = detectLocale();
   }
   applyI18n();
 
@@ -750,11 +750,28 @@ function registerStorageChangeListener() {
     return;
   }
 
-  chrome.storage.onChanged.addListener((changes, areaName) => {
+  chrome.storage.onChanged.addListener(async (changes, areaName) => {
     if (areaName !== 'sync' && areaName !== 'local') {
       return;
     }
 
+    // Theme change: re-apply theme immediately
+    if (changes.theme) {
+      await applyTheme();
+    }
+
+    // Language change: update locale and re-apply i18n
+    if (changes.language) {
+      const newLanguage = changes.language.newValue;
+      if (newLanguage) {
+        currentLocale = newLanguage.startsWith('zh') ? 'zh' : 'en';
+      } else {
+        currentLocale = detectLocale();
+      }
+      applyI18n();
+    }
+
+    // Google provider mode change
     if (!changes.googleProviderMode || !changes.googleProviderMode.newValue) {
       return;
     }
@@ -1956,30 +1973,22 @@ function renderCurrentPage() {
   const endIndex = startIndex + panelsPerPage;
 
   // 显示/隐藏面板
-  // 非当前页用 opacity:0 + position:absolute 而非 display:none，确保 iframe 继续加载
+  // 非当前页面板：position:absolute 脱离 grid 流（避免占位），opacity:0 让 iframe 仍能加载
   panels.forEach((panel, index) => {
     const panelEl = document.getElementById(panel.id);
     if (panelEl) {
       if (index >= startIndex && index < endIndex) {
-        panelEl.style.visibility = '';
         panelEl.style.position = '';
-        panelEl.style.width = '';
-        panelEl.style.height = '';
-        panelEl.style.overflow = '';
         panelEl.style.opacity = '';
         panelEl.style.pointerEvents = '';
-        panelEl.style.left = '';
-        panelEl.style.top = '';
+        panelEl.style.width = '';
+        panelEl.style.height = '';
       } else {
         panelEl.style.position = 'absolute';
-        panelEl.style.visibility = 'hidden';
         panelEl.style.opacity = '0';
         panelEl.style.pointerEvents = 'none';
-        panelEl.style.left = '-9999px';
-        panelEl.style.top = '0';
         panelEl.style.width = '100%';
         panelEl.style.height = '100%';
-        panelEl.style.overflow = 'hidden';
       }
     }
   });
