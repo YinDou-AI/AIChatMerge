@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title data-i18n="optionsPageTitle">Panelize - Settings</title>
+  <title data-i18n="optionsPageTitle">Panelize - 设置</title>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet">
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1 data-i18n="headerSettingsTitle">Settings: Panelize</h1>
-      <p data-i18n="headerSettingsSubtitle">Customize your multi-AI comparison experience</p>
+      <h1 data-i18n="headerSettingsTitle">设置：Panelize</h1>
+      <p data-i18n="headerSettingsSubtitle">自定义您的多 AI 对比体验</p>
     </header>
 
     <div class="content">
@@ -24,26 +24,26 @@
 
       <!-- T051: Theme Settings -->
       <section class="section">
-        <h2 class="section-title" data-i18n="sectionAppearance">Appearance</h2>
+        <h2 class="section-title" data-i18n="sectionAppearance">外观</h2>
 
         <div class="setting-item">
           <div class="setting-info">
-            <div class="setting-label" data-i18n="labelTheme">Theme</div>
-            <div class="setting-description" data-i18n="descTheme">Choose your preferred color scheme</div>
+            <div class="setting-label" data-i18n="labelTheme">主题</div>
+            <div class="setting-description" data-i18n="descTheme">选择您偏好的配色方案</div>
           </div>
           <div class="setting-control">
             <select id="theme-select">
-              <option value="auto" data-i18n="themeAuto">Auto (System)</option>
-              <option value="light" data-i18n="themeLight">Light</option>
-              <option value="dark" data-i18n="themeDark">Dark</option>
+              <option value="auto" data-i18n="themeAuto">跟随系统</option>
+              <option value="light" data-i18n="themeLight">浅色</option>
+              <option value="dark" data-i18n="themeDark">深色</option>
             </select>
           </div>
         </div>
 
         <div class="setting-item">
           <div class="setting-info">
-            <div class="setting-label" data-i18n="labelLanguage">Language</div>
-            <div class="setting-description" data-i18n="descLanguage">Choose your preferred interface language</div>
+            <div class="setting-label" data-i18n="labelLanguage">语言</div>
+            <div class="setting-description" data-i18n="descLanguage">选择您偏好的界面语言</div>
           </div>
           <div class="setting-control">
             <select id="language-select">
@@ -84,13 +84,13 @@
 
       <!-- Keyboard Settings -->
       <section class="section">
-        <h2 class="section-title" data-i18n="sectionKeyboard">Keyboard</h2>
+        <h2 class="section-title" data-i18n="sectionKeyboard">键盘</h2>
 
         <div class="setting-item">
           <div class="setting-info">
-            <div class="setting-label" data-i18n="labelEnableKeyboardShortcut">Enable Keyboard Shortcut</div>
+            <div class="setting-label" data-i18n="labelEnableKeyboardShortcut">启用键盘快捷键</div>
             <div class="setting-description" data-i18n="descEnableKeyboardShortcut">
-              Toggle the global shortcut that opens Panelize from anywhere in the browser.
+              切换全局快捷键，可在浏览器任意位置打开 Panelize。
             </div>
           </div>
           <div class="setting-control">
@@ -103,42 +103,42 @@
 
         <div class="setting-item">
           <div class="setting-info">
-            <div class="setting-label" data-i18n="labelDefaultShortcuts">Default Shortcuts</div>
+            <div class="setting-label" data-i18n="labelDefaultShortcuts">默认快捷键</div>
             <div class="setting-description" data-i18n-html="descDefaultShortcuts">
-              Command+Shift+E (Ctrl+Shift+E on Windows/Linux) opens Panelize.<br>
-              Command+Shift+L (Ctrl+Shift+L on Windows/Linux) opens Prompt Library.
+              Command+Shift+E（Windows/Linux 上为 Ctrl+Shift+E）打开 Panelize。<br>
+              Command+Shift+L（Windows/Linux 上为 Ctrl+Shift+L）打开提示词库。
             </div>
           </div>
           <div class="setting-control">
-            <button class="btn btn-secondary" id="open-shortcuts-btn" data-i18n="btnOpenShortcuts">Open Shortcuts</button>
+            <button class="btn btn-secondary" id="open-shortcuts-btn" data-i18n="btnOpenShortcuts">打开快捷键设置</button>
           </div>
         </div>
 
         <div class="setting-item" id="edge-shortcut-helper" style="display: none;">
           <div class="setting-info">
-            <div class="setting-label" data-i18n="labelEdgeShortcutHelper">Confirm in Microsoft Edge</div>
+            <div class="setting-label" data-i18n="labelEdgeShortcutHelper">在 Microsoft Edge 中确认</div>
             <div class="setting-description" data-i18n="descEdgeShortcutHelper">
-              Edge requires you to confirm the shortcut once. Click configure to jump straight to the Edge shortcuts page.
+              Edge 需要您确认一次快捷键。点击配置直接跳转到 Edge 快捷键页面。
             </div>
           </div>
           <div class="setting-control">
-            <button class="btn btn-secondary" id="open-edge-shortcuts-btn" data-i18n="btnConfigureEdge">Configure in Edge</button>
+            <button class="btn btn-secondary" id="open-edge-shortcuts-btn" data-i18n="btnConfigureEdge">在 Edge 中配置</button>
           </div>
         </div>
 
         <!-- Enter Key Behavior -->
         <p style="font-size: 14px; color: #666; margin-top: 24px; margin-bottom: 8px;" data-i18n="descEnterBehavior1">
-          Customize how Enter and modifier keys work when typing in AI provider input fields.
+          自定义在 AI 提供商输入框中按 Enter 和修饰键的行为。
         </p>
         <p style="font-size: 13px; color: #888; margin-bottom: 16px;" data-i18n-html="descEnterBehavior2">
-          <strong>Applies to:</strong> ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Doubao, and Google (AI Mode).
+          <strong>适用于：</strong>ChatGPT、Claude、Gemini、Grok、DeepSeek、Kimi、豆包和 Google（AI 模式）。
         </p>
 
         <div class="setting-item">
           <div class="setting-info">
-            <div class="setting-label" data-i18n="labelEnableEnterCustom">Enable Enter Key Customization</div>
+            <div class="setting-label" data-i18n="labelEnableEnterCustom">启用 Enter 键自定义</div>
             <div class="setting-description" data-i18n="descEnableEnterCustom">
-              When enabled, modifies Enter key behavior across all supported AI providers
+              启用后，修改所有支持的 AI 提供商的 Enter 键行为
             </div>
           </div>
           <div class="setting-control">
@@ -152,23 +152,23 @@
         <div id="enter-behavior-settings">
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-label" data-i18n="labelPreset">Preset</div>
-              <div class="setting-description" data-i18n="descPreset">Choose a common key combination pattern</div>
+              <div class="setting-label" data-i18n="labelPreset">预设</div>
+              <div class="setting-description" data-i18n="descPreset">选择一个常用的按键组合模式</div>
             </div>
             <div class="setting-control">
               <select id="enter-preset-select">
-                <option value="default" selected data-i18n="presetDefault">Default (Enter=Send, Shift+Enter=Newline)</option>
-                <option value="swapped" data-i18n="presetSwapped">Swapped (Enter=Newline, Shift+Enter=Send)</option>
-                <option value="slack" data-i18n="presetSlack">Slack-style (Enter=Send, Ctrl+Enter=Newline)</option>
-                <option value="discord" data-i18n="presetDiscord">Discord-style (Enter=Newline, Ctrl+Enter=Send)</option>
-                <option value="custom" data-i18n="presetCustom">Custom</option>
+                <option value="default" selected data-i18n="presetDefault">默认（Enter=发送，Shift+Enter=换行）</option>
+                <option value="swapped" data-i18n="presetSwapped">交换（Enter=换行，Shift+Enter=发送）</option>
+                <option value="slack" data-i18n="presetSlack">Slack 风格（Enter=发送，Ctrl+Enter=换行）</option>
+                <option value="discord" data-i18n="presetDiscord">Discord 风格（Enter=换行，Ctrl+Enter=发送）</option>
+                <option value="custom" data-i18n="presetCustom">自定义</option>
               </select>
             </div>
           </div>
 
           <div id="custom-enter-settings" style="display: none;">
             <div class="key-mapping-card">
-              <h3 data-i18n="labelInsertNewline">Insert Newline</h3>
+              <h3 data-i18n="labelInsertNewline">插入换行</h3>
               <div class="key-mapping-controls">
                 <label>
                   <input type="checkbox" id="newline-shift" /> <span data-i18n="keyShift">Shift</span>
@@ -187,7 +187,7 @@
             </div>
 
             <div class="key-mapping-card">
-              <h3 data-i18n="labelSendMessage">Send Message</h3>
+              <h3 data-i18n="labelSendMessage">发送消息</h3>
               <div class="key-mapping-controls">
                 <label>
                   <input type="checkbox" id="send-shift" /> <span data-i18n="keyShift">Shift</span>
@@ -211,29 +211,29 @@
 
       <!-- Prompt Library -->
       <section class="section">
-        <h2 class="section-title" data-i18n="sectionPromptLibrary">Prompt Library</h2>
+        <h2 class="section-title" data-i18n="sectionPromptLibrary">提示词库</h2>
         <p style="font-size: 14px; color: #666; margin-bottom: 16px;" data-i18n="descPromptLibrary">
-          Import curated meta-prompts for AI workflows, research, coding, and analysis
+          导入精选的 AI 工作流、研究、编码和分析元提示词
         </p>
 
         <div class="library-import-card">
           <div class="library-header">
-            <h3 data-i18n="labelDefaultPromptLibrary">Default Prompt Library</h3>
+            <h3 data-i18n="labelDefaultPromptLibrary">默认提示词库</h3>
           </div>
           <p class="library-description" data-i18n="descDefaultPromptLibrary">
-            Meta-prompts for prompt refinement, planning, coding, testing, research, writing, and more.
-            Includes variables support for dynamic templates.
+            用于提示词优化、规划、编码、测试、研究、写作等的元提示词。
+            支持变量的动态模板。
           </p>
           <div class="btn-group">
-            <button class="btn btn-primary" id="import-default-library" data-i18n="btnImportDefault">Import Default Prompts</button>
-            <button class="btn btn-secondary" id="import-custom-library" data-i18n="btnImportCustom">Import Custom Prompts</button>
+            <button class="btn btn-primary" id="import-default-library" data-i18n="btnImportDefault">导入默认提示词</button>
+            <button class="btn btn-secondary" id="import-custom-library" data-i18n="btnImportCustom">导入自定义提示词</button>
           </div>
           <p class="library-helper" data-i18n="descCustomPromptGuide">
-            Need help formatting custom prompts? Open the guide or download a JSON template.
+            需要自定义提示词的格式帮助？打开指南或下载 JSON 模板。
           </p>
           <div class="btn-group">
-            <button class="btn btn-secondary" id="open-custom-prompt-guide" type="button" data-i18n="btnOpenPromptGuide">Open Guide</button>
-            <button class="btn btn-secondary" id="download-custom-prompt-template" type="button" data-i18n="btnDownloadPromptTemplate">Download Template</button>
+            <button class="btn btn-secondary" id="open-custom-prompt-guide" type="button" data-i18n="btnOpenPromptGuide">打开指南</button>
+            <button class="btn btn-secondary" id="download-custom-prompt-template" type="button" data-i18n="btnDownloadPromptTemplate">下载模板</button>
           </div>
           <input type="file" id="import-custom-library-file" accept=".json" style="display: none;" />
         </div>
@@ -241,20 +241,20 @@
 
       <!-- Content Sending Settings -->
       <section class="section">
-        <h2 class="section-title" data-i18n="sectionContentSending">Content Sending</h2>
+        <h2 class="section-title" data-i18n="sectionContentSending">内容发送</h2>
 
         <div class="setting-item">
           <div class="setting-info">
-            <div class="setting-label" data-i18n="labelSourceUrlPlacement">Source URL Placement</div>
+            <div class="setting-label" data-i18n="labelSourceUrlPlacement">来源 URL 位置</div>
             <div class="setting-description" data-i18n="descSourceUrlPlacement">
-              Choose where to place the source URL when sending selected text or page content to AI providers
+              选择发送选中文本或页面内容到 AI 提供商时，来源 URL 的放置位置
             </div>
           </div>
           <div class="setting-control">
             <select id="source-url-placement-select">
-              <option value="none" data-i18n="urlPlacementNone">Don't include URL</option>
-              <option value="end" data-i18n="urlPlacementEnd">At end (after content)</option>
-              <option value="beginning" data-i18n="urlPlacementBeginning">At beginning (before content)</option>
+              <option value="none" data-i18n="urlPlacementNone">不包含 URL</option>
+              <option value="end" data-i18n="urlPlacementEnd">放在末尾（内容之后）</option>
+              <option value="beginning" data-i18n="urlPlacementBeginning">放在开头（内容之前）</option>
             </select>
           </div>
         </div>
@@ -263,37 +263,37 @@
 
       <!-- T056-T064: Data Management -->
       <section class="section">
-        <h2 class="section-title" data-i18n="sectionDataManagement">Data Management</h2>
+        <h2 class="section-title" data-i18n="sectionDataManagement">数据管理</h2>
 
         <div class="data-stats" id="data-stats">
           <div class="data-stat-item">
-            <span class="data-stat-label" data-i18n="statPrompts">Prompts</span>
+            <span class="data-stat-label" data-i18n="statPrompts">提示词</span>
             <span class="data-stat-value" id="stat-prompts">0</span>
           </div>
           <div class="data-stat-item">
-            <span class="data-stat-label" data-i18n="statStorageUsed">Storage Used</span>
+            <span class="data-stat-label" data-i18n="statStorageUsed">已用存储</span>
             <span class="data-stat-value" id="stat-storage">~0 KB</span>
           </div>
         </div>
 
         <div class="setting-item">
           <div class="setting-info">
-            <div class="setting-label" data-i18n="labelExportData">Export Data</div>
-            <div class="setting-description" data-i18n="descExportData">Download all prompts and settings as JSON</div>
+            <div class="setting-label" data-i18n="labelExportData">导出数据</div>
+            <div class="setting-description" data-i18n="descExportData">将所有提示词和设置下载为 JSON</div>
           </div>
           <div class="setting-control">
-            <button class="btn btn-secondary" id="export-btn" data-i18n="btnExport">Export</button>
+            <button class="btn btn-secondary" id="export-btn" data-i18n="btnExport">导出</button>
           </div>
         </div>
 
         <div class="setting-item">
           <div class="setting-info">
-            <div class="setting-label" data-i18n="labelImportData">Import Data</div>
-            <div class="setting-description" data-i18n="descImportData">Restore prompts and settings from JSON file</div>
+            <div class="setting-label" data-i18n="labelImportData">导入数据</div>
+            <div class="setting-description" data-i18n="descImportData">从 JSON 文件恢复提示词和设置</div>
           </div>
           <div class="setting-control">
             <input type="file" id="import-file" accept=".json" style="display: none;" />
-            <button class="btn btn-secondary" id="import-btn" data-i18n="btnImport">Import</button>
+            <button class="btn btn-secondary" id="import-btn" data-i18n="btnImport">导入</button>
           </div>
         </div>
 
@@ -301,44 +301,44 @@
 
       <!-- Danger Zone -->
       <section class="section">
-        <h2 class="section-title" style="color: #d32f2f;" data-i18n="sectionDangerZone">Danger Zone</h2>
+        <h2 class="section-title" style="color: #d32f2f;" data-i18n="sectionDangerZone">危险区域</h2>
         <p style="font-size: 14px; color: #d32f2f; margin-bottom: 16px;" data-i18n="descDangerZone">
-          These actions cannot be undone. Use with caution.
+          这些操作无法撤销，请谨慎使用。
         </p>
 
         <div class="setting-item">
           <div class="setting-info">
-            <div class="setting-label" data-i18n="labelClearPrompts">Clear Prompts</div>
-            <div class="setting-description" data-i18n="descClearPrompts">Delete all prompts from your library</div>
+            <div class="setting-label" data-i18n="labelClearPrompts">清除提示词</div>
+            <div class="setting-description" data-i18n="descClearPrompts">删除您库中的所有提示词</div>
           </div>
           <div class="setting-control">
-            <button class="btn btn-danger" id="clear-prompts-btn" data-i18n="btnClear">Clear</button>
+            <button class="btn btn-danger" id="clear-prompts-btn" data-i18n="btnClear">清除</button>
           </div>
         </div>
 
         <div class="setting-item">
           <div class="setting-info">
-            <div class="setting-label" data-i18n="labelResetSettings">Reset Settings</div>
-            <div class="setting-description" data-i18n="descResetSettings">Reset all settings to defaults</div>
+            <div class="setting-label" data-i18n="labelResetSettings">重置设置</div>
+            <div class="setting-description" data-i18n="descResetSettings">将所有设置重置为默认值</div>
           </div>
           <div class="setting-control">
-            <button class="btn btn-danger" id="reset-settings-btn" data-i18n="btnReset">Reset</button>
+            <button class="btn btn-danger" id="reset-settings-btn" data-i18n="btnReset">重置</button>
           </div>
         </div>
       </section>
 
       <!-- About Section -->
       <section class="section">
-        <h2 class="section-title" data-i18n="sectionAbout">About</h2>
+        <h2 class="section-title" data-i18n="sectionAbout">关于</h2>
 
         <div class="about-info">
           <div class="version-display">
-            <div class="version" id="version">Version 1.0.0</div>
-            <div class="commit-hash" id="commit-hash" data-i18n="labelLoading">Loading...</div>
+            <div class="version" id="version">版本 1.0.0</div>
+            <div class="commit-hash" id="commit-hash" data-i18n="labelLoading">加载中...</div>
           </div>
 
           <div class="version-actions">
-            <button class="btn btn-secondary" id="check-updates-btn" data-i18n="btnCheckUpdates">Check for Updates</button>
+            <button class="btn btn-secondary" id="check-updates-btn" data-i18n="btnCheckUpdates">检查更新</button>
           </div>
 
           <div id="update-status" class="update-status" style="display: none;"></div>
@@ -348,14 +348,14 @@
                id="download-latest-link"
                target="_blank"
                rel="noopener noreferrer"
-               data-i18n="linkDownloadLatest">Download Latest Version</a>
+               data-i18n="linkDownloadLatest">下载最新版本</a>
           </div>
 
           <p style="font-size: 14px; color: #666; margin-bottom: 8px; margin-top: 16px;" data-i18n="descAbout1">
-            Panelize lets you compare multiple AI chatbots side-by-side in one window.
+            Panelize 让您在一个窗口中并排比较多个 AI 聊天机器人。
           </p>
           <p style="font-size: 12px; color: #999;" data-i18n="descAbout2">
-            Built with privacy-first architecture. All data stored locally.
+            采用隐私优先架构，所有数据本地存储。
           </p>
         </div>
       </section>

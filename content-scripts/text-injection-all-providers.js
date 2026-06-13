@@ -1106,7 +1106,7 @@
       if (sendButton) {
         const enabled = isElementEnabled(sendButton);
         console.log('[Text Injection] Doubao ButtonFinderUtils found send button, enabled:', enabled);
-        if (enabled) {
+        if (isExtractMode || enabled) {
           sendButton.click();
           return true;
         }
@@ -1142,7 +1142,7 @@
                 parent = parent.parentElement;
               }
             }
-            if (isElementEnabled(targetElement)) {
+            if (isExtractMode || isElementEnabled(targetElement)) {
               targetElement.click();
               return true;
             } else {
