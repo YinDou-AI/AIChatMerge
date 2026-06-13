@@ -1290,7 +1290,7 @@ async function switchPanelProvider(panelId, newProviderId) {
 }
 
 async function saveProviderConfiguration() {
-  const providerIds = panels.map(p => p.providerId);
+  const providerIds = getNonMergePanels().map(p => p.providerId);
   try {
     await chrome.storage.sync.set({
       multiPanelProviders: providerIds,
@@ -1986,7 +1986,7 @@ function handleExtractedAnswer(data) {
     });
   }
 
-  if (entry.respondedPanels.size >= panels.length) {
+  if (entry.respondedPanels.size >= getNonMergePanels().length) {
     clearTimeout(entry.timer);
     console.log('[CopyAll] All panels responded. Answers:', entry.answers.length, 'of', panels.length);
     entry.resolve(entry.answers);
@@ -1995,7 +1995,6 @@ function handleExtractedAnswer(data) {
 }
 
 async function copyAllAnswers() {
-  showToast('正在提取回答...');
   const answers = await extractAllAnswers();
   const validAnswers = answers.filter(a => a.answer && a.answer.trim().length > 0);
   if (validAnswers.length === 0) {
@@ -2807,10 +2806,10 @@ function showToast(message) {
     left: 50%;
     transform: translateX(-50%);
     background: #333;
-    color: white;
+    color: rgba(255,255,255,0.7);
     padding: 12px 24px;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 13px;
     z-index: 10000;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   `;
