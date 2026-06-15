@@ -1,22 +1,33 @@
 // Text injection handler for all AI providers
 // Self-contained script without module imports (for iframe compatibility)
 
-// Anti frame-busting: prevent pages from breaking out of iframe
+// Anti frame-busting: only for sites known to use frame-busting JS
 (function() {
   try {
-    // Override top/location setters to block frame-busting
-    Object.defineProperty(window, 'top', { get: () => window, configurable: false });
-    Object.defineProperty(window, 'parent', { get: () => window, configurable: false });
-    // Block top.location assignment
-    const origDesc = Object.getOwnPropertyDescriptor(window, 'location');
-    if (origDesc && origDesc.configurable !== false) {
-      const handler = {
-        set: () => {}, // silently ignore
-        get: () => window.location,
-        configurable: false
-      };
-      try { Object.defineProperty(window.top, 'location', handler); } catch(e) {}
-    }
+    const host = location.hostname;
+    const FRAME_BUSTING_HOSTS = [
+      'www.qianwen.com', 'qianwen.com',
+      'chatglm.cn', 'www.chatglm.cn',
+      'yiyan.baidu.com', 'www.yiyan.baidu.com',
+      'yuanbao.tencent.com'
+    ];
+    if (!FRAME_BUSTING_HOSTS.some(h => host === h || host.endsWith('.' + h))) return;
+
+    // Use Proxy to intercept top/parent, allowing read access but blocking navigation
+    const selfWindow = window;
+    const topProxy = new Proxy(selfWindow, {
+      get(target, prop) {
+        if (prop === 'location') return selfWindow.location;
+        return Reflect.get(target, prop);
+      },
+      set(target, prop, value) {
+        // Silently block location writes (frame-busting pattern)
+        if (prop === 'location') return true;
+        return Reflect.set(target, prop, value);
+      }
+    });
+    Object.defineProperty(window, 'top', { get: () => topProxy, configurable: true });
+    Object.defineProperty(window, 'parent', { get: () => topProxy, configurable: true });
   } catch(e) {}
 })();
 
