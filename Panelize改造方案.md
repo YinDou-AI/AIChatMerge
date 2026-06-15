@@ -2332,4 +2332,157 @@ ${mergedResult}
 - MCP 集成：扩展 + 外部 MCP Server，独立运行
 - 两者共享同一套数据源（`extractAllAnswers()`）
 
+---
+
+## 二十一、AI 编排平台路线图
+
+### 21.1 总体路线
+
+```
+方案B（已完成）→ 方案C（下一步）→ 方案A（最终目标）
+```
+
+| 方案 | 内容 | 状态 | 开发周期 |
+|------|------|------|---------|
+| B. 飞书 + Claude Code | 飞书机器人 → Claude Code 直接回答（无多模型对比） | 已实现 | 2-3 天 |
+| C. MCP + Obsidian | Claude Code 本地调用 Panelize 多模型 + 自动导出 Obsidian | 待实现 | 1 周 |
+| A. 全链路 | 飞书 → Claude Code → Panelize MCP → 多AI对比回答 → 返回飞书 + Obsidian | 待实现 | 2-3 周 |
+
+### 21.2 方案 C：MCP + Obsidian（下一步）
+
+**目标：** Claude Code 本地使用 MCP 调用 Panelize 多模型能力，融合完成后自动导出到 Obsidian。
+
+**架构：**
+```
+Claude Code（本地，MCP Client）
+    ↓ stdio
+Panelize MCP Server（本地 Node.js 进程）
+    ↓ WebSocket localhost
+Panelize Chrome Extension（Service Worker）
+    ↓ chrome.tabs.sendMessage
+multi-panel.js（内容脚本）
+    ↓ iframe PostMessage
+各 AI 面板（DeepSeek、Kimi、ChatGPT...）
+```
+
+**实现步骤：**
+
+1. **MCP Server 搭建**（3 天）
+   - 创建 `mcp-server/` 目录，使用 `@modelcontextprotocol/sdk`
+   - 实现 tools：`panelize_ask`、`panelize_get_answers`、`panelize_merge`、`panelize_status`
+   - WebSocket 桥接 MCP Server ↔ 扩展 Service Worker
+
+2. **扩展 API 暴露**（2 天）
+   - Service Worker 监听 WebSocket 连接
+   - 转发 MCP 请求到 multi-panel.js
+   - 处理 MV3 Service Worker 休眠重连
+
+3. **Obsidian 自动导出**（2 天）
+   - 融合完成后调用 Obsidian Local REST API
+   - 三重降级：REST API → File System Access → 手动下载
+   - Markdown 模板：frontmatter + 问题 + 各AI回答 + 融合结论
+
+**用户体验：**
+```
+# 在 Claude Code 中
+> 帮我对比一下 React 和 Vue 的优劣
+
+# Claude Code 自动调用 panelize_ask
+# 扩展发送到多个 AI → 等待 → 融合
+# 返回综合答案
+# 同时写入 Obsidian vault/Panelize/2026-06-15-React和Vue.md
+```
+
+**依赖条件：**
+- Node.js 已安装
+- Chrome 扩展已加载并保持打开
+- Obsidian + Local REST API 插件（可选）
+
+### 21.3 方案 A：全链路（最终目标）
+
+**目标：** 飞书发消息 → Claude Code 处理 → Panelize 多AI对比回答 → 返回飞书 + 自动导出 Obsidian。
+
+**架构：**
+```
+飞书用户发消息
+    ↓ 飞书 Bot API（webhook）
+本地 Node.js 服务（飞书 → Claude 桥接）
+    ↓ Claude Code CLI / API
+Claude Code
+    ↓ MCP（方案C已实现）
+Panelize 多AI对比 + 融合
+    ↓ 结果返回
+本地 Node.js 服务
+    ↓ 飞书 Bot API（回复消息）
+飞书用户收到融合答案
+    ↓ 同时
+Obsidian 自动导出（方案C已实现）
+```
+
+**实现步骤：**
+
+1. **飞书机器人搭建**（3 天）
+   - 飞书开放平台创建应用
+   - 配置消息 webhook 接收
+   - Node.js 服务处理消息 → 调用 Claude Code
+
+2. **Claude Code 集成**（2 天）
+   - `claude -p "问题"` CLI 调用，或 Claude API 直接调用
+   - 管理会话状态（飞书用户 ↔ Claude 对话映射）
+   - 异步处理（AI 回答需要时间，飞书需要轮询或回调）
+
+3. **结果回传飞书**（2 天）
+   - 飞书富文本消息格式（支持 Markdown）
+   - 融合答案 + 各AI原始回答（可选）
+   - 错误处理（超时、AI 失败等）
+
+4. **端到端联调**（3 天）
+   - 飞书 → Claude Code → MCP → Panelize → 融合 → 飞书
+   - 异步流程调试
+   - 错误恢复
+
+**用户体验：**
+```
+# 在飞书群/私聊中
+用户: 帮我对比一下 React 和 Vue 的优劣
+
+# 飞书机器人接收消息
+# 转发给 Claude Code
+# Claude Code 调用 Panelize MCP
+# 多AI对比 + 融合
+# 结果返回飞书
+
+飞书机器人:
+【React vs Vue 综合对比】
+（融合后的完整答案）
+
+---
+来源：DeepSeek + ChatGPT + Gemini + Kimi
+已自动保存到 Obsidian
+```
+
+**依赖条件：**
+- 方案 C 已完成（MCP + Obsidian）
+- 飞书开放平台开发者账号
+- 本地 Node.js 服务常驻运行
+- Claude API key 或 Claude Code CLI
+
+**关键风险：**
+
+| 风险 | 说明 | 缓解 |
+|------|------|------|
+| 链路过长 | 飞书→Node→Claude→MCP→扩展→iframe→AI | 每层独立错误处理，超时保护 |
+| 响应延迟 | 多AI对比需要1-2分钟 | 飞书先回复"正在对比中..."，完成后推送结果 |
+| Service Worker 休眠 | MV3 5分钟限制 | WebSocket 心跳 + 重连逻辑 |
+| 成本 | Claude API 调用费用 | 只用于编排，不用于回答；或用 Claude Code CLI 免费 |
+
+### 21.4 面试叙事线
+
+> Panelize 从浏览器扩展起步，逐步演进为 **AI 能力编排平台**：
+> - **阶段1**：多AI并排对比（已完成）
+> - **阶段2**：MCP 协议让 Claude Code 直接调用多模型能力 + Obsidian 知识管理（方案C）
+> - **阶段3**：飞书集成，实现「IM → AI编排 → 知识沉淀」全链路自动化（方案A）
+>
+> 核心理念：**AI 管理 AI** — 用一个 AI（Claude）调度多个 AI（ChatGPT、Gemini、DeepSeek...），博取众长，自动沉淀知识。
+
 建议先做 Obsidian（1-2 天），再做 MCP（3-5 天），总开发周期约一周。
