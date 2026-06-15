@@ -23,18 +23,18 @@
   // ===== 平台检测（从hostname推断） =====
   function detectCurrentProvider() {
     const host = window.location.hostname;
-    if (host.includes('deepseek')) return 'deepseek';
-    if (host.includes('doubao')) return 'doubao';
-    if (host.includes('qianwen')) return 'qianwen';
-    if (host.includes('yuanbao')) return 'yuanbao';
-    if (host.includes('yiyan')) return 'wenxin';
-    if (host.includes('chatglm')) return 'zhipu';
-    if (host.includes('kimi')) return 'kimi';
-    if (host.includes('chatgpt')) return 'chatgpt';
-    if (host.includes('claude')) return 'claude';
-    if (host.includes('gemini')) return 'gemini';
-    if (host.includes('grok')) return 'grok';
-    if (host.includes('metaso')) return 'metaso';
+    if (host === 'chat.deepseek.com' || host.endsWith('.deepseek.com')) return 'deepseek';
+    if (host === 'www.doubao.com' || host === 'doubao.com' || host.endsWith('.doubao.com')) return 'doubao';
+    if (host === 'www.qianwen.com' || host === 'qianwen.com' || host.endsWith('.qianwen.com')) return 'qianwen';
+    if (host.endsWith('.tencent.com') && host.includes('yuanbao')) return 'yuanbao';
+    if (host.endsWith('.baidu.com') && host.includes('yiyan')) return 'wenxin';
+    if (host === 'chatglm.cn' || host.endsWith('.chatglm.cn')) return 'zhipu';
+    if (host === 'kimi.com' || host === 'www.kimi.com' || host.endsWith('.kimi.com') || host.endsWith('.moonshot.cn')) return 'kimi';
+    if (host === 'chatgpt.com' || host.endsWith('.chatgpt.com')) return 'chatgpt';
+    if (host === 'claude.ai' || host.endsWith('.claude.ai')) return 'claude';
+    if (host === 'gemini.google.com' || host.endsWith('.gemini.google.com')) return 'gemini';
+    if (host === 'grok.com' || host.endsWith('.grok.com')) return 'grok';
+    if (host === 'metaso.cn' || host.endsWith('.metaso.cn')) return 'metaso';
     return 'unknown';
   }
 
