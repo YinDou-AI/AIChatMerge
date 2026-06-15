@@ -409,6 +409,14 @@
     const pathname = window.location.pathname;
     const search = window.location.search;
 
+    // 过滤Claude工具iframe（如isolated-segment.html）
+    if (hostname.includes('claude.ai')) {
+      const utilFramePattern = /isolated|segment|embed|widget|frame\.html|extension|sandbox/i;
+      if (utilFramePattern.test(pathname)) {
+        return null;
+      }
+    }
+
     if (hostname.includes('chatgpt.com') || hostname.includes('openai.com')) {
       return 'chatgpt';
     } else if (hostname.includes('claude.ai')) {
