@@ -3217,4 +3217,61 @@
     // Delegate to existing handler
     handleTextInjection(event);
   });
+
+  // ===== Dark Mode for Iframes =====
+  (function initDarkMode() {
+    const DARK_CSS = [
+      'html { filter: invert(1) hue-rotate(180deg); }',
+      'img, video, svg { filter: invert(1) hue-rotate(180deg); }',
+      'code, pre { filter: invert(1) hue-rotate(180deg); }'
+    ].join('\n');
+
+    let styleEl = null;
+
+    function applyDarkMode(isDark) {
+      if (isDark && !styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'panelize-dark-mode';
+        styleEl.textContent = DARK_CSS;
+        document.documentElement.appendChild(styleEl);
+      } else if (!isDark && styleEl) {
+        styleEl.remove();
+        styleEl = null;
+      }
+    }
+
+    function resolveTheme(settings) {
+      const theme = settings.theme || 'auto';
+      if (theme === 'dark') return true;
+      if (theme === 'light') return false;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    // Initial apply
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.sync.get({ theme: 'auto' }, (settings) => {
+        applyDarkMode(resolveTheme(settings));
+      });
+
+      // Listen for theme changes from the multi-panel page
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'sync' && changes.theme) {
+          chrome.storage.sync.get({ theme: 'auto' }, (settings) => {
+            applyDarkMode(resolveTheme(settings));
+          });
+        }
+      });
+    }
+
+    // Listen for system theme changes (auto mode)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        chrome.storage.sync.get({ theme: 'auto' }, (settings) => {
+          if (settings.theme === 'auto') {
+            applyDarkMode(resolveTheme(settings));
+          }
+        });
+      }
+    });
+  })();
 })();

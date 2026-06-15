@@ -64,6 +64,22 @@ export const PROVIDERS = [
     icon: '/icons/providers/metaso.png',
     iconDark: '/icons/providers/dark/metaso.png',
     enabled: true
+  },
+  {
+    id: 'chatgpt',
+    name: 'ChatGPT',
+    url: 'https://chatgpt.com',
+    icon: '/icons/providers/chatgpt.png',
+    iconDark: '/icons/providers/dark/chatgpt.png',
+    enabled: true
+  },
+  {
+    id: 'gemini',
+    name: 'Gemini',
+    url: 'https://gemini.google.com',
+    icon: '/icons/providers/gemini.png',
+    iconDark: '/icons/providers/dark/gemini.png',
+    enabled: true
   }
 ];
 

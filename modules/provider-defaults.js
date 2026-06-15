@@ -17,6 +17,8 @@ export const DEFAULT_PROVIDER_IDS = [
   'wenxin',
   // 'yuanbao',
   'metaso',
+  'chatgpt',
+  'gemini',
 ];
 
 export function migrateEnabledProvidersOnUpdate(enabledProviders, providerOrder) {

@@ -2390,7 +2390,9 @@ const MERGE_TARGET_URLS = {
   zhipu: 'https://chatglm.cn/',
   wenxin: 'https://yiyan.baidu.com/',
   doubao: 'https://www.doubao.com/chat/',
-  metaso: 'https://metaso.cn/'
+  metaso: 'https://metaso.cn/',
+  chatgpt: 'https://chatgpt.com/',
+  gemini: 'https://gemini.google.com/'
 };
 
 const MERGE_MAX_WAIT = 120000;      // 最长2分钟
@@ -2493,22 +2495,63 @@ function stopMergeMonitor() {
 
 function buildMergePrompt(question, answers) {
   const parts = answers.map(a => `【${a.providerName}】\n${a.answer}`);
-  const today = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-  return `今天是${today}，你是一名专业的AI回答评审员。
+  const todayZh = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+  const todayEn = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
+  if (currentLocale === 'en') {
+    const partsEn = answers.map(a => `[${a.providerName}]\n${a.answer}`);
+    return `You are a fair AI response judge. Today's date: ${todayEn}.
+Task: As a judge, objectively evaluate responses from multiple AI models to the same question, synthesize perspectives into a ranked recommendation.
+
+[Original Question]
+${question}
+
+[Model Responses]
+${partsEn.join('\n\n')}
+
+Judging Rules:
+1. Base your evaluation solely on the provided responses; do not express personal opinions
+2. Using today's date as reference, identify and flag potentially outdated information
+3. When models clearly contradict each other, mark the dispute and explain the disagreement
+4. Group perspectives by core stance, merging duplicate content
+5. Distill into 2-4 key viewpoints, each supported by at least one model
+
+Output Format (strictly follow):
+[Viewpoint Name]
+- Supported by: [list of model names]
+- Rationale: [objective analysis based on provided text, concise and precise]
+- Dispute: [note if models disagree; omit if unanimous]
+(list each viewpoint)
+
+[Final Recommendation]
+Based on the above evaluation, provide the most recommended approach with reasoning. Be clear and well-structured.`;
+  }
+
+  return `你是一位公正的AI回答裁判。当前日期：${todayZh}。
+任务：作为裁判，客观评估以下多个AI模型对同一问题的回答，综合各方观点给出排名和推荐。
+
 【原始问题】
 ${question}
-【各AI回答】
+
+【各模型回答】
 ${parts.join('\n')}
-请对比以上多个AI模型的回答，执行以下任务：
-1. 根据今天日期，搜索最新信息，去除过时或错误的信息
-2. 将相似观点归类合并，只总结推荐排名前50%的方案，至少保留3个最佳选择
-3. 按以下格式输出：
-【观点名称】
-- 支持模型：[列出模型名称]
-- 依据：[简述理由]
-...（逐个观点列出）
-【最终建议】
-综合以上分析，给出推荐方案及理由。`;
+
+裁判规则：
+1. 只基于上述回答内容进行评估，不得发表个人观点
+2. 以当前日期为基准，识别并标注可能已过时的信息
+3. 发现模型间明显矛盾时，标注争议点并说明分歧所在
+4. 将观点按核心立场归类，合并重复内容
+5. 精简为2-4个核心观点，每个观点必须有模型支撑
+
+输出格式（严格遵守）：
+[观点名称]
+- 采纳模型：[模型名称列表]
+- 核心理由：[基于原文的客观分析，言简意赅]
+- 争议说明：[如有模型持不同意见，在此标注；无争议则省略此行]
+（逐个观点列出）
+
+【综合建议】
+基于以上评估，给出最推荐的方案及理由，重点突出、逻辑清晰。`;
 }
 
 async function triggerMerge() {
@@ -3090,15 +3133,17 @@ function showAddPanelMenu() {
   PROVIDERS.forEach(provider => {
     const isAdded = addedProviders.includes(provider.id);
     const item = document.createElement('button');
-    item.className = 'add-panel-item';
+    item.className = 'add-panel-item' + (isAdded ? ' is-added' : '');
 
     const providerData = getProviderById(provider.id);
     const iconSrc = getThemeAwareProviderIcon(providerData);
 
     item.innerHTML = `
-      <img src="${iconSrc}" alt="${provider.name}">
+      <div class="add-panel-item-icon-wrap">
+        <img src="${iconSrc}" alt="${provider.name}">
+        <span class="add-panel-item-status">${isAdded ? '✓' : '+'}</span>
+      </div>
       <span>${provider.name}</span>
-      ${isAdded ? `<span class="added-badge">${t('addedBadge')}</span>` : ''}
     `;
 
     item.addEventListener('click', async () => {
