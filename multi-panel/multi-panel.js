@@ -1357,8 +1357,6 @@ async function restoreStateIfNeeded() {
       const input = document.getElementById('unified-input');
       if (input && state.inputText) {
         input.value = state.inputText;
-        // Trigger resize to adjust textarea height
-        resizeTextarea();
       }
 
       // 恢复图片
@@ -1671,7 +1669,6 @@ async function broadcastMessage(text, autoSubmit = true) {
     // Clear input and save history
     if (totalSuccessful > 0) {
       document.getElementById('unified-input').value = '';
-      resizeTextarea();
 
       // Clear images after successful fill/send
       if (uploadedImages.length > 0) {
@@ -1728,7 +1725,6 @@ async function sendToPanel(panel, text, images = [], autoSubmit = true, requestI
 async function clearAllInputs() {
   // Clear unified input
   document.getElementById('unified-input').value = '';
-  resizeTextarea();
 
   // Clear uploaded images
   clearAllImages();
@@ -2186,7 +2182,6 @@ function applyVariables() {
 function applyPromptToInput(content) {
   const input = document.getElementById('unified-input');
   input.value = content;
-  resizeTextarea();
   input.focus();
 }
 
@@ -2393,7 +2388,9 @@ const MERGE_TARGET_URLS = {
   doubao: 'https://www.doubao.com/chat/',
   metaso: 'https://metaso.cn/',
   chatgpt: 'https://chatgpt.com/',
-  gemini: 'https://gemini.google.com/'
+  gemini: 'https://gemini.google.com/',
+  claude: 'https://claude.ai/',
+  grok: 'https://grok.com/'
 };
 
 const MERGE_MAX_WAIT = 120000;      // 最长2分钟
@@ -2435,7 +2432,7 @@ function startMergeMonitor() {
   mergeTimeoutTimer = setTimeout(() => {
     if (!mergeIsActive) return;
     console.log('[Merge] Timeout, triggering merge');
-    showToast(t('waitTimeout'));
+    showMergeStatus('timeout', t('waitTimeout'));
     stopMergeMonitor();
     triggerMerge();
   }, MERGE_MAX_WAIT);
@@ -2459,7 +2456,7 @@ function handleMergeCompletionDetected(data) {
 
   if (mergeCompletedPanels.size >= nonMergeCount) {
     console.log('[Merge] All panels completed, triggering merge');
-    showToast(t('allAIAnswered'));
+    showMergeStatus('auto', t('allAIAnswered'));
     stopMergeMonitor();
     triggerMerge();
   }
@@ -2628,7 +2625,7 @@ async function triggerMerge() {
     <div class="panel-header">
       <div class="panel-header-left">
         <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="provider-icon" data-provider-id="${provider.id}">
-        <span>${provider.name} (${t('merge')})</span>
+        <span>${provider.name}(${t('merge')})</span>
       </div>
       <div class="panel-header-right">${getPanelHeaderRightHtml(targetProvider)}</div>
     </div>
@@ -2874,6 +2871,7 @@ function setupEventListeners() {
 
   // Merge target dropdown (stopPropagation prevents document close listener from firing)
   document.getElementById('merge-target-btn').addEventListener('click', (e) => {
+    console.log('[merge] btn clicked');
     e.stopPropagation();
     showMergeTargetMenu();
   });
@@ -2881,7 +2879,6 @@ function setupEventListeners() {
   // Input textarea
   const inputTextarea = document.getElementById('unified-input');
   let isInputComposing = false;
-  inputTextarea.addEventListener('input', resizeTextarea);
   inputTextarea.addEventListener('compositionstart', () => {
     isInputComposing = true;
   });
@@ -2996,12 +2993,6 @@ function setupEventListeners() {
   });
 }
 
-function resizeTextarea() {
-  const textarea = document.getElementById('unified-input');
-  textarea.style.height = 'auto';
-  textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
-}
-
 // ===== Modal Functions =====
 function openLayoutModal() {
   const modal = document.getElementById('layout-modal');
@@ -3047,7 +3038,7 @@ async function showProviderSwitcher(panelId) {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 1000;
-    min-width: 160px;
+    min-width: 200px;
     padding: 8px 0;
   `;
 
@@ -3074,6 +3065,15 @@ async function showProviderSwitcher(panelId) {
   menu.style.left = rect.left + 'px';
 
   document.body.appendChild(menu);
+
+  // Keep menu within viewport
+  const menuRect = menu.getBoundingClientRect();
+  if (menuRect.right > window.innerWidth) {
+    menu.style.left = (window.innerWidth - menuRect.width - 8) + 'px';
+  }
+  if (menuRect.bottom > window.innerHeight) {
+    menu.style.top = (rect.top - menuRect.height - 4) + 'px';
+  }
 
   // Handle item clicks
   menu.querySelectorAll('.provider-switcher-item').forEach(item => {
@@ -3113,10 +3113,63 @@ async function showProviderSwitcher(panelId) {
   setTimeout(() => document.addEventListener('click', closeMenu), 0);
 }
 
+/**
+ * Set up outside-click/pointerdown close handler for a dropdown.
+ * Uses pointerdown (capture phase) instead of click to work across
+ * iframe boundaries, plus window blur to handle iframe-internal clicks.
+ *
+ * @param {HTMLElement} dropdown - The dropdown element to close
+ * @param {HTMLElement} btn - The trigger button (clicks on it toggle, not close)
+ */
+let lastInteractionTime = 0;
+document.addEventListener('pointerdown', () => { lastInteractionTime = Date.now(); }, true);
+document.addEventListener('click', () => { lastInteractionTime = Date.now(); }, true);
+
+function setupDropdownCloseHandler(dropdown, btn) {
+  function close() {
+    if (dropdown.parentNode) {
+      dropdown.remove();
+    }
+    cleanup();
+  }
+
+  function onPointerDown(e) {
+    if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+      close();
+    }
+  }
+
+  function onBlur(e) {
+    // Ignore blur if no recent user interaction (iframe auto-focus during page load)
+    if (Date.now() - lastInteractionTime > 200) return;
+    const related = e.relatedTarget;
+    if (related && (btn.contains(related) || dropdown.contains(related))) {
+      return;
+    }
+    close();
+  }
+
+  function cleanup() {
+    document.removeEventListener('pointerdown', onPointerDown, true);
+    window.removeEventListener('blur', onBlur);
+  }
+
+  document.addEventListener('pointerdown', onPointerDown, true);
+  window.addEventListener('blur', onBlur);
+
+  return cleanup;
+}
+
+let mergeTargetCleanup = null;
+
 function showMergeTargetMenu() {
   const btn = document.getElementById('merge-target-btn');
   const existing = document.querySelector('.merge-target-dropdown');
-  if (existing) { existing.remove(); return; }
+  if (existing) {
+    if (mergeTargetCleanup) { mergeTargetCleanup(); mergeTargetCleanup = null; }
+    existing.remove();
+    return;
+  }
 
   const MERGE_TARGETS = [
     { id: 'deepseek', name: 'DeepSeek' },
@@ -3124,10 +3177,12 @@ function showMergeTargetMenu() {
     { id: 'gemini', name: 'Gemini' },
     { id: 'kimi', name: 'Kimi' },
     { id: 'qianwen', name: '千问' },
-    { id: 'zhipu', name: '智谱' },
-    { id: 'wenxin', name: '文心' },
+    { id: 'zhipu', name: '智谱清言' },
+    { id: 'wenxin', name: '文心一言' },
     { id: 'doubao', name: '豆包' },
-    { id: 'metaso', name: '秘塔' }
+    { id: 'metaso', name: '秘塔AI' },
+    { id: 'claude', name: 'Claude' },
+    { id: 'grok', name: 'Grok' }
   ];
 
   const dropdown = document.createElement('div');
@@ -3137,10 +3192,16 @@ function showMergeTargetMenu() {
     const item = document.createElement('button');
     item.className = 'merge-target-item' + (target.id === selectedMergeTarget ? ' selected' : '');
     item.textContent = target.name;
-    item.addEventListener('click', () => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log('[merge] item clicked:', target.name);
       selectedMergeTarget = target.id;
       document.getElementById('merge-target-label').textContent = target.name;
+      if (mergeTargetCleanup) { mergeTargetCleanup(); mergeTargetCleanup = null; }
       dropdown.remove();
+    });
+    item.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
     });
     dropdown.appendChild(item);
   });
@@ -3148,23 +3209,22 @@ function showMergeTargetMenu() {
   btn.style.position = 'relative';
   btn.appendChild(dropdown);
 
-  setTimeout(() => {
-    document.addEventListener('click', function closeDropdown(e) {
-      if (!dropdown.contains(e.target) && e.target !== btn) {
-        dropdown.remove();
-        document.removeEventListener('click', closeDropdown);
-      }
-    });
-  }, 0);
+  mergeTargetCleanup = setupDropdownCloseHandler(dropdown, btn);
 }
+
+let addPanelCleanup = null;
 
 function showAddPanelMenu() {
   // 移除已有的下拉菜单
   const existing = document.querySelector('.add-panel-menu');
-  if (existing) { existing.remove(); return; }
+  if (existing) {
+    if (addPanelCleanup) { addPanelCleanup(); addPanelCleanup = null; }
+    existing.remove();
+    return;
+  }
 
-  // 统计已添加的提供商
-  const addedProviders = panels.map(p => p.providerId);
+  // 统计已添加的提供商（排除融合面板）
+  const addedProviders = getNonMergePanels().map(p => p.providerId);
 
   const dropdown = document.createElement('div');
   dropdown.className = 'add-panel-menu';
@@ -3186,6 +3246,7 @@ function showAddPanelMenu() {
     `;
 
     item.addEventListener('click', async () => {
+      if (addPanelCleanup) { addPanelCleanup(); addPanelCleanup = null; }
       dropdown.remove();
       await addPanel(provider.id);
     });
@@ -3201,14 +3262,7 @@ function showAddPanelMenu() {
   }
 
   // 点击外部关闭
-  setTimeout(() => {
-    document.addEventListener('click', function closeDropdown(e) {
-      if (!dropdown.contains(e.target) && e.target !== btn) {
-        dropdown.remove();
-        document.removeEventListener('click', closeDropdown);
-      }
-    });
-  }, 0);
+  addPanelCleanup = setupDropdownCloseHandler(dropdown, btn);
 }
 
 // ===== Utility Functions =====
@@ -3242,6 +3296,53 @@ function showToast(message) {
     toast.style.transition = 'opacity 0.3s';
     setTimeout(() => toast.remove(), 300);
   }, 2000);
+}
+
+// 融合状态提示（自动完成 vs 超时）— 持久显示在融合面板顶部
+function showMergeStatus(type, message) {
+  const isAuto = type === 'auto';
+
+  // 找到融合面板
+  const mergePanelId = [...mergePanelIds].pop();
+  if (!mergePanelId) return;
+
+  const panelEl = document.getElementById(mergePanelId);
+  if (!panelEl) return;
+
+  // 移除旧的状态条
+  const old = panelEl.querySelector('.merge-status-banner');
+  if (old) old.remove();
+
+  // 创建新的状态条
+  const banner = document.createElement('div');
+  banner.className = 'merge-status-banner';
+  banner.style.cssText = `
+    background: ${isAuto ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #f59e0b, #d97706)'};
+    color: white;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 8px 8px 0 0;
+    flex-shrink: 0;
+    z-index: 10;
+    position: relative;
+  `;
+  banner.innerHTML = `
+    <span style="font-size: 16px;">${isAuto ? '✓' : '⏱'}</span>
+    <span>${message}</span>
+  `;
+
+  // 插入到面板内容顶部（iframe容器之前）
+  const iframeContainer = panelEl.querySelector('.panel-iframe-container');
+  if (iframeContainer) {
+    panelEl.insertBefore(banner, iframeContainer);
+    console.log('[Merge] Status banner inserted:', type, 'into panel:', mergePanelId);
+  } else {
+    console.warn('[Merge] No .panel-iframe-container found in panel:', mergePanelId);
+  }
 }
 
 // ===== Prompt Editor Functions =====

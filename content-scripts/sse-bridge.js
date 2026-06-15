@@ -10,11 +10,18 @@
   // ===== 注入MAIN world脚本 =====
   function injectSSEDetect() {
     try {
+      const scriptUrl = chrome.runtime.getURL('sse-detect.js');
+      console.log('[SSE Bridge] Injecting sse-detect.js from:', scriptUrl);
       const script = document.createElement('script');
-      script.src = chrome.runtime.getURL('sse-detect.js');
-      script.onload = function () { this.remove(); };
+      script.src = scriptUrl;
+      script.onload = function () {
+        console.log('[SSE Bridge] sse-detect.js loaded successfully');
+        this.remove();
+      };
+      script.onerror = function (e) {
+        console.error('[SSE Bridge] sse-detect.js failed to load:', e);
+      };
       (document.head || document.documentElement).appendChild(script);
-      console.log('[SSE Bridge] sse-detect.js injected into MAIN world');
     } catch (err) {
       console.warn('[SSE Bridge] Failed to inject sse-detect.js:', err);
     }
