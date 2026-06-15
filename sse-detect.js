@@ -52,7 +52,7 @@
       type: '__sse_complete__',
       url: url || '',
       timestamp: Date.now()
-    }, '*');
+    }, window.location.origin);
   }
 
   // ===== Hook fetch =====
@@ -118,6 +118,11 @@
       return es;
     };
     window.EventSource.prototype = OriginalEventSource.prototype;
+    Object.defineProperty(window.EventSource.prototype, 'constructor', {
+      value: window.EventSource,
+      writable: true,
+      configurable: true
+    });
     window.EventSource.CONNECTING = OriginalEventSource.CONNECTING;
     window.EventSource.OPEN = OriginalEventSource.OPEN;
     window.EventSource.CLOSED = OriginalEventSource.CLOSED;
