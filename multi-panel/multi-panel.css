@@ -526,12 +526,52 @@ body {
   cursor: pointer;
   color: var(--text);
   flex-shrink: 0;
-  max-width: 100px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
 }
 
 .merge-select:focus {
   outline: none;
   border-color: var(--accent);
+}
+
+.merge-target-dropdown {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  min-width: 100px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  padding: 4px;
+  z-index: 1000;
+}
+
+.merge-target-item {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.merge-target-item:hover {
+  background: var(--border);
+}
+
+.merge-target-item.selected {
+  background: var(--accent-bg, #e3f2fd);
+  color: var(--accent, #1976d2);
+  font-weight: 500;
 }
 
 /* Merge button */
