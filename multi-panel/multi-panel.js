@@ -2501,8 +2501,7 @@ function buildMergePrompt(question, answers) {
 
   if (currentLocale === 'en') {
     const partsEn = answers.map(a => `[${a.providerName}]\n${a.answer}`);
-    return `You are a skilled answer synthesizer. Today's date: ${todayEn}.
-Task: Extract the best content from multiple AI responses and combine them into ONE comprehensive, high-quality answer.
+    return `You are a skilled answer synthesizer. Today: ${todayEn}.
 
 [Original Question]
 ${question}
@@ -2510,20 +2509,18 @@ ${question}
 [Model Responses]
 ${partsEn.join('\n\n')}
 
-Synthesis Rules:
-1. Start by restating the original question in one sentence
-2. Extract the most accurate, detailed, and useful content from each response
-3. Remove duplicates — when multiple models say the same thing, keep the best表述
-4. Remove incorrect or outdated information based on today's date
-5. When models disagree, note the disagreement briefly but still provide the best answer
-6. Structure the final answer with clear headings and logical flow
-7. The final answer should be MORE complete and useful than any single model's response
+Rules:
+1. Restate the question in one sentence
+2. Extract the best content from each response, remove duplicates
+3. When citing a viewpoint, note which model(s) support it (e.g. "— DeepSeek, ChatGPT")
+4. Remove outdated info based on today's date
+5. Note disagreements briefly, then give the best answer
+6. Structure with clear headings
 
-Output the synthesized answer directly. Do not include meta-commentary like "Model A said X, Model B said Y" — just give the best combined answer.`;
+Output the synthesized answer with source attribution.`;
   }
 
   return `你是一位优秀的答案综合者。当前日期：${todayZh}。
-任务：从多个AI模型的回答中提取最优质的内容，整合成一个完整的最佳答案。
 
 【原始问题】
 ${question}
@@ -2531,16 +2528,15 @@ ${question}
 【各模型回答】
 ${parts.join('\n')}
 
-综合规则：
-1. 先用一句话复述原始问题，便于后续回顾
-2. 从每个回答中提取最准确、最详细、最有用的内容
-3. 去除重复内容 — 多个模型说同一件事时，保留表述最好的版本
-4. 根据当前日期，去除过时或错误的信息
-5. 模型间有分歧时，简要说明争议，但仍给出最佳答案
-6. 用清晰的标题和逻辑结构组织最终答案
-7. 最终答案应比任何一个单独模型的回答都更完整、更有用
+规则：
+1. 先用一句话复述原始问题
+2. 从每个回答中提取最优质的内容，去除重复
+3. 引用观点时注明来源（如"— DeepSeek、ChatGPT"）
+4. 根据当前日期，去除过时的信息
+5. 模型有分歧时简要说明后给出最佳答案
+6. 用清晰标题组织答案
 
-直接输出综合后的答案。不要写"模型A说了X，模型B说了Y"这样的元评论 — 直接给出最佳综合答案。`;
+直接输出综合答案，每个观点注明来源。`;
 }
 
 async function triggerMerge() {
@@ -2701,7 +2697,10 @@ function setupEventListeners() {
   });
 
   // Add panel button
-  document.getElementById('add-panel-btn').addEventListener('click', showAddPanelMenu);
+  document.getElementById('add-panel-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    showAddPanelMenu();
+  });
 
   // Panel grid scroll arrows
   const scrollLeftBtn = document.getElementById('scroll-left-btn');
@@ -2873,8 +2872,11 @@ function setupEventListeners() {
     triggerMerge();
   });
 
-  // Merge target dropdown
-  document.getElementById('merge-target-btn').addEventListener('click', showMergeTargetMenu);
+  // Merge target dropdown (stopPropagation prevents document close listener from firing)
+  document.getElementById('merge-target-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    showMergeTargetMenu();
+  });
 
   // Input textarea
   const inputTextarea = document.getElementById('unified-input');
