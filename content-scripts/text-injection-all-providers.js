@@ -2868,7 +2868,8 @@
     claude: [
       'button[aria-label="Stop Response"]',
       'button[aria-label="Stop"]',
-      'button[aria-label*="stop"]'
+      'button[aria-label*="stop"]',
+      '[data-is-streaming]'
     ],
     gemini: [
       'button[aria-label="Stop"]',
