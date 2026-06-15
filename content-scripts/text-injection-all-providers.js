@@ -1,6 +1,25 @@
 // Text injection handler for all AI providers
 // Self-contained script without module imports (for iframe compatibility)
 
+// Anti frame-busting: prevent pages from breaking out of iframe
+(function() {
+  try {
+    // Override top/location setters to block frame-busting
+    Object.defineProperty(window, 'top', { get: () => window, configurable: false });
+    Object.defineProperty(window, 'parent', { get: () => window, configurable: false });
+    // Block top.location assignment
+    const origDesc = Object.getOwnPropertyDescriptor(window, 'location');
+    if (origDesc && origDesc.configurable !== false) {
+      const handler = {
+        set: () => {}, // silently ignore
+        get: () => window.location,
+        configurable: false
+      };
+      try { Object.defineProperty(window.top, 'location', handler); } catch(e) {}
+    }
+  } catch(e) {}
+})();
+
 (function() {
   'use strict';
 
