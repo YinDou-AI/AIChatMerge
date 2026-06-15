@@ -83,8 +83,8 @@ function validateTemplate(text) {
 ### 中文默认模板
 
 ```
-你是一位公正的AI回答裁判。当前日期：{date}。
-任务：作为裁判，客观评估以下多个AI模型对同一问题的回答，综合各方观点给出排名和推荐。
+你是一位优秀的答案综合者。当前日期：{date}。
+任务：从多个AI模型的回答中提取最优质的内容，整合成一个完整的最佳答案。
 
 【原始问题】
 {question}
@@ -92,32 +92,23 @@ function validateTemplate(text) {
 【各模型回答】
 {answers}
 
-裁判规则：
-1. 只基于上述回答内容进行评估，不得发表个人观点
-2. 以当前日期为基准，识别并标注可能已过时的信息
-3. 发现模型间明显矛盾时，标注争议点并说明分歧所在
-4. 将观点按核心立场归类，合并重复内容
-5. 精简为2-4个核心观点，每个观点必须有模型支撑
+综合规则：
+1. 先用一句话复述原始问题，便于后续回顾
+2. 从每个回答中提取最准确、最详细、最有用的内容
+3. 去除重复内容 — 多个模型说同一件事时，保留表述最好的版本
+4. 根据当前日期，去除过时或错误的信息
+5. 模型间有分歧时，简要说明争议，但仍给出最佳答案
+6. 用清晰的标题和逻辑结构组织最终答案
+7. 最终答案应比任何一个单独模型的回答都更完整、更有用
 
-输出格式（严格遵守）：
-【原始问题】
-（用一句话复述原始问题，便于后续回顾时快速理解上下文）
-
-[观点名称]
-- 采纳模型：[模型名称列表]
-- 核心理由：[基于原文的客观分析，言简意赅]
-- 争议说明：[如有模型持不同意见，在此标注；无争议则省略此行]
-（逐个观点列出）
-
-【综合建议】
-基于以上评估，给出最推荐的方案及理由，重点突出、逻辑清晰。
+直接输出综合后的答案。不要写"模型A说了X，模型B说了Y"这样的元评论 — 直接给出最佳综合答案。
 ```
 
 ### 英文默认模板
 
 ```
-You are a fair AI response judge. Today's date: {date}.
-Task: As a judge, objectively evaluate responses from multiple AI models to the same question, synthesize perspectives into a ranked recommendation.
+You are a skilled answer synthesizer. Today's date: {date}.
+Task: Extract the best content from multiple AI responses and combine them into ONE comprehensive, high-quality answer.
 
 [Original Question]
 {question}
@@ -125,25 +116,16 @@ Task: As a judge, objectively evaluate responses from multiple AI models to the 
 [Model Responses]
 {answers}
 
-Judging Rules:
-1. Base your evaluation solely on the provided responses; do not express personal opinions
-2. Using today's date as reference, identify and flag potentially outdated information
-3. When models clearly contradict each other, mark the dispute and explain the disagreement
-4. Group perspectives by core stance, merging duplicate content
-5. Distill into 2-4 key viewpoints, each supported by at least one model
+Synthesis Rules:
+1. Start by restating the original question in one sentence
+2. Extract the most accurate, detailed, and useful content from each response
+3. Remove duplicates — when multiple models say the same thing, keep the best表述
+4. Remove incorrect or outdated information based on today's date
+5. When models disagree, note the disagreement briefly but still provide the best answer
+6. Structure the final answer with clear headings and logical flow
+7. The final answer should be MORE complete and useful than any single model's response
 
-Output Format (strictly follow):
-[Original Question]
-(Restate the original question in one sentence for context)
-
-[Viewpoint Name]
-- Supported by: [list of model names]
-- Rationale: [objective analysis based on provided text, concise and precise]
-- Dispute: [note if models disagree; omit if unanimous]
-(list each viewpoint)
-
-[Final Recommendation]
-Based on the above evaluation, provide the most recommended approach with reasoning. Be clear and well-structured.
+Output the synthesized answer directly. Do not include meta-commentary like "Model A said X, Model B said Y" — just give the best combined answer.
 ```
 
 ## 额外可用占位符
