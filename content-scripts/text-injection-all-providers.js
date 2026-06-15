@@ -107,14 +107,14 @@
       'textarea',
       '[contenteditable="true"]'
     ],
-    // yuanbao: [
-    //   '.ql-editor[contenteditable="true"]',
-    //   '.ql-editor',
-    //   'textarea[placeholder*="输入"]',
-    //   'textarea[placeholder*="提问"]',
-    //   'textarea',
-    //   '[contenteditable="true"]'
-    // ],
+    yuanbao: [
+      '.ql-editor[contenteditable="true"]',
+      '.ql-editor',
+      'textarea[placeholder*="输入"]',
+      'textarea[placeholder*="提问"]',
+      'textarea',
+      '[contenteditable="true"]'
+    ],
     metaso: [
       'textarea.search-consult-textarea',
       'textarea[placeholder*="搜索"]',
@@ -151,7 +151,7 @@
     qianwen: false,
     zhipu: false,
     wenxin: false,
-    // yuanbao: false,
+    yuanbao: false,
     metaso: false
   };
 
@@ -168,7 +168,7 @@
     qianwen: ['input[type="file"]'],
     zhipu: ['input[type="file"]'],
     wenxin: ['input[type="file"]'],
-    // yuanbao: ['input[type="file"]'],
+    yuanbao: ['input[type="file"]'],
     metaso: ['input[type="file"]']
   };
 
@@ -215,6 +215,7 @@
     ],
     gemini: [
       'button[aria-label="Send message"]',
+      'button[aria-label="发送"]',
       'button.send-button',
       'button[mattooltip="Send message"]',
       '.input-area-container button:has(mat-icon)',
@@ -278,13 +279,13 @@
       'div[class*="send"][role="button"]',
       '[class*="send-btn"]'
     ],
-    // yuanbao: [
-    //   'button[aria-label="Send"]',
-    //   'button[aria-label="发送"]',
-    //   'button[aria-label="发送消息"]',
-    //   'button[type="submit"]',
-    //   'button[class*="send"]'
-    // ],
+    yuanbao: [
+      'button[aria-label="Send"]',
+      'button[aria-label="发送"]',
+      'button[aria-label="发送消息"]',
+      'button[type="submit"]',
+      'button[class*="send"]'
+    ],
     metaso: [
       'button[type="submit"]',
       'button[aria-label*="发送"]',
@@ -363,11 +364,11 @@
       'a[href="/"]',
       'button[aria-label*="New"]'
     ],
-    // yuanbao: [
-    //   'button[aria-label*="新"]',
-    //   'a[href="/chat/"]',
-    //   'button[aria-label*="New"]'
-    // ],
+    yuanbao: [
+      'button[aria-label*="新"]',
+      'a[href="/chat/"]',
+      'button[aria-label*="New"]'
+    ],
     metaso: [
       'button[aria-label*="新"]',
       'a[href="/"]',
@@ -388,7 +389,7 @@
     qianwen: 'https://www.qianwen.com/chat',
     zhipu: 'https://chatglm.cn/',
     wenxin: 'https://yiyan.baidu.com/',
-    // yuanbao: 'https://yuanbao.tencent.com/chat/',
+    yuanbao: 'https://yuanbao.tencent.com/chat/',
     metaso: 'https://metaso.cn/chat/2062455376112967681'
   };
 
@@ -428,8 +429,8 @@
       return 'zhipu';
     } else if (hostname.includes('yiyan.baidu.com')) {
       return 'wenxin';
-    // } else if (hostname.includes('yuanbao.tencent.com')) {
-    //   return 'yuanbao';
+    } else if (hostname.includes('yuanbao.tencent.com')) {
+      return 'yuanbao';
     } else if (hostname.includes('metaso.cn')) {
       return 'metaso';
     } else if (hostname.includes('google.com') || hostname.includes('google.') || hostname === 'www.google.com') {
@@ -2446,10 +2447,12 @@
       '.font-claude-message',
     ],
     gemini: [
-      '[role="log"] .markdown-body',
-      '.conversation-container .markdown-body',
+      '.model-response-text',
+      '.response-content .markdown',
+      '.markdown-main-panel',
     ],
     grok: [
+      '.response-content-markdown',
       '.message-content .markdown-body',
       '[role="log"] .markdown-body',
     ],
@@ -2610,7 +2613,7 @@
     chatgpt: ['.markdown-body'],
     claude: ['.markdown-body'],
     gemini: ['.markdown-body'],
-    grok: ['.markdown-body']
+    grok: ['.response-content-markdown', '.markdown-body']
   };
 
   /**
@@ -2907,6 +2910,11 @@
       'button[aria-label*="Stop"]',
       '[class*="stop"]'
     ],
+    yuanbao: [
+      'button[aria-label*="停止"]',
+      'button[aria-label*="Stop"]',
+      '[class*="stop"]'
+    ],
     metaso: [
       'button[aria-label*="停止"]',
       'button[aria-label*="Stop"]',
@@ -3167,60 +3175,20 @@
       return;
     }
 
-    const selectors = DIRECT_ANSWER_SELECTORS[provider];
-    let targetNode = null;
-    if (selectors) {
-      for (const sel of selectors) {
-        try {
-          const el = document.querySelector(sel);
-          if (el) { targetNode = el; break; }
-        } catch (_) {}
-      }
-    }
-    if (!targetNode) targetNode = document.body;
-
-    const STABLE_DELAY_MS = 5000;
-    let stableTimer = null;
-
-    const resetStableTimer = () => {
-      if (stableTimer) clearTimeout(stableTimer);
-      stableTimer = setTimeout(() => {
-        // Check for content
-        let hasContent = false;
-        if (selectors) {
-          for (const sel of selectors) {
-            try {
-              const el = document.querySelector(sel);
-              if (el && (el.textContent || '').trim().length > 0) {
-                hasContent = true;
-                break;
-              }
-            } catch (_) {}
-          }
-        }
-        if (!hasContent) {
-          resetStableTimer();
-          return;
-        }
-        stopCompletionMonitor();
-        if (window.parent !== window) {
-          window.parent.postMessage({
-            type: 'COMPLETION_DETECTED',
-            provider,
-            context: 'multi-panel-completion'
-          }, '*');
-        }
-      }, STABLE_DELAY_MS);
-    };
-
-    completionObserver = new MutationObserver(() => resetStableTimer());
-    completionObserver.observe(targetNode, { childList: true, subtree: true, characterData: true });
-    resetStableTimer();
+    // Primary: Use button-state monitoring (more reliable)
+    startButtonStateMonitor(provider);
   }
 
-  // Listen for messages from the multi-panel host
+  // Listen for messages from the multi-panel host and SSE bridge
   window.addEventListener('message', (event) => {
     if (!event || !event.data || typeof event.data !== 'object') return;
+
+    // SSE检测完成：停止DOM监控，防止重复发送COMPLETION_DETECTED
+    if (event.data.type === '__sse_complete__') {
+      console.log('[CompletionMonitor] SSE completion received, stopping DOM monitor');
+      stopCompletionMonitor();
+      return;
+    }
 
     if (event.data.type === 'MONITOR_COMPLETION' && event.data.context === 'multi-panel') {
       startCompletionMonitor();
