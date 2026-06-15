@@ -2701,7 +2701,10 @@ function setupEventListeners() {
   });
 
   // Add panel button
-  document.getElementById('add-panel-btn').addEventListener('click', showAddPanelMenu);
+  document.getElementById('add-panel-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    showAddPanelMenu();
+  });
 
   // Panel grid scroll arrows
   const scrollLeftBtn = document.getElementById('scroll-left-btn');
@@ -2874,7 +2877,10 @@ function setupEventListeners() {
   });
 
   // Merge target dropdown
-  document.getElementById('merge-target-btn').addEventListener('click', showMergeTargetMenu);
+  document.getElementById('merge-target-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    showMergeTargetMenu();
+  });
 
   // Input textarea
   const inputTextarea = document.getElementById('unified-input');
@@ -3151,7 +3157,7 @@ function showMergeTargetMenu() {
   btn.appendChild(dropdown);
 
   function closeDropdown(e) {
-    if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+    if (!dropdown.contains(e.target)) {
       dropdown.remove();
       document.removeEventListener('pointerdown', closeDropdown);
     }
@@ -3209,7 +3215,7 @@ function showAddPanelMenu() {
 
   // 点击外部关闭（用 pointerdown 比 click 更早触发，避免被 stopPropagation 拦截）
   function closeDropdown(e) {
-    if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+    if (!dropdown.contains(e.target)) {
       dropdown.remove();
       document.removeEventListener('pointerdown', closeDropdown);
     }

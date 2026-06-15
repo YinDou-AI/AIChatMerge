@@ -2,6 +2,7 @@
 // Self-contained script without module imports (for iframe compatibility)
 
 // Anti frame-busting: only for sites known to use frame-busting JS
+// Makes top === self so frame-busting checks (if top !== self) fail gracefully
 (function() {
   try {
     const host = location.hostname;
@@ -13,21 +14,8 @@
     ];
     if (!FRAME_BUSTING_HOSTS.some(h => host === h || host.endsWith('.' + h))) return;
 
-    // Use Proxy to intercept top/parent, allowing read access but blocking navigation
-    const selfWindow = window;
-    const topProxy = new Proxy(selfWindow, {
-      get(target, prop) {
-        if (prop === 'location') return selfWindow.location;
-        return Reflect.get(target, prop);
-      },
-      set(target, prop, value) {
-        // Silently block location writes (frame-busting pattern)
-        if (prop === 'location') return true;
-        return Reflect.set(target, prop, value);
-      }
-    });
-    Object.defineProperty(window, 'top', { get: () => topProxy, configurable: true });
-    Object.defineProperty(window, 'parent', { get: () => topProxy, configurable: true });
+    Object.defineProperty(window, 'top', { get: () => window, configurable: true });
+    Object.defineProperty(window, 'parent', { get: () => window, configurable: true });
   } catch(e) {}
 })();
 
