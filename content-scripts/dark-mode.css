@@ -1,0 +1,18 @@
+/* Dark mode inversion for AI provider iframes */
+/* This file is injected dynamically by text-injection-all-providers.js */
+/* It is NOT loaded via manifest.json content_scripts.css */
+
+/* Primary inversion */
+html {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Re-invert media elements so they look normal */
+img, video, svg {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Re-invert elements that are already dark (code blocks, preformatted) */
+code, pre {
+  filter: invert(1) hue-rotate(180deg);
+}

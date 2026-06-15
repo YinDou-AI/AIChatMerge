@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Panelize",
-  "version": "1.1.1",
+  "version": "1.0",
   "description": "Compare AI assistants side by side in one window. Send one prompt and review responses faster.",
   "default_locale": "en",
   "permissions": [
@@ -24,7 +24,9 @@
     "*://yiyan.baidu.com/*",
     "*://metaso.cn/*",
     "*://api.github.com/*",
-    "*://raw.githubusercontent.com/*"
+    "*://raw.githubusercontent.com/*",
+    "*://chatgpt.com/*",
+    "*://gemini.google.com/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js",
@@ -161,6 +163,32 @@
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-doubao.js",
         "content-scripts/answer-extractor-doubao.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://chatgpt.com/*"],
+      "js": [
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-chatgpt.js",
+        "content-scripts/answer-extractor-chatgpt.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://gemini.google.com/*"],
+      "js": [
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-gemini.js",
+        "content-scripts/answer-extractor-gemini.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],

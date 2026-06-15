@@ -1176,11 +1176,12 @@ body {
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-  padding: 8px;
   z-index: 1000;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 4px;
+  padding: 10px;
+  min-width: 280px;
 }
 
 .add-panel-item {
@@ -1188,7 +1189,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 8px;
+  padding: 8px 4px;
   border: none;
   border-radius: 6px;
   background: transparent;
@@ -1196,24 +1197,57 @@ body {
   font-size: 11px;
   color: var(--text);
   transition: background 0.2s;
+  position: relative;
 }
 
 .add-panel-item:hover {
   background: var(--border);
 }
 
-.added-badge {
-  font-size: 10px;
-  color: var(--text-faint);
-  background: var(--border);
-  padding: 1px 4px;
-  border-radius: 3px;
-  margin-left: 4px;
+.add-panel-item-icon-wrap {
+  position: relative;
+  width: 28px;
+  height: 28px;
 }
 
-.add-panel-item img {
-  width: 24px;
-  height: 24px;
+.add-panel-item-icon-wrap img {
+  width: 28px;
+  height: 28px;
+}
+
+.add-panel-item-status {
+  position: absolute;
+  bottom: -2px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* "+" badge for not-added */
+.add-panel-item:not(.is-added) .add-panel-item-status {
+  background: var(--accent);
+  color: white;
+}
+
+/* "✓" badge for added */
+.add-panel-item.is-added .add-panel-item-status {
+  background: var(--success);
+  color: white;
+}
+
+.add-panel-item.is-added {
+  opacity: 0.6;
+}
+
+.add-panel-item.is-added:hover {
+  opacity: 1;
 }
 
 /* Dark theme handled by CSS variables */
