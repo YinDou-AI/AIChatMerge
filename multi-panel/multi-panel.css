@@ -302,6 +302,12 @@ body {
   overflow: hidden;
 }
 
+.merge-status-banner {
+  flex-shrink: 0;
+  z-index: 10;
+  position: relative;
+}
+
 .panel-iframe-container iframe {
   width: 100%;
   height: 100%;
@@ -474,19 +480,19 @@ body {
 
 #unified-input {
   width: 100%;
-  padding: 6px 12px;
+  height: 36px;
+  padding: 0 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   font-size: 13px;
   font-family: inherit;
-  line-height: 1.4;
+  line-height: 36px;
   resize: none;
-  min-height: 32px;
-  max-height: 80px;
-  overflow-y: auto;
+  overflow-y: hidden;
   transition: border-color 0.2s;
   background: var(--surface);
   color: var(--text);
+  box-sizing: border-box;
 }
 
 /* Copy All button in bottom bar */
@@ -518,6 +524,7 @@ body {
 /* Merge target select */
 .merge-select {
   height: 36px;
+  width: 120px;
   padding: 0 8px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -528,6 +535,7 @@ body {
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   white-space: nowrap;
 }
@@ -540,7 +548,8 @@ body {
 .merge-target-dropdown {
   position: absolute;
   bottom: calc(100% + 4px);
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   min-width: 100px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -560,7 +569,7 @@ body {
   color: var(--text);
   font-size: 12px;
   cursor: pointer;
-  text-align: left;
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -1218,10 +1227,10 @@ body {
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
   z-index: 1000;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 4px;
   padding: 10px;
-  min-width: 280px;
+  min-width: 320px;
 }
 
 .add-panel-item {
