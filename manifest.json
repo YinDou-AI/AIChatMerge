@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Panelize",
+  "name": "AIChatMerge",
   "version": "1.0",
   "description": "Compare AI assistants side by side in one window. Send one prompt and review responses faster.",
   "default_locale": "en",
@@ -22,11 +22,14 @@
     "*://qianwen.com/*",
     "*://chatglm.cn/*",
     "*://yiyan.baidu.com/*",
+    "*://yuanbao.tencent.com/*",
     "*://metaso.cn/*",
     "*://api.github.com/*",
     "*://raw.githubusercontent.com/*",
     "*://chatgpt.com/*",
-    "*://gemini.google.com/*"
+    "*://gemini.google.com/*",
+    "*://claude.ai/*",
+    "*://grok.com/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js",
@@ -48,7 +51,7 @@
         "default": "Ctrl+Shift+E",
         "mac": "Command+Shift+E"
       },
-      "description": "Open Panelize"
+      "description": "Open AIChatMerge"
     },
     "open-prompt-library": {
       "suggested_key": {
@@ -71,13 +74,14 @@
         "https://qianwen.com/*"
       ],
       "js": [
+        "content-scripts/sse-bridge.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-qianwen.js",
         "content-scripts/answer-extractor-qianwen.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
-      "run_at": "document_end",
+      "run_at": "document_start",
       "all_frames": true
     },
     {
@@ -85,13 +89,14 @@
         "https://chatglm.cn/*"
       ],
       "js": [
+        "content-scripts/sse-bridge.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-zhipu.js",
         "content-scripts/answer-extractor-zhipu.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
-      "run_at": "document_end",
+      "run_at": "document_start",
       "all_frames": true
     },
     {
@@ -99,13 +104,30 @@
         "https://yiyan.baidu.com/*"
       ],
       "js": [
+        "content-scripts/sse-bridge.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-wenxin.js",
         "content-scripts/answer-extractor-wenxin.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
-      "run_at": "document_end",
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://yuanbao.tencent.com/*"
+      ],
+      "js": [
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-yuanbao.js",
+        "content-scripts/answer-extractor-yuanbao.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
       "all_frames": true
     },
     {
@@ -113,13 +135,14 @@
         "https://metaso.cn/*"
       ],
       "js": [
+        "content-scripts/sse-bridge.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-metaso.js",
         "content-scripts/answer-extractor-metaso.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
-      "run_at": "document_end",
+      "run_at": "document_start",
       "all_frames": true
     },
     {
@@ -127,6 +150,7 @@
         "https://chat.deepseek.com/*"
       ],
       "js": [
+        "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-deepseek.js",
@@ -143,6 +167,7 @@
         "https://kimi.com/*"
       ],
       "js": [
+        "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-kimi.js",
@@ -159,6 +184,7 @@
         "https://doubao.com/*"
       ],
       "js": [
+        "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-doubao.js",
@@ -172,6 +198,7 @@
     {
       "matches": ["https://chatgpt.com/*"],
       "js": [
+        "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-chatgpt.js",
@@ -185,10 +212,39 @@
     {
       "matches": ["https://gemini.google.com/*"],
       "js": [
+        "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-gemini.js",
         "content-scripts/answer-extractor-gemini.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://claude.ai/*"],
+      "js": [
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-claude.js",
+        "content-scripts/answer-extractor-claude.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://grok.com/*"],
+      "js": [
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-grok.js",
+        "content-scripts/answer-extractor-grok.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
       ],
@@ -227,7 +283,8 @@
         "_locales/zh_TW/messages.json",
         "multi-panel/multi-panel.html",
         "multi-panel/multi-panel.js",
-        "multi-panel/multi-panel.css"
+        "multi-panel/multi-panel.css",
+        "sse-detect.js"
       ],
       "matches": [
         "<all_urls>"
