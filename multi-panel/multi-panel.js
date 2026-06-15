@@ -2517,6 +2517,9 @@ Judging Rules:
 5. Distill into 2-4 key viewpoints, each supported by at least one model
 
 Output Format (strictly follow):
+[Original Question]
+(Restate the original question in one sentence for context)
+
 [Viewpoint Name]
 - Supported by: [list of model names]
 - Rationale: [objective analysis based on provided text, concise and precise]
@@ -2544,6 +2547,9 @@ ${parts.join('\n')}
 5. 精简为2-4个核心观点，每个观点必须有模型支撑
 
 输出格式（严格遵守）：
+【原始问题】
+（用一句话复述原始问题，便于后续回顾时快速理解上下文）
+
 [观点名称]
 - 采纳模型：[模型名称列表]
 - 核心理由：[基于原文的客观分析，言简意赅]
@@ -3122,7 +3128,12 @@ async function showProviderSwitcher(panelId) {
 function showAddPanelMenu() {
   // 移除已有的下拉菜单
   const existing = document.querySelector('.add-panel-menu');
-  if (existing) { existing.remove(); return; }
+  if (existing) {
+    existing.remove();
+    // 清理可能残留的关闭监听器
+    document.removeEventListener('pointerdown', existing._closeHandler);
+    return;
+  }
 
   // 统计已添加的提供商
   const addedProviders = panels.map(p => p.providerId);
@@ -3161,15 +3172,16 @@ function showAddPanelMenu() {
     btn.appendChild(dropdown);
   }
 
-  // 点击外部关闭
-  setTimeout(() => {
-    document.addEventListener('click', function closeDropdown(e) {
-      if (!dropdown.contains(e.target) && e.target !== btn) {
-        dropdown.remove();
-        document.removeEventListener('click', closeDropdown);
-      }
-    });
-  }, 0);
+  // 点击外部关闭（用 pointerdown 比 click 更早触发，避免被 stopPropagation 拦截）
+  function closeDropdown(e) {
+    if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+      dropdown.remove();
+      document.removeEventListener('pointerdown', closeDropdown);
+    }
+  }
+  dropdown._closeHandler = closeDropdown;
+  // 延迟注册，避免当前点击事件触发关闭
+  setTimeout(() => document.addEventListener('pointerdown', closeDropdown), 0);
 }
 
 // ===== Utility Functions =====
