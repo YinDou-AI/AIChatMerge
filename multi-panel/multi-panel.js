@@ -2701,10 +2701,7 @@ function setupEventListeners() {
   });
 
   // Add panel button
-  document.getElementById('add-panel-btn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    showAddPanelMenu();
-  });
+  document.getElementById('add-panel-btn').addEventListener('click', showAddPanelMenu);
 
   // Panel grid scroll arrows
   const scrollLeftBtn = document.getElementById('scroll-left-btn');
@@ -2877,10 +2874,7 @@ function setupEventListeners() {
   });
 
   // Merge target dropdown
-  document.getElementById('merge-target-btn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    showMergeTargetMenu();
-  });
+  document.getElementById('merge-target-btn').addEventListener('click', showMergeTargetMenu);
 
   // Input textarea
   const inputTextarea = document.getElementById('unified-input');
@@ -3120,11 +3114,7 @@ async function showProviderSwitcher(panelId) {
 function showMergeTargetMenu() {
   const btn = document.getElementById('merge-target-btn');
   const existing = document.querySelector('.merge-target-dropdown');
-  if (existing) {
-    existing.remove();
-    document.removeEventListener('pointerdown', existing._closeHandler);
-    return;
-  }
+  if (existing) { existing.remove(); return; }
 
   const MERGE_TARGETS = [
     { id: 'deepseek', name: 'DeepSeek' },
@@ -3156,25 +3146,20 @@ function showMergeTargetMenu() {
   btn.style.position = 'relative';
   btn.appendChild(dropdown);
 
-  function closeDropdown(e) {
-    if (!dropdown.contains(e.target)) {
-      dropdown.remove();
-      document.removeEventListener('pointerdown', closeDropdown);
-    }
-  }
-  dropdown._closeHandler = closeDropdown;
-  setTimeout(() => document.addEventListener('pointerdown', closeDropdown), 0);
+  setTimeout(() => {
+    document.addEventListener('click', function closeDropdown(e) {
+      if (!dropdown.contains(e.target) && e.target !== btn) {
+        dropdown.remove();
+        document.removeEventListener('click', closeDropdown);
+      }
+    });
+  }, 0);
 }
 
 function showAddPanelMenu() {
   // 移除已有的下拉菜单
   const existing = document.querySelector('.add-panel-menu');
-  if (existing) {
-    existing.remove();
-    // 清理可能残留的关闭监听器
-    document.removeEventListener('pointerdown', existing._closeHandler);
-    return;
-  }
+  if (existing) { existing.remove(); return; }
 
   // 统计已添加的提供商
   const addedProviders = panels.map(p => p.providerId);
@@ -3213,16 +3198,15 @@ function showAddPanelMenu() {
     btn.appendChild(dropdown);
   }
 
-  // 点击外部关闭（用 pointerdown 比 click 更早触发，避免被 stopPropagation 拦截）
-  function closeDropdown(e) {
-    if (!dropdown.contains(e.target)) {
-      dropdown.remove();
-      document.removeEventListener('pointerdown', closeDropdown);
-    }
-  }
-  dropdown._closeHandler = closeDropdown;
-  // 延迟注册，避免当前点击事件触发关闭
-  setTimeout(() => document.addEventListener('pointerdown', closeDropdown), 0);
+  // 点击外部关闭
+  setTimeout(() => {
+    document.addEventListener('click', function closeDropdown(e) {
+      if (!dropdown.contains(e.target) && e.target !== btn) {
+        dropdown.remove();
+        document.removeEventListener('click', closeDropdown);
+      }
+    });
+  }, 0);
 }
 
 // ===== Utility Functions =====
