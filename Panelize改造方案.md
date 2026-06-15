@@ -2486,3 +2486,223 @@ Obsidian 自动导出（方案C已实现）
 > 核心理念：**AI 管理 AI** — 用一个 AI（Claude）调度多个 AI（ChatGPT、Gemini、DeepSeek...），博取众长，自动沉淀知识。
 
 建议先做 Obsidian（1-2 天），再做 MCP（3-5 天），总开发周期约一周。
+
+---
+
+## 二十二、稳定性与自动化检测
+
+### 22.1 问题一：融合触发太慢
+
+**现状：** `MERGE_MAX_WAIT = 120000`（2分钟），部分 AI 未回答时硬等 2 分钟才触发融合。
+
+**解决方案：超时可配置 + 部分完成触发**
+
+#### 22.1.1 设置可调超时
+
+在设置页面「多面板」section 新增：
+
+```
+┌─────────────────────────────────────────────────┐
+│ 融合等待超时                                      │
+│ 所有AI未完成时，最长等待时间                         │
+│                                                   │
+│ ──────●──────────────────────  90秒              │
+│ 30秒                              5分钟           │
+└─────────────────────────────────────────────────┘
+```
+
+存储：`mergeMaxWait`（毫秒），默认 120000。
+
+#### 22.1.2 部分完成触发
+
+新增设置项「融合触发条件」：
+
+```
+┌─────────────────────────────────────────────────┐
+│ 融合触发条件                                      │
+│ 何时开始融合                                      │
+│                                                   │
+│ ○ 全部完成（当前行为）                              │
+│ ● 80% 完成（5/7 个AI）                            │
+│ ○ 50% 完成（4/7 个AI）                            │
+└─────────────────────────────────────────────────┘
+```
+
+存储：`mergeTriggerMode`（'all' | '80%' | '50%'），默认 'all'。
+
+**实现逻辑：**
+```js
+// handleMergeCompletionDetected 中
+const nonMergeCount = getNonMergePanels().length;
+const threshold = getMergeThreshold(nonMergeCount); // 根据模式计算
+
+if (mergeCompletedPanels.size >= threshold) {
+  showToast(t('mergeTriggered', mergeCompletedPanels.size, nonMergeCount));
+  stopMergeMonitor();
+  triggerMerge();
+}
+```
+
+#### 22.1.3 进度提示
+
+触发时显示具体进度：`"5/7 个AI已完成，开始融合"`
+
+### 22.2 问题二：提取器不稳定
+
+**现状：** AI 平台改版后选择器失效，提取返回空，但无任何提示，用户以为 AI 没回答。
+
+**解决方案：失败检测 + toast 提示 + 健康检查**
+
+#### 22.2.1 提取失败 toast
+
+在 `extractAllAnswers()` 完成后，检查各平台提取结果：
+
+```js
+const failed = validAnswers.filter(a => !a.answer || a.answer.trim().length === 0);
+if (failed.length > 0) {
+  const names = failed.map(a => a.providerName).join('、');
+  showToast(t('extractFailed', names)); // "以下AI提取失败：文心一言、智谱"
+}
+```
+
+#### 22.2.2 页面加载健康检查
+
+iframe 加载完成后，自动检测关键选择器是否存在：
+
+```js
+iframe.addEventListener('load', () => {
+  // 延迟 3 秒等页面渲染
+  setTimeout(() => {
+    iframe.contentWindow.postMessage({
+      type: 'HEALTH_CHECK',
+      context: 'multi-panel'
+    }, '*');
+  }, 3000);
+});
+
+// content script 中
+if (event.data.type === 'HEALTH_CHECK') {
+  const hasInput = document.querySelector(PROVIDER_SELECTORS[provider]);
+  const hasAnswer = document.querySelector(DIRECT_ANSWER_SELECTORS[provider]);
+  event.source.postMessage({
+    type: 'HEALTH_RESULT',
+    provider,
+    hasInput: !!hasInput,
+    hasAnswer: !!hasAnswer,
+    context: 'multi-panel'
+  }, '*');
+}
+```
+
+面板加载时显示状态图标：✓ 正常 / ⚠ 选择器异常 / ✗ 加载失败
+
+#### 22.2.3 调试面板（可选）
+
+在面板右键菜单加「诊断」选项，运行完整提取测试并输出结果到 console。
+
+### 22.3 问题三：GitHub Actions 自动检测
+
+**目标：** 用 CI 定期检测各平台页面结构是否变化，选择器是否失效。
+
+**可行性评估：**
+
+| 挑战 | 说明 | 缓解方案 |
+|------|------|---------|
+| 登录态 | AI 平台需要登录才能看到回答区域 | 只检测公共页面结构（输入框、按钮） |
+| 反爬虫 | Cloudflare/验证码拦截 | Playwright 有 stealth 插件 |
+| 动态渲染 | SPA 页面需要 headless browser | 用 Playwright 而非 curl |
+| 选择器范围 | 有些选择器只在登录后存在 | 分两层：公共选择器 + 需登录选择器 |
+
+**实现方案：**
+
+#### 22.3.1 公共页面检测（不需要登录）
+
+检测内容：
+- 各平台首页是否可访问（HTTP 200）
+- 输入框选择器是否存在
+- 发送按钮选择器是否存在
+
+```yaml
+# .github/workflows/selector-check.yml
+name: Selector Health Check
+on:
+  schedule:
+    - cron: '0 8 * * *'  # 每天早上8点
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: node tests/selector-check.mjs
+```
+
+#### 22.3.2 测试脚本
+
+```js
+// tests/selector-check.mjs
+import { chromium } from 'playwright';
+
+const PLATFORMS = [
+  { name: 'DeepSeek', url: 'https://chat.deepseek.com', selectors: ['#chat-input'] },
+  { name: 'Kimi', url: 'https://kimi.com', selectors: ['.chat-input-editor'] },
+  { name: 'ChatGPT', url: 'https://chatgpt.com', selectors: ['#prompt-textarea'] },
+  { name: 'Gemini', url: 'https://gemini.google.com', selectors: ['.ql-editor'] },
+  // ...
+];
+
+const browser = await chromium.launch({ headless: true });
+const results = [];
+
+for (const platform of PLATFORMS) {
+  const page = await browser.newPage();
+  try {
+    await page.goto(platform.url, { timeout: 15000, waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(3000);
+    const found = platform.selectors.filter(s => page.locator(s).count() > 0);
+    results.push({ name: platform.name, status: 'ok', found, missing: platform.selectors.filter(s => !found.includes(s)) });
+  } catch (e) {
+    results.push({ name: platform.name, status: 'error', error: e.message });
+  }
+  await page.close();
+}
+await browser.close();
+
+// 输出结果
+const failed = results.filter(r => r.status === 'error' || r.missing.length > 0);
+if (failed.length > 0) {
+  console.error('SELECTORS BROKEN:', JSON.stringify(failed, null, 2));
+  process.exit(1); // CI 标红
+}
+console.log('All selectors OK');
+```
+
+#### 22.3.3 失败通知
+
+- CI 失败时自动创建 GitHub Issue：`⚠️ [Auto] 选择器健康检查失败 - 文心一言`
+- 包含失败的选择器列表和截图
+
+#### 22.3.4 局限性
+
+| 局限 | 说明 |
+|------|------|
+| 只检测公共选择器 | 回答区域选择器需要登录后才能检测 |
+| 不能检测提取逻辑 | 只能检测 DOM 是否存在，不能验证提取内容是否正确 |
+| 反爬可能干扰 | 部分平台可能在 CI 环境中被拦截 |
+
+**弥补方案：** 每周手动验证一次提取功能，CI 只做结构性检测。
+
+### 22.4 优先级
+
+| 改进项 | 优先级 | 开发周期 |
+|--------|--------|---------|
+| 超时可配置（设置滑块） | 高 | 0.5 天 |
+| 部分完成触发 | 高 | 0.5 天 |
+| 提取失败 toast 提示 | 高 | 0.5 天 |
+| 页面健康检查 | 中 | 1 天 |
+| GitHub Actions 检测 | 中 | 1 天 |
+| 调试面板 | 低 | 1 天 |
