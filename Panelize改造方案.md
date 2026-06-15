@@ -686,6 +686,55 @@ mergeTimeoutTimer = setTimeout(() => {
 - [ ] 融合面板关闭时的清理逻辑
 - [ ] 多面板模式下融合面板的位置优化
 
+### 4.7 提示词模板更新（已实现）
+
+输出格式新增「复述原始问题」步骤：
+
+**中文模板：**
+```
+输出格式（严格遵守）：
+【原始问题】
+（用一句话复述原始问题，便于后续回顾时快速理解上下文）
+
+【观点名称】
+...
+```
+
+**英文模板：**
+```
+Output Format (strictly follow):
+[Original Question]
+(Restate the original question in one sentence for context)
+
+[Viewpoint Name]
+...
+```
+
+目的：融合答案自包含，过段时间回看仍能理解上下文，导出到 Obsidian 后笔记也完整。
+
+### 4.8 添加面板菜单修复（已实现）
+
+**问题：** 点击面板区域无法关闭添加面板菜单，只能点击+号或输入框行关闭。
+
+**根因：** 原代码用 `click` 事件 + `e.target !== btn` 判断，面板区域的 `stopPropagation` 导致事件未到达 document。
+
+**修复：** 改用 `pointerdown` 事件（比 click 更早触发，不受 stopPropagation 影响），判断条件改为 `!btn.contains(e.target)` 更准确。
+
+### 4.9 自定义融合提示词（待实现）
+
+详细设计见 `docs/superpowers/specs/2026-06-15-custom-merge-prompt-design.md`。
+
+**功能：** 在设置页面让用户自定义融合提示词模板（中文 + 英文各一个 textarea），展示默认模板供参考和修改。
+
+**格式约束：**
+- 必需占位符：`{question}` 和 `{answers}` 必须同时存在
+- 最大长度：2000 字符
+- 实时校验 + 恢复默认按钮
+
+**存储：** `mergePromptTemplateZh` / `mergePromptTemplateEn`，null = 使用内置默认。
+
+**文件变更：** options.html、options.js、settings.js、multi-panel.js、locales。
+
 ---
 
 ## 五、UI重构（已完成）
