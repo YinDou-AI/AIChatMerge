@@ -483,7 +483,7 @@ async function exportData() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `panelize-backup-${Date.now()}.json`;
+    a.download = `aichatmerge-backup-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
 

@@ -1,12 +1,12 @@
 {
   "extensionName": {
-    "message": "Panelize"
+    "message": "AIChatMerge"
   },
   "extensionDescription": {
     "message": "Compare AI assistants side by side in one window. Send one prompt and review responses faster."
   },
   "commandOpenSidebar": {
-    "message": "Open Panelize"
+    "message": "Open AIChatMerge"
   },
   "commandOpenPromptLibrary": {
     "message": "Open Prompt Library"
@@ -30,7 +30,7 @@
     "message": "Open Mode"
   },
   "descOpenMode": {
-    "message": "Choose how to open Panelize when clicking the icon or using shortcuts"
+    "message": "Choose how to open AIChatMerge when clicking the icon or using shortcuts"
   },
   "optionTabMode": {
     "message": "Tab (New Tab)"
@@ -63,10 +63,10 @@
     "message": "Choose the default panel arrangement"
   },
   "actionDefaultTitle": {
-    "message": "Open Panelize"
+    "message": "Open AIChatMerge"
   },
   "settingsTitle": {
-    "message": "Settings: Panelize"
+    "message": "Settings: AIChatMerge"
   },
   "settingsSubtitle": {
     "message": "Customize your multi-AI comparison experience"
@@ -135,7 +135,7 @@
     "message": "Enabled Providers"
   },
   "descEnabledProviders": {
-    "message": "Select which AI providers appear in Panelize"
+    "message": "Select which AI providers appear in AIChatMerge"
   },
   "sectionKeyboardShortcuts": {
     "message": "Keyboard Shortcuts"
@@ -147,13 +147,13 @@
     "message": "Enable Keyboard Shortcut"
   },
   "descEnableShortcut": {
-    "message": "Toggle the global shortcut that opens Panelize from anywhere in the browser."
+    "message": "Toggle the global shortcut that opens AIChatMerge from anywhere in the browser."
   },
   "labelDefaultShortcuts": {
     "message": "Default Shortcuts"
   },
   "descDefaultShortcuts": {
-    "message": "Command+Shift+E (Ctrl+Shift+E on Windows/Linux) opens Panelize.<br>Command+Shift+L (Ctrl+Shift+L on Windows/Linux) opens Prompt Library.<br>After installing, confirm or set shortcuts in chrome://extensions/shortcuts."
+    "message": "Command+Shift+E (Ctrl+Shift+E on Windows/Linux) opens AIChatMerge.<br>Command+Shift+L (Ctrl+Shift+L on Windows/Linux) opens Prompt Library.<br>After installing, confirm or set shortcuts in chrome://extensions/shortcuts."
   },
   "btnOpenShortcuts": {
     "message": "Open Shortcuts"
@@ -192,7 +192,7 @@
     "message": "Customize how Enter and modifier keys work when typing in AI provider input fields."
   },
   "descEnterBehavior2": {
-    "message": "<strong>Applies to:</strong> ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Doubao, and Google (AI Mode)."
+    "message": "<strong>Applies to:</strong> DeepSeek, Kimi, ChatGPT, and Claude."
   },
   "labelEnableEnterCustomization": {
     "message": "Enable Enter Key Customization"
@@ -327,7 +327,7 @@
     "message": "Download Latest Version"
   },
   "descAbout1": {
-    "message": "Panelize lets you compare multiple AI chatbots side-by-side in one window."
+    "message": "AIChatMerge lets you compare multiple AI chatbots side-by-side in one window."
   },
   "descAbout2": {
     "message": "Built with privacy-first architecture. All data stored locally."
@@ -533,7 +533,7 @@
     "message": "Are you sure you want to reset ALL settings to defaults?\n\nThis will reset:\n- Theme settings\n- Default provider\n- Keyboard shortcuts\n- All other preferences\n\nYour prompts will NOT be affected.\n\nThis action CANNOT be undone!"
   },
   "contextMenuSendTo": {
-    "message": "Send to Panelize"
+    "message": "Send to AIChatMerge"
   },
   "sidebarPromptGenie": {
     "message": "Prompt Genie"
@@ -638,10 +638,10 @@
     "message": "Loading..."
   },
   "optionsPageTitle": {
-    "message": "Panelize - Settings"
+    "message": "AIChatMerge - Settings"
   },
   "headerSettingsTitle": {
-    "message": "Settings: Panelize"
+    "message": "Settings: AIChatMerge"
   },
   "headerSettingsSubtitle": {
     "message": "Customize your multi-AI comparison experience"
@@ -650,7 +650,7 @@
     "message": "Enable Keyboard Shortcut"
   },
   "descEnableKeyboardShortcut": {
-    "message": "Toggle the global shortcut that opens Panelize from anywhere in the browser."
+    "message": "Toggle the global shortcut that opens AIChatMerge from anywhere in the browser."
   },
   "labelEdgeShortcutHelper": {
     "message": "Confirm in Microsoft Edge"

@@ -1,4 +1,4 @@
-// 智谱 Enter/Shift+Enter behavior swap
+// 智谱清言 Enter/Shift+Enter behavior swap
 function handleEnterSwap(event) {
   if (!event.isTrusted || event.code !== "Enter" || event.isComposing) {
     return;

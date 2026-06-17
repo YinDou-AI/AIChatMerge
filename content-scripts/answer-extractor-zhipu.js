@@ -1,4 +1,4 @@
-// 智谱 (ChatGLM) answer extractor
+// 智谱清言 (ChatGLM) answer extractor
 (function() {
   'use strict';
   window.__panelize_extractors = window.__panelize_extractors || {};

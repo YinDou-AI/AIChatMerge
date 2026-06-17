@@ -4,10 +4,12 @@
   'use strict';
   window.__panelize_extractors = window.__panelize_extractors || {};
   window.__panelize_extractors.kimi = function(utils) {
-    // Primary: .markdown-container > .markdown
-    const markdownContainer = document.querySelector('.markdown-container');
-    if (markdownContainer && utils.isVisibleElement(markdownContainer)) {
-      const text = utils.extractText(markdownContainer);
+    // Primary: .markdown-container (iterate last-to-first for most recent answer)
+    const containers = document.querySelectorAll('.markdown-container');
+    for (let i = containers.length - 1; i >= 0; i--) {
+      if (!utils.isVisibleElement(containers[i])) continue;
+      if (containers[i].closest('textarea, [contenteditable="true"], form, nav, aside')) continue;
+      const text = utils.extractText(containers[i]);
       if (text.length > 0) return text;
     }
 

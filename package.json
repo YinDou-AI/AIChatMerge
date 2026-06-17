@@ -1,10 +1,10 @@
 {
-  "name": "panelize",
+  "name": "aichatmerge",
   "version": "1.1.1",
   "description": "Compare AI chatbots side-by-side",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Manho/Panelize"
+    "url": "https://gitee.com/zhoukailang/AIChatMerge"
   },
   "private": true,
   "type": "module",

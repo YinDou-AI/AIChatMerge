@@ -1,21 +1,21 @@
 {
   "extensionName": {
-    "message": "Panelize"
+    "message": "AIChatMerge"
   },
   "extensionDescription": {
-    "message": "ChatGPT、Claude、Gemini などに素早くアクセスできるマルチ AI サイドバー拡張機能"
+    "message": "DeepSeek、Kimi、ChatGPT、Claude などに素早くアクセスできるマルチ AI サイドバー拡張機能"
   },
   "commandOpenSidebar": {
-    "message": "デフォルトプロバイダーで Panelize を開く"
+    "message": "デフォルトプロバイダーで AIChatMerge を開く"
   },
   "commandOpenPromptLibrary": {
-    "message": "Panelize プロンプトライブラリを開く"
+    "message": "AIChatMerge プロンプトライブラリを開く"
   },
   "actionDefaultTitle": {
-    "message": "Panelize を開く"
+    "message": "AIChatMerge を開く"
   },
   "settingsTitle": {
-    "message": "設定： Panelize"
+    "message": "設定： AIChatMerge"
   },
   "settingsSubtitle": {
     "message": "マルチ AI サイドバー体験をカスタマイズ"
@@ -84,7 +84,7 @@
     "message": "有効なプロバイダー"
   },
   "descEnabledProviders": {
-    "message": "Panelize に表示する AI プロバイダーを選択してください"
+    "message": "AIChatMerge に表示する AI プロバイダーを選択してください"
   },
   "sectionKeyboardShortcuts": {
     "message": "キーボードショートカット"
@@ -96,7 +96,7 @@
     "message": "キーボードショートカットを有効にする"
   },
   "descEnableShortcut": {
-    "message": "ブラウザのどこからでも Panelize を開くグローバルショートカットを切り替えます。"
+    "message": "ブラウザのどこからでも AIChatMerge を開くグローバルショートカットを切り替えます。"
   },
   "labelDefaultShortcuts": {
     "message": "デフォルトショートカット"
@@ -141,7 +141,7 @@
     "message": "AI プロバイダーの入力フィールドで Enter キーと修飾キーがどのように機能するかをカスタマイズします。"
   },
   "descEnterBehavior2": {
-    "message": "<strong>適用先:</strong> ChatGPT、Claude、Gemini、Grok、DeepSeek、Kimi、Doubao、Google（AI モード）。"
+    "message": "<strong>適用先:</strong> DeepSeek、Kimi、ChatGPT、Claude。"
   },
   "labelEnableEnterCustomization": {
     "message": "Enter キーのカスタマイズを有効にする"
@@ -276,7 +276,7 @@
     "message": "最新バージョンをダウンロード"
   },
   "descAbout1": {
-    "message": "Panelize は、1 つの便利なサイドバーから複数の AI アシスタントに素早くアクセスできます。"
+    "message": "AIChatMerge は、1 つの便利なサイドバーから複数の AI アシスタントに素早くアクセスできます。"
   },
   "descAbout2": {
     "message": "プライバシー第一のアーキテクチャで構築されています。すべてのデータはローカルに保存されます。"
@@ -480,7 +480,7 @@
     "message": "すべての設定をデフォルトにリセットしてもよろしいですか？\n\n次がリセットされます：\n- テーマ設定\n- デフォルトプロバイダー\n- キーボードショートカット\n- その他すべての設定\n\nプロンプトは影響を受けません。\n\nこの操作は元に戻せません！"
   },
   "contextMenuSendTo": {
-    "message": "Panelize に送信"
+    "message": "AIChatMerge に送信"
   },
   "sidebarPromptGenie": {
     "message": "プロンプトジーニー"
@@ -585,10 +585,10 @@
     "message": "読み込み中..."
   },
   "optionsPageTitle": {
-    "message": "Panelize - 設定"
+    "message": "AIChatMerge - 設定"
   },
   "headerSettingsTitle": {
-    "message": "設定： Panelize"
+    "message": "設定： AIChatMerge"
   },
   "headerSettingsSubtitle": {
     "message": "マルチ AI サイドバー体験をカスタマイズ"
@@ -597,7 +597,7 @@
     "message": "キーボードショートカットを有効にする"
   },
   "descEnableKeyboardShortcut": {
-    "message": "ブラウザのどこからでも Panelize を開くグローバルショートカットを切り替えます。"
+    "message": "ブラウザのどこからでも AIChatMerge を開くグローバルショートカットを切り替えます。"
   },
   "labelEdgeShortcutHelper": {
     "message": "Microsoft Edge で確認"
@@ -785,7 +785,7 @@
     "message": "開くモード"
   },
   "descOpenMode": {
-    "message": "アイコンをクリックするかショートカットを使用したときに Panelize を開く方法を選択してください"
+    "message": "アイコンをクリックするかショートカットを使用したときに AIChatMerge を開く方法を選択してください"
   },
   "optionTabMode": {
     "message": "タブ（新しいタブ）"

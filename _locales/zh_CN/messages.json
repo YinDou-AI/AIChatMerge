@@ -1,21 +1,21 @@
 {
   "extensionName": {
-    "message": "Panelize"
+    "message": "AIChatMerge"
   },
   "extensionDescription": {
-    "message": "并排比较 AI 聊天机器人。在一个窗口中使用 ChatGPT、Claude、Gemini、Grok 等。"
+    "message": "并排比较 AI 聊天机器人。在一个窗口中使用 DeepSeek、Kimi、ChatGPT、Claude。"
   },
   "commandOpenSidebar": {
-    "message": "打开 Panelize"
+    "message": "打开 AIChatMerge"
   },
   "commandOpenPromptLibrary": {
     "message": "打开提示词库"
   },
   "actionDefaultTitle": {
-    "message": "打开 Panelize"
+    "message": "打开 AIChatMerge"
   },
   "settingsTitle": {
-    "message": "设置： Panelize"
+    "message": "设置： AIChatMerge"
   },
   "settingsSubtitle": {
     "message": "自定义您的多 AI 比较体验"
@@ -84,7 +84,7 @@
     "message": "已启用的提供商"
   },
   "descEnabledProviders": {
-    "message": "选择在 Panelize 中显示哪些 AI 提供商"
+    "message": "选择在 AIChatMerge 中显示哪些 AI 提供商"
   },
   "sectionKeyboardShortcuts": {
     "message": "键盘快捷键"
@@ -96,13 +96,13 @@
     "message": "启用键盘快捷键"
   },
   "descEnableShortcut": {
-    "message": "切换可在浏览器任何位置打开 Panelize 的全局快捷键。"
+    "message": "切换可在浏览器任何位置打开 AIChatMerge 的全局快捷键。"
   },
   "labelDefaultShortcuts": {
     "message": "默认快捷键"
   },
   "descDefaultShortcuts": {
-    "message": "Command+Shift+E（Windows/Linux 上为 Ctrl+Shift+E）打开 Panelize。<br>Command+Shift+L（Windows/Linux 上为 Ctrl+Shift+L）打开提示词库。<br>安装后可能需要在 chrome://extensions/shortcuts 中确认或设置快捷键。"
+    "message": "Command+Shift+E（Windows/Linux 上为 Ctrl+Shift+E）打开 AIChatMerge。<br>Command+Shift+L（Windows/Linux 上为 Ctrl+Shift+L）打开提示词库。<br>安装后可能需要在 chrome://extensions/shortcuts 中确认或设置快捷键。"
   },
   "btnOpenShortcuts": {
     "message": "打开快捷键设置"
@@ -139,9 +139,6 @@
   },
   "descEnterBehavior1": {
     "message": "自定义在 AI 提供商输入字段中输入时回车键和修饰键的工作方式。"
-  },
-  "descEnterBehavior2": {
-    "message": "<strong>适用于:</strong> ChatGPT、Claude、Gemini、Grok、DeepSeek、Kimi、Doubao 和 Google(AI 模式)。"
   },
   "labelEnableEnterCustomization": {
     "message": "启用回车键自定义"
@@ -276,10 +273,10 @@
     "message": "下载最新版本"
   },
   "descAbout1": {
-    "message": "Panelize 让您在一个窗口中并排比较多个 AI 聊天机器人。"
+    "message": "AIChatMerge 让您在一个窗口中并排比较多个 AI，并将它们的回答融合为更优质的答案。"
   },
   "descAbout2": {
-    "message": "采用隐私优先架构构建。所有数据本地存储。"
+    "message": "采用隐私优先架构构建，所有数据本地存储。"
   },
   "msgThemeUpdated": {
     "message": "主题已更新"
@@ -474,7 +471,7 @@
     "message": "您确定要将所有设置重置为默认值吗？\n\n这将重置：\n- 主题设置\n- 默认提供商\n- 键盘快捷键\n- 所有其他首选项\n\n您的提示词不会受到影响。\n\n此操作无法撤销！"
   },
   "contextMenuSendTo": {
-    "message": "发送到 Panelize"
+    "message": "发送到 AIChatMerge"
   },
   "sidebarPromptGenie": {
     "message": "提示词精灵"
@@ -579,10 +576,10 @@
     "message": "加载中..."
   },
   "optionsPageTitle": {
-    "message": "Panelize - 设置"
+    "message": "AIChatMerge - 设置"
   },
   "headerSettingsTitle": {
-    "message": "设置： Panelize"
+    "message": "设置： AIChatMerge"
   },
   "headerSettingsSubtitle": {
     "message": "自定义您的多 AI 比较体验"
@@ -591,7 +588,7 @@
     "message": "启用键盘快捷键"
   },
   "descEnableKeyboardShortcut": {
-    "message": "切换可在浏览器任何位置打开 Panelize 的全局快捷键。"
+    "message": "切换可在浏览器任何位置打开 AIChatMerge 的全局快捷键。"
   },
   "labelEdgeShortcutHelper": {
     "message": "在 Microsoft Edge 中确认"
@@ -782,7 +779,7 @@
     "message": "打开模式"
   },
   "descOpenMode": {
-    "message": "选择点击图标或使用快捷键时如何打开 Panelize"
+    "message": "选择点击图标或使用快捷键时如何打开 AIChatMerge"
   },
   "optionTabMode": {
     "message": "标签页（新标签页）"

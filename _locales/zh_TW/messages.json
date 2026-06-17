@@ -1,21 +1,21 @@
 {
   "extensionName": {
-    "message": "Panelize"
+    "message": "AIChatMerge"
   },
   "extensionDescription": {
-    "message": "並排比較 AI 聊天機器人。在一個視窗中使用 ChatGPT、Claude、Gemini、Grok 等。"
+    "message": "並排比較 AI 聊天機器人。在一個視窗中使用 DeepSeek、Kimi、ChatGPT、Claude。"
   },
   "commandOpenSidebar": {
-    "message": "開啟 Panelize"
+    "message": "開啟 AIChatMerge"
   },
   "commandOpenPromptLibrary": {
     "message": "開啟提示詞庫"
   },
   "actionDefaultTitle": {
-    "message": "開啟 Panelize"
+    "message": "開啟 AIChatMerge"
   },
   "settingsTitle": {
-    "message": "設定： Panelize"
+    "message": "設定： AIChatMerge"
   },
   "settingsSubtitle": {
     "message": "自訂您的多 AI 比較體驗"
@@ -84,7 +84,7 @@
     "message": "已啟用的提供者"
   },
   "descEnabledProviders": {
-    "message": "選擇在 Panelize 中顯示哪些 AI 提供者"
+    "message": "選擇在 AIChatMerge 中顯示哪些 AI 提供者"
   },
   "sectionKeyboardShortcuts": {
     "message": "鍵盤快速鍵"
@@ -96,13 +96,13 @@
     "message": "啟用鍵盤快速鍵"
   },
   "descEnableShortcut": {
-    "message": "切換可在瀏覽器任何位置開啟 Panelize 的全域快速鍵。"
+    "message": "切換可在瀏覽器任何位置開啟 AIChatMerge 的全域快速鍵。"
   },
   "labelDefaultShortcuts": {
     "message": "預設快速鍵"
   },
   "descDefaultShortcuts": {
-    "message": "Command+Shift+E（Windows/Linux 為 Ctrl+Shift+E）開啟 Panelize。<br>Command+Shift+L（Windows/Linux 為 Ctrl+Shift+L）開啟提示詞庫。<br>安裝後可能需要在 chrome://extensions/shortcuts 中確認或設定快捷鍵。"
+    "message": "Command+Shift+E（Windows/Linux 為 Ctrl+Shift+E）開啟 AIChatMerge。<br>Command+Shift+L（Windows/Linux 為 Ctrl+Shift+L）開啟提示詞庫。<br>安裝後可能需要在 chrome://extensions/shortcuts 中確認或設定快捷鍵。"
   },
   "btnOpenShortcuts": {
     "message": "開啟快速鍵設定"
@@ -141,7 +141,7 @@
     "message": "自訂在 AI 提供者輸入欄位中輸入時 Enter 鍵和修飾鍵的工作方式。"
   },
   "descEnterBehavior2": {
-    "message": "<strong>適用於:</strong> ChatGPT、Claude、Gemini、Grok、DeepSeek、Kimi、Doubao 和 Google(AI 模式)。"
+    "message": "<strong>適用於:</strong> DeepSeek、Kimi、ChatGPT、Claude。"
   },
   "labelEnableEnterCustomization": {
     "message": "啟用 Enter 鍵自訂"
@@ -276,7 +276,7 @@
     "message": "下載最新版本"
   },
   "descAbout1": {
-    "message": "Panelize 讓您在一個視窗中並排比較多個 AI 聊天機器人。"
+    "message": "AIChatMerge 讓您在一個視窗中並排比較多個 AI 聊天機器人。"
   },
   "descAbout2": {
     "message": "採用隱私優先架構建置。所有資料本機儲存。"
@@ -474,7 +474,7 @@
     "message": "您確定要將所有設定重設為預設值嗎？\n\n這將重設：\n- 主題設定\n- 預設提供者\n- 鍵盤快速鍵\n- 所有其他偏好設定\n\n您的提示詞不會受到影響。\n\n此操作無法復原！"
   },
   "contextMenuSendTo": {
-    "message": "發送到 Panelize"
+    "message": "發送到 AIChatMerge"
   },
   "sidebarPromptGenie": {
     "message": "提示詞精靈"
@@ -579,10 +579,10 @@
     "message": "載入中..."
   },
   "optionsPageTitle": {
-    "message": "Panelize - 設定"
+    "message": "AIChatMerge - 設定"
   },
   "headerSettingsTitle": {
-    "message": "設定： Panelize"
+    "message": "設定： AIChatMerge"
   },
   "headerSettingsSubtitle": {
     "message": "自訂您的多 AI 比較體驗"
@@ -591,7 +591,7 @@
     "message": "啟用鍵盤快速鍵"
   },
   "descEnableKeyboardShortcut": {
-    "message": "切換可在瀏覽器任何位置開啟 Panelize 的全域快速鍵。"
+    "message": "切換可在瀏覽器任何位置開啟 AIChatMerge 的全域快速鍵。"
   },
   "labelEdgeShortcutHelper": {
     "message": "在 Microsoft Edge 中確認"
@@ -779,7 +779,7 @@
     "message": "開啟模式"
   },
   "descOpenMode": {
-    "message": "選擇點擊圖示或使用快捷鍵時如何開啟 Panelize"
+    "message": "選擇點擊圖示或使用快捷鍵時如何開啟 AIChatMerge"
   },
   "optionTabMode": {
     "message": "分頁（新分頁）"

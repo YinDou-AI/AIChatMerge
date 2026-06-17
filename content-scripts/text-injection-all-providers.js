@@ -3,6 +3,10 @@
 
 // Anti frame-busting: only for sites known to use frame-busting JS
 // Makes top === self so frame-busting checks (if top !== self) fail gracefully
+// IMPORTANT: Save real parent reference BEFORE overwriting, so content scripts can still reach multi-panel
+if ((window.__realParent__ || window.parent) !== window) {
+  window.__realParent__ = window.parent;
+}
 (function() {
   try {
     const host = location.hostname;
@@ -15,7 +19,7 @@
     if (!FRAME_BUSTING_HOSTS.some(h => host === h || host.endsWith('.' + h))) return;
 
     Object.defineProperty(window, 'top', { get: () => window, configurable: true });
-    Object.defineProperty(window, 'parent', { get: () => window, configurable: true });
+    Object.defineProperty(window, 'parent', { get: () => window.__realParent__ || window, configurable: true });
   } catch(e) {}
 })();
 
@@ -290,8 +294,11 @@
       'button[type="submit"]',
       'button[aria-label*="发送"]',
       'button[aria-label*="Send"]',
+      'button[aria-label*="搜索"]',
+      'button[aria-label*="Search"]',
       'button[class*="search"]',
-      'button[class*="submit"]'
+      'button[class*="submit"]',
+      'button[class*="send"]'
     ]
   };
 
@@ -1142,8 +1149,8 @@
       }
     }
 
-    // For qianwen and wenxin: try Enter key first (like 群问AI)
-    if (provider === 'qianwen' || provider === 'wenxin') {
+    // For qianwen, wenxin, metaso: try Enter key first (like 群问AI)
+    if (provider === 'qianwen' || provider === 'wenxin' || provider === 'metaso') {
       console.log('[Text Injection] Trying Enter key first for', provider);
       if (pressEnterOnProviderInput(provider)) {
         return true;
@@ -1506,7 +1513,7 @@
           console.log('[Text Injection] Text injected via injectText helper for', provider);
           if (autoSubmit) {
             // Use longer delay for providers whose composer state updates asynchronously
-            const delay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin') ? 1500 : 500;
+            const delay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin' || provider === 'metaso') ? 1500 : 500;
             setTimeout(() => clickSendButton(provider, providerMode), delay);
           }
           return true;
@@ -2103,7 +2110,7 @@
     // Handle HEALTH_CHECK messages
     if (event.data.type === 'HEALTH_CHECK' && event.data.context === 'multi-panel') {
       const results = runHealthCheck();
-      if (window.parent !== window) {
+      if ((window.__realParent__ || window.parent) !== window) {
         window.parent.postMessage({
           type: 'HEALTH_CHECK_RESULT',
           results,
@@ -2209,9 +2216,15 @@
     // Handle EXTRACT_ANSWER messages (collect AI responses from the page)
     if (event.data.type === 'EXTRACT_ANSWER' && event.data.context === 'multi-panel') {
       const provider = detectProvider();
-      const answerText = extractLatestAnswer();
+      // 优先使用 SSE 累积文本（更可靠），回退到 DOM 提取
+      let answerText = sseAccumulatedText;
+      if (!answerText || answerText.length === 0) {
+        answerText = extractLatestAnswer();
+      } else {
+        console.log('[TextInjection] Using SSE accumulated text for', provider, 'length:', answerText.length);
+      }
       console.log('[TextInjection] EXTRACT_ANSWER received. provider:', provider, 'answer length:', answerText ? answerText.length : 0);
-      if (window.parent !== window) {
+      if ((window.__realParent__ || window.parent) !== window) {
         window.parent.postMessage({
           type: 'EXTRACTED_ANSWER',
           provider: provider,
@@ -2252,7 +2265,7 @@
       const d4 = extractGenericMarkdownAnswer();
       debug.phases.push({ phase: 4, name: 'generic-markdown', hit: !!d4, len: d4 ? d4.length : 0 });
 
-      if (window.parent !== window) {
+      if ((window.__realParent__ || window.parent) !== window) {
         window.parent.postMessage({ type: 'EXTRACT_DEBUG_RESULT', provider, debug, context: 'multi-panel-debug' }, '*');
       }
       return;
@@ -2364,7 +2377,7 @@
           // Wait for UI to update, then click send button.
           // Use provider-specific delays whose composer state updates asynchronously,
           // matching the injectText() helper used by image injection.
-          const delay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin') ? 1500 : 500;
+          const delay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin' || provider === 'metaso') ? 1500 : 500;
           attemptAutoSubmitWithRetry(provider, providerMode, delay);
         }
       } else {
@@ -2937,6 +2950,11 @@
   let completionProvider = null;
   let completionButtonTimeout = null;    // timeout for falling back to MutationObserver
   let completionButtonObserver = null;   // MutationObserver watching for stop button DOM changes
+  let completionAlreadyDetected = false; // prevent duplicate COMPLETION_DETECTED from SSE path
+
+  // ===== SSE 文本累积 =====
+  let sseAccumulatedText = '';  // 累积的 SSE 文本（仅正式内容，不含思考）
+  let sseAccumulatedThink = ''; // 累积的思考文本
 
   function stopCompletionMonitor() {
     if (completionObserver) {
@@ -3014,7 +3032,7 @@
       targetNode = document.body;
     }
 
-    const STABLE_DELAY_MS = 5000;
+    const STABLE_DELAY_MS = 10000;
 
     const resetStableTimer = () => {
       if (completionStableTimer) {
@@ -3046,7 +3064,8 @@
         console.log('[CompletionMonitor] MutationObserver fallback: answer stable for', STABLE_DELAY_MS, 'ms. Provider:', provider);
         stopCompletionMonitor();
 
-        if (window.parent !== window) {
+        if (!completionAlreadyDetected && (window.__realParent__ || window.parent) !== window) {
+          completionAlreadyDetected = true;
           window.parent.postMessage({
             type: 'COMPLETION_DETECTED',
             provider,
@@ -3056,8 +3075,36 @@
       }, STABLE_DELAY_MS);
     };
 
+    // Track answer content length — only reset stability timer when answer actually changes.
+    // This prevents UI noise (button states, animations) from keeping the timer alive.
+    let prevAnswerLen = -1;
+
+    function getAnswerLen() {
+      let len = 0;
+      for (const sel of selectors) {
+        try {
+          const elements = document.querySelectorAll(sel);
+          for (const el of elements) {
+            if (isExtractMode || isVisibleElement(el)) {
+              len += (el.textContent || '').trim().length;
+            }
+          }
+        } catch (_) {}
+      }
+      return len;
+    }
+
+    // Initialize baseline
+    prevAnswerLen = getAnswerLen();
+
     completionObserver = new MutationObserver(() => {
-      resetStableTimer();
+      const curLen = getAnswerLen();
+      if (curLen !== prevAnswerLen) {
+        // Answer content changed — AI still generating. Reset stability timer.
+        prevAnswerLen = curLen;
+        resetStableTimer();
+      }
+      // else: DOM mutated but answer unchanged (UI noise) — don't reset timer
     });
 
     completionObserver.observe(targetNode, {
@@ -3128,7 +3175,8 @@
           console.log('[CompletionMonitor] Stop button disappeared — generation complete. Provider:', provider);
           stopCompletionMonitor();
 
-          if (window.parent !== window) {
+          if (!completionAlreadyDetected && (window.__realParent__ || window.parent) !== window) {
+            completionAlreadyDetected = true;
             window.parent.postMessage({
               type: 'COMPLETION_DETECTED',
               provider,
@@ -3167,6 +3215,7 @@
         if (completionPhase !== 'button-watch-appear') {
           return; // Phase already changed — button was found
         }
+
         console.log('[CompletionMonitor] No stop button appeared within', BUTTON_APPEAR_TIMEOUT_MS, 'ms — falling back to MutationObserver');
         startMutationFallback(provider);
       }, BUTTON_APPEAR_TIMEOUT_MS);
@@ -3177,6 +3226,7 @@
 
   function startCompletionMonitor() {
     stopCompletionMonitor();
+    completionAlreadyDetected = false;
 
     const provider = detectProvider();
     if (!provider) {
@@ -3192,10 +3242,37 @@
   window.addEventListener('message', (event) => {
     if (!event || !event.data || typeof event.data !== 'object') return;
 
-    // SSE检测完成：停止DOM监控，防止重复发送COMPLETION_DETECTED
+    // SSE 文本重置：新对话开始时清空累积文本
+    if (event.data.type === '__sse_text_reset__') {
+      sseAccumulatedText = '';
+      sseAccumulatedThink = '';
+      return;
+    }
+
+    // SSE 文本累积：逐 chunk 累积正式内容
+    if (event.data.type === '__sse_text__') {
+      if (event.data.text) {
+        if (event.data.isThink) {
+          sseAccumulatedThink += event.data.text;
+        } else {
+          sseAccumulatedText += event.data.text;
+        }
+      }
+      return;
+    }
+
+    // SSE检测完成：停止DOM监控，并通知parent（merge monitor需要此信号）
     if (event.data.type === '__sse_complete__') {
       console.log('[CompletionMonitor] SSE completion received, stopping DOM monitor');
       stopCompletionMonitor();
+      if (!completionAlreadyDetected && (window.__realParent__ || window.parent) !== window) {
+        completionAlreadyDetected = true;
+        window.parent.postMessage({
+          type: 'COMPLETION_DETECTED',
+          provider: detectProvider(),
+          context: 'multi-panel-completion'
+        }, '*');
+      }
       return;
     }
 

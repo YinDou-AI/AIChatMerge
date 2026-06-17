@@ -15,10 +15,12 @@ export const DEFAULT_PROVIDER_IDS = [
   'qianwen',
   'zhipu',
   'wenxin',
-  // 'yuanbao',
+  'yuanbao',
   'metaso',
   'chatgpt',
   'gemini',
+  'claude',
+  'grok',
 ];
 
 export function migrateEnabledProvidersOnUpdate(enabledProviders, providerOrder) {
@@ -68,5 +70,5 @@ function buildMigratedProviderOrder(providerOrder) {
     (providerId) => !uniqueExistingOrder.includes(providerId)
   );
 
-  return [...uniqueExistingOrder, ...missingLegacyProviders, 'doubao'];
+  return [...uniqueExistingOrder, ...missingLegacyProviders, 'doubao', 'yuanbao', 'metaso'];
 }
