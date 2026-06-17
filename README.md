@@ -1,4 +1,4 @@
-# Panelize
+# AIChatMerge
 
 <p align="center">
   <a href="README.md"><strong>English</strong></a> |
@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/panelize-marquee.png" alt="Panelize - All Your AI Assistants. One Window." width="700">
+  <img src="assets/screenshots/aichatmerge-marquee.png" alt="AIChatMerge - All Your AI Assistants. One Window." width="700">
 </p>
 
 <p align="center">
@@ -24,14 +24,14 @@
 
 ---
 
-## Why Panelize?
+## Why AIChatMerge?
 
-Ever found yourself copying the same prompt across multiple AI tabs just to compare answers? Panelize eliminates that workflow entirely.
+Ever found yourself copying the same prompt across multiple AI tabs just to compare answers? AIChatMerge eliminates that workflow entirely.
 
 **One window. One prompt. Multiple AI responses—instantly.**
 
 <p align="center">
-  <img src="assets/screenshots/main-panel.png" alt="Panelize Main Interface" width="800">
+  <img src="assets/screenshots/main-panel.png" alt="AIChatMerge Main Interface" width="800">
 </p>
 
 ---
@@ -40,7 +40,7 @@ Ever found yourself copying the same prompt across multiple AI tabs just to comp
 
 ### 🎯 Ask Once, Compare All
 
-Type your question once and send it to ChatGPT, Claude, Gemini, Grok, Doubao, DeepSeek, Kimi, and Google simultaneously. See which AI gives you the best answer—no tab switching required.
+Type your question once and send it to DeepSeek, Kimi, ChatGPT, and Claude simultaneously. See which AI gives you the best answer—no tab switching required.
 
 ### 📐 Flexible Layouts
 
@@ -52,7 +52,7 @@ Choose from 15 different layouts to fit your workflow. Need a quick 2-way compar
 
 ### ⚡ Zero Setup
 
-No API keys. No configuration. Just log into your AI accounts normally, and Panelize uses those existing sessions. If you can use ChatGPT in a browser tab, you can use it in Panelize.
+No API keys. No configuration. Just log into your AI accounts normally, and AIChatMerge uses those existing sessions. If you can use ChatGPT in a browser tab, you can use it in AIChatMerge.
 
 ### 📚 Prompt Library
 
@@ -71,16 +71,10 @@ Save your best prompts and reuse them across all providers. Supports variables l
 
 <table align="center">
   <tr>
-    <td align="center"><strong>ChatGPT</strong></td>
-    <td align="center"><strong>Claude</strong></td>
-    <td align="center"><strong>Gemini</strong></td>
-    <td align="center"><strong>Grok</strong></td>
-  </tr>
-  <tr>
-    <td align="center"><strong>Doubao</strong></td>
     <td align="center"><strong>DeepSeek</strong></td>
     <td align="center"><strong>Kimi</strong></td>
-    <td align="center"><strong>Google</strong></td>
+    <td align="center"><strong>ChatGPT</strong></td>
+    <td align="center"><strong>Claude</strong></td>
   </tr>
 </table>
 
@@ -96,7 +90,7 @@ Save your best prompts and reuse them across all providers. Supports variables l
 
 1. Visit the [Chrome Web Store](https://chromewebstore.google.com/detail/panelize/iokalaafkmjffolodkkgbbccmofbglii) page
 2. Click **"Add to Chrome"**
-3. Done! Press `Cmd/Ctrl + Shift + E` to open Panelize
+3. Done! Press `Cmd/Ctrl + Shift + E` to open AIChatMerge
 
 > **Works on Edge too:** Install directly from the Chrome Web Store.
 
@@ -115,7 +109,7 @@ Save your best prompts and reuse them across all providers. Supports variables l
 ## Quick Start
 
 1. **Log into your AI accounts** — Visit ChatGPT, Claude, etc. and log in as usual
-2. **Press `Cmd/Ctrl + Shift + E`** — Opens the Panelize window
+2. **Press `Cmd/Ctrl + Shift + E`** — Opens the AIChatMerge window
 3. **Pick a layout** — Choose how many AI panels you want
 4. **Type and send** — Your prompt goes to all panels at once
 
@@ -127,7 +121,7 @@ That's it. No accounts to create, no API keys to configure.
 
 | Action | Shortcut |
 |--------|----------|
-| Open Panelize | `Cmd/Ctrl + Shift + E` |
+| Open AIChatMerge | `Cmd/Ctrl + Shift + E` |
 | Open Prompt Library | `Cmd/Ctrl + Shift + L` |
 
 Customize shortcuts at `chrome://extensions/shortcuts`
@@ -137,20 +131,20 @@ Customize shortcuts at `chrome://extensions/shortcuts`
 ## Troubleshooting
 
 **AI provider shows login page?**
-→ Log into that provider in a regular browser tab first, then refresh Panelize.
+→ Log into that provider in a regular browser tab first, then refresh AIChatMerge.
 
 **Shortcuts not working?**
 → Check for conflicts at `chrome://extensions/shortcuts`
 
 **Need more help?**
-→ [Open an issue](https://github.com/Manho/Panelize/issues)
+→ [Open an issue](https://github.com/Manho/AIChatMerge/issues)
 
 ---
 
 ## Contributing
 
 Found a bug? Have an idea? Contributions are welcome:
-- 🐛 Report bugs via [GitHub Issues](https://github.com/Manho/Panelize/issues)
+- 🐛 Report bugs via [GitHub Issues](https://github.com/Manho/AIChatMerge/issues)
 - 💡 Suggest features
 - 🌍 Help translate to more languages
 - 🔧 Submit pull requests

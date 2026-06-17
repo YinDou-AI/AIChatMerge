@@ -3,7 +3,7 @@
 
 import { t } from './i18n.js';
 
-const GITHUB_MANIFEST_URL = 'https://raw.githubusercontent.com/Manho/Panelize/main/manifest.json';
+const GITHUB_MANIFEST_URL = 'https://raw.githubusercontent.com/Manho/Panelize/main/manifest.json'; // Original upstream - kept for reference
 
 /**
  * Load local manifest version

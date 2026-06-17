@@ -35,7 +35,7 @@ export const PROVIDERS = [
   },
   {
     id: 'zhipu',
-    name: '智谱',
+    name: '智谱清言',
     url: 'https://chatglm.cn/',
     icon: '/icons/providers/zhipu.png',
     iconDark: '/icons/providers/dark/zhipu.png',
@@ -49,14 +49,14 @@ export const PROVIDERS = [
     iconDark: '/icons/providers/dark/wenxin.png',
     enabled: true
   },
-  // {
-  //   id: 'yuanbao',
-  //   name: '元宝',
-  //   url: 'https://yuanbao.tencent.com/chat/',
-  //   icon: '/icons/providers/yuanbao.png',
-  //   iconDark: '/icons/providers/dark/yuanbao.png',
-  //   enabled: true
-  // },
+  {
+    id: 'yuanbao',
+    name: '元宝',
+    url: 'https://yuanbao.tencent.com/chat/',
+    icon: '/icons/providers/yuanbao.png',
+    iconDark: '/icons/providers/dark/yuanbao.png',
+    enabled: true
+  },
   {
     id: 'metaso',
     name: '秘塔AI',
@@ -79,6 +79,22 @@ export const PROVIDERS = [
     url: 'https://gemini.google.com',
     icon: '/icons/providers/gemini.png',
     iconDark: '/icons/providers/dark/gemini.png',
+    enabled: true
+  },
+  {
+    id: 'claude',
+    name: 'Claude',
+    url: 'https://claude.ai',
+    icon: '/icons/providers/claude.png',
+    iconDark: '/icons/providers/dark/claude.png',
+    enabled: true
+  },
+  {
+    id: 'grok',
+    name: 'Grok',
+    url: 'https://grok.com',
+    icon: '/icons/providers/grok.png',
+    iconDark: '/icons/providers/dark/grok.png',
     enabled: true
   }
 ];

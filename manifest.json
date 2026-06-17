@@ -70,6 +70,28 @@
   "content_scripts": [
     {
       "matches": [
+        "https://chat.deepseek.com/*",
+        "https://www.kimi.com/*",
+        "https://kimi.com/*",
+        "https://www.doubao.com/*",
+        "https://doubao.com/*",
+        "https://www.qianwen.com/*",
+        "https://qianwen.com/*",
+        "https://yuanbao.tencent.com/*",
+        "https://yiyan.baidu.com/*",
+        "https://chatglm.cn/*",
+        "https://chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://grok.com/*",
+        "https://metaso.cn/*"
+      ],
+      "js": ["sse-detect.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
         "https://www.qianwen.com/*",
         "https://qianwen.com/*"
       ],

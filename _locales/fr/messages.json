@@ -1,21 +1,21 @@
 {
   "extensionName": {
-    "message": "Panelize"
+    "message": "AIChatMerge"
   },
   "extensionDescription": {
-    "message": "Extension de barre latérale multi-IA pour un accès rapide à ChatGPT, Claude, Gemini et plus"
+    "message": "Extension de barre latérale multi-IA pour un accès rapide à DeepSeek, Kimi, ChatGPT et Claude"
   },
   "commandOpenSidebar": {
-    "message": "Ouvrir Panelize avec le fournisseur par défaut"
+    "message": "Ouvrir AIChatMerge avec le fournisseur par défaut"
   },
   "commandOpenPromptLibrary": {
-    "message": "Ouvrir la bibliothèque de prompts Panelize"
+    "message": "Ouvrir la bibliothèque de prompts AIChatMerge"
   },
   "actionDefaultTitle": {
-    "message": "Ouvrir Panelize"
+    "message": "Ouvrir AIChatMerge"
   },
   "settingsTitle": {
-    "message": "Paramètres : Panelize"
+    "message": "Paramètres : AIChatMerge"
   },
   "settingsSubtitle": {
     "message": "Personnalisez votre expérience de barre latérale multi-IA"
@@ -84,7 +84,7 @@
     "message": "Fournisseurs activés"
   },
   "descEnabledProviders": {
-    "message": "Sélectionnez les fournisseurs IA qui apparaissent dans Panelize"
+    "message": "Sélectionnez les fournisseurs IA qui apparaissent dans AIChatMerge"
   },
   "sectionKeyboardShortcuts": {
     "message": "Raccourcis clavier"
@@ -96,7 +96,7 @@
     "message": "Activer le raccourci clavier"
   },
   "descEnableShortcut": {
-    "message": "Activer le raccourci global qui ouvre Panelize depuis n'importe où dans le navigateur."
+    "message": "Activer le raccourci global qui ouvre AIChatMerge depuis n'importe où dans le navigateur."
   },
   "labelDefaultShortcuts": {
     "message": "Raccourcis par défaut"
@@ -141,7 +141,7 @@
     "message": "Personnalisez le fonctionnement de la touche Entrée et des touches modificatrices lors de la saisie dans les champs de saisie des fournisseurs IA."
   },
   "descEnterBehavior2": {
-    "message": "<strong>S'applique à :</strong> ChatGPT, Claude, Gemini, Grok, DeepSeek, Kimi, Doubao et Google (Mode IA)."
+    "message": "<strong>S'applique à :</strong> DeepSeek, Kimi, ChatGPT et Claude."
   },
   "labelEnableEnterCustomization": {
     "message": "Activer la personnalisation de la touche Entrée"
@@ -276,7 +276,7 @@
     "message": "Télécharger la dernière version"
   },
   "descAbout1": {
-    "message": "Panelize offre un accès rapide à plusieurs assistants IA dans une seule barre latérale pratique."
+    "message": "AIChatMerge offre un accès rapide à plusieurs assistants IA dans une seule barre latérale pratique."
   },
   "descAbout2": {
     "message": "Conçu avec une architecture axée sur la confidentialité. Toutes les données sont stockées localement."
@@ -480,7 +480,7 @@
     "message": "Êtes-vous sûr de vouloir réinitialiser TOUS les paramètres aux valeurs par défaut ?\n\nCela réinitialisera :\n- Les paramètres de thème\n- Le fournisseur par défaut\n- Les raccourcis clavier\n- Toutes les autres préférences\n\nVos prompts NE seront PAS affectés.\n\nCette action NE PEUT PAS être annulée !"
   },
   "contextMenuSendTo": {
-    "message": "Envoyer vers Panelize"
+    "message": "Envoyer vers AIChatMerge"
   },
   "sidebarPromptGenie": {
     "message": "Prompt Genie"
@@ -585,10 +585,10 @@
     "message": "Chargement..."
   },
   "optionsPageTitle": {
-    "message": "Panelize - Paramètres"
+    "message": "AIChatMerge - Paramètres"
   },
   "headerSettingsTitle": {
-    "message": "Paramètres : Panelize"
+    "message": "Paramètres : AIChatMerge"
   },
   "headerSettingsSubtitle": {
     "message": "Personnalisez votre expérience de barre latérale multi-IA"
@@ -597,7 +597,7 @@
     "message": "Activer le raccourci clavier"
   },
   "descEnableKeyboardShortcut": {
-    "message": "Activer le raccourci global qui ouvre Panelize depuis n'importe où dans le navigateur."
+    "message": "Activer le raccourci global qui ouvre AIChatMerge depuis n'importe où dans le navigateur."
   },
   "labelEdgeShortcutHelper": {
     "message": "Confirmer dans Microsoft Edge"
@@ -785,7 +785,7 @@
     "message": "Mode d'ouverture"
   },
   "descOpenMode": {
-    "message": "Choisissez comment ouvrir Panelize en cliquant sur l'icône ou en utilisant les raccourcis"
+    "message": "Choisissez comment ouvrir AIChatMerge en cliquant sur l'icône ou en utilisant les raccourcis"
   },
   "optionTabMode": {
     "message": "Onglet (Nouvel onglet)"

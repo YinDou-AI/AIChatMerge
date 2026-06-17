@@ -7,7 +7,7 @@ const DEFAULT_SETTINGS = {
   providerOrder: null,
   defaultProvider: 'chatgpt',
   lastSelectedProvider: 'chatgpt',
-  rememberLastProvider: true,  // When true, Panelize opens last selected provider; when false, always opens default provider
+  rememberLastProvider: true,  // When true, AIChatMerge opens last selected provider; when false, always opens default provider
   theme: 'auto',
   language: null,
   keyboardShortcutEnabled: true,

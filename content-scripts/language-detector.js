@@ -51,16 +51,16 @@
    * Save button tooltip text in different languages
    */
   const SAVE_TOOLTIP_TEXT = {
-    'en': 'Save this conversation to Panelize',
-    'zh_CN': '保存此对话到 Panelize',
-    'zh_TW': '保存此對話到 Panelize',
-    'ja': 'この会話を Panelize に保存',
-    'ko': '이 대화를 Panelize에 저장',
-    'ru': 'Сохранить этот разговор в Panelize',
-    'es': 'Guardar esta conversación en Panelize',
-    'fr': 'Enregistrer cette conversation dans Panelize',
-    'de': 'Dieses Gespräch in Panelize speichern',
-    'it': 'Salva questa conversazione su Panelize'
+    'en': 'Save this conversation to AIChatMerge',
+    'zh_CN': '保存此对话到 AIChatMerge',
+    'zh_TW': '保存此對話到 AIChatMerge',
+    'ja': 'この会話を AIChatMerge に保存',
+    'ko': '이 대화를 AIChatMerge에 저장',
+    'ru': 'Сохранить этот разговор в AIChatMerge',
+    'es': 'Guardar esta conversación en AIChatMerge',
+    'fr': 'Enregistrer cette conversation dans AIChatMerge',
+    'de': 'Dieses Gespräch in AIChatMerge speichern',
+    'it': 'Salva questa conversazione su AIChatMerge'
   };
 
   /**

@@ -1,4 +1,4 @@
-# Panelize
+# AIChatMerge
 
 <p align="center">
   <a href="README.md"><strong>English</strong></a> |
@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/panelize-marquee.png" alt="Panelize - All Your AI Assistants. One Window." width="700">
+  <img src="assets/screenshots/aichatmerge-marquee.png" alt="AIChatMerge - All Your AI Assistants. One Window." width="700">
 </p>
 
 <p align="center">
@@ -24,14 +24,14 @@
 
 ---
 
-## 为什么选择 Panelize？
+## 为什么选择 AIChatMerge？
 
 还在把同一个 Prompt 复制到多个 AI 标签页里逐个比较吗？
 
-**Panelize 让你在一个窗口里，一次发送，直接横向对比多个 AI 的答案。**
+**AIChatMerge 让你在一个窗口里，一次发送，直接横向对比多个 AI 的答案。**
 
 <p align="center">
-  <img src="assets/screenshots/main-panel.png" alt="Panelize 主界面" width="800">
+  <img src="assets/screenshots/main-panel.png" alt="AIChatMerge 主界面" width="800">
 </p>
 
 ---
@@ -40,7 +40,7 @@
 
 ### 一次提问，同时对比
 
-在统一输入框中输入一次内容，就能同时发送到 ChatGPT、Claude、Gemini、Grok、Doubao、DeepSeek、Kimi、Google。
+在统一输入框中输入一次内容，就能同时发送到 DeepSeek、Kimi、ChatGPT、Claude。
 
 ### 灵活布局
 
@@ -69,14 +69,10 @@
 
 ## 支持的 AI 平台
 
-- ChatGPT
-- Claude
-- Gemini
-- Grok
-- Doubao
 - DeepSeek
 - Kimi
-- Google
+- ChatGPT
+- Claude
 
 <p align="center">
   <img src="assets/screenshots/settings.png" alt="设置与平台管理" width="700">
@@ -90,7 +86,7 @@
 
 1. 打开 [Chrome Web Store 页面](https://chromewebstore.google.com/detail/panelize/iokalaafkmjffolodkkgbbccmofbglii)
 2. 点击 **Add to Chrome**
-3. 安装完成后按 `Cmd/Ctrl + Shift + E` 打开 Panelize
+3. 安装完成后按 `Cmd/Ctrl + Shift + E` 打开 AIChatMerge
 
 > **Edge 也可用：** 可直接从 Chrome Web Store 安装。
 
@@ -109,7 +105,7 @@
 ## 快速开始
 
 1. **先登录各平台账号**：先在普通网页标签页登录 ChatGPT / Claude 等
-2. **按 `Cmd/Ctrl + Shift + E`**：打开 Panelize
+2. **按 `Cmd/Ctrl + Shift + E`**：打开 AIChatMerge
 3. **选择布局**：按需求选择面板数量与布局
 4. **输入并发送**：一次发送到所有面板
 
@@ -119,7 +115,7 @@
 
 | 操作 | 快捷键 |
 |------|--------|
-| 打开 Panelize | `Cmd/Ctrl + Shift + E` |
+| 打开 AIChatMerge | `Cmd/Ctrl + Shift + E` |
 | 打开 Prompt Library | `Cmd/Ctrl + Shift + L` |
 
 可在 `chrome://extensions/shortcuts` 自定义。
@@ -129,13 +125,13 @@
 ## 常见问题
 
 **AI 页面显示登录状态？**
-→ 先在普通标签页登录该平台，再刷新 Panelize。
+→ 先在普通标签页登录该平台，再刷新 AIChatMerge。
 
 **快捷键无效？**
 → 到 `chrome://extensions/shortcuts` 检查冲突。
 
 **需要帮助？**
-→ [提交 Issue](https://github.com/Manho/Panelize/issues)
+→ [提交 Issue](https://github.com/Manho/AIChatMerge/issues)
 
 ---
 

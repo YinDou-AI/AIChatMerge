@@ -1,4 +1,4 @@
-# Panelize
+# AIChatMerge
 
 <p align="center">
   <a href="README.md"><strong>English</strong></a> |
@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/panelize-marquee.png" alt="Panelize - All Your AI Assistants. One Window." width="700">
+  <img src="assets/screenshots/aichatmerge-marquee.png" alt="AIChatMerge - All Your AI Assistants. One Window." width="700">
 </p>
 
 <p align="center">
@@ -24,14 +24,14 @@
 
 ---
 
-## Panelize とは？
+## AIChatMerge とは？
 
 同じプロンプトを複数の AI タブに貼り付けて比較する作業を、1つの画面にまとめる拡張機能です。
 
 **1つの入力で、複数 AI の回答を同時に比較できます。**
 
 <p align="center">
-  <img src="assets/screenshots/main-panel.png" alt="Panelize Main Interface" width="800">
+  <img src="assets/screenshots/main-panel.png" alt="AIChatMerge Main Interface" width="800">
 </p>
 
 ---
@@ -40,7 +40,7 @@
 
 ### 1回の入力で同時送信
 
-統一入力欄から ChatGPT / Claude / Gemini / Grok / Doubao / DeepSeek / Kimi / Google へ同時に送信できます。
+統一入力欄から DeepSeek / Kimi / ChatGPT / Claude へ同時に送信できます。
 
 ### 柔軟なレイアウト
 
@@ -69,14 +69,10 @@ API キー不要。通常どおり各 AI サービスにログインしていれ
 
 ## 対応 AI プロバイダー
 
-- ChatGPT
-- Claude
-- Gemini
-- Grok
-- Doubao
 - DeepSeek
 - Kimi
-- Google
+- ChatGPT
+- Claude
 
 <p align="center">
   <img src="assets/screenshots/settings.png" alt="Settings & Providers" width="700">
@@ -90,7 +86,7 @@ API キー不要。通常どおり各 AI サービスにログインしていれ
 
 1. [Chrome Web Store ページ](https://chromewebstore.google.com/detail/panelize/iokalaafkmjffolodkkgbbccmofbglii) を開く
 2. **Add to Chrome** をクリック
-3. インストール後、`Cmd/Ctrl + Shift + E` で Panelize を開く
+3. インストール後、`Cmd/Ctrl + Shift + E` で AIChatMerge を開く
 
 > **Edge でも利用可能：** Chrome Web Store からそのままインストールできます。
 
@@ -119,7 +115,7 @@ API キー不要。通常どおり各 AI サービスにログインしていれ
 
 | 操作 | ショートカット |
 |------|----------------|
-| Panelize を開く | `Cmd/Ctrl + Shift + E` |
+| AIChatMerge を開く | `Cmd/Ctrl + Shift + E` |
 | Prompt Library を開く | `Cmd/Ctrl + Shift + L` |
 
 `chrome://extensions/shortcuts` で変更できます。
@@ -129,13 +125,13 @@ API キー不要。通常どおり各 AI サービスにログインしていれ
 ## トラブルシューティング
 
 **ログイン画面が表示される場合**
-→ 先に通常タブで対象サービスへログインし、Panelize を再読み込みしてください。
+→ 先に通常タブで対象サービスへログインし、AIChatMerge を再読み込みしてください。
 
 **ショートカットが動作しない場合**
 → `chrome://extensions/shortcuts` で競合を確認してください。
 
 **サポートが必要な場合**
-→ [Issue を作成](https://github.com/Manho/Panelize/issues)
+→ [Issue を作成](https://github.com/Manho/AIChatMerge/issues)
 
 ---
 

@@ -1080,14 +1080,18 @@ function handleProviderStatusMessage(event) {
     return;
   }
 
+  // Log ALL messages for debugging
+  console.log('[MultiPanel] Received message:', data.type, data.context);
+
   // Handle answer extraction responses
   if (data.type === 'EXTRACTED_ANSWER' && data.context === 'multi-panel-answer') {
     handleExtractedAnswer(data);
     return;
   }
 
-  // Handle completion detection from iframe MutationObserver
+  // Handle completion detection from iframe MutationObserver or SSE bridge
   if (data.type === 'COMPLETION_DETECTED' && data.context === 'multi-panel-completion') {
+    console.log('[Merge] Received COMPLETION_DETECTED message from iframe');
     handleMergeCompletionDetected(data);
     return;
   }
@@ -2393,13 +2397,14 @@ const MERGE_TARGET_URLS = {
   grok: 'https://grok.com/'
 };
 
-const MERGE_MAX_WAIT = 120000;      // 最长2分钟
+const MERGE_MAX_WAIT = 60000;       // 最长1分钟
 
 let mergeCompletedPanels = new Set();
 let mergeTimeoutTimer = null;
 let mergeStartDelayTimer = null;
 let mergeIsActive = false;
 let lastSentQuestion = '';
+let lastMergeType = null; // 'auto' | 'timeout' | null
 
 function startMergeMonitor() {
   stopMergeMonitor();
@@ -2431,16 +2436,23 @@ function startMergeMonitor() {
   // Safety net: force merge after max wait (从 Send All 开始计时)
   mergeTimeoutTimer = setTimeout(() => {
     if (!mergeIsActive) return;
-    console.log('[Merge] Timeout, triggering merge');
-    showMergeStatus('timeout', t('waitTimeout'));
+    const nonMergePanels = getNonMergePanels();
+    const completed = nonMergePanels.filter(p => mergeCompletedPanels.has(p.id));
+    const incomplete = nonMergePanels.filter(p => !mergeCompletedPanels.has(p.id));
+    console.log('[Merge] Timeout, triggering merge. Completed:', completed.map(p => p.providerId).join(',') || 'none',
+      '| Incomplete:', incomplete.map(p => p.providerId).join(',') || 'none');
+    lastMergeType = 'timeout';
     stopMergeMonitor();
     triggerMerge();
   }, MERGE_MAX_WAIT);
 }
 
 function handleMergeCompletionDetected(data) {
-  console.log('[Merge] COMPLETION_DETECTED received:', data.provider, 'active:', mergeIsActive);
-  if (!mergeIsActive || data.context !== 'multi-panel-completion') return;
+  console.log('[Merge] COMPLETION_DETECTED received:', data.provider, 'active:', mergeIsActive, 'context:', data.context);
+  if (!mergeIsActive || data.context !== 'multi-panel-completion') {
+    console.log('[Merge] Ignoring COMPLETION_DETECTED: mergeIsActive=', mergeIsActive, 'context=', data.context);
+    return;
+  }
 
   const panel = panels.find(p => p.providerId === data.provider && !isMergePanel(p));
   if (!panel) {
@@ -2456,7 +2468,7 @@ function handleMergeCompletionDetected(data) {
 
   if (mergeCompletedPanels.size >= nonMergeCount) {
     console.log('[Merge] All panels completed, triggering merge');
-    showMergeStatus('auto', t('allAIAnswered'));
+    lastMergeType = 'auto';
     stopMergeMonitor();
     triggerMerge();
   }
@@ -2499,40 +2511,32 @@ function buildMergePrompt(question, answers) {
   if (currentLocale === 'en') {
     const partsEn = answers.map(a => `[${a.providerName}]\n${a.answer}`);
     return `You are a skilled answer synthesizer. Today: ${todayEn}.
-
 [Original Question]
 ${question}
-
 [Model Responses]
 ${partsEn.join('\n\n')}
-
 Rules:
 1. Restate the question in one sentence
 2. Extract the best content from each response, remove duplicates
 3. When citing a viewpoint, note which model(s) support it (e.g. "— DeepSeek, ChatGPT")
 4. Remove outdated info based on today's date
 5. Note disagreements briefly, then give the best answer
-6. Structure with clear headings
-
+6. Use Markdown formatting (## for headings, **bold** for emphasis, - for lists)
 Output the synthesized answer with source attribution.`;
   }
 
   return `你是一位优秀的答案综合者。当前日期：${todayZh}。
-
 【原始问题】
 ${question}
-
 【各模型回答】
 ${parts.join('\n')}
-
 规则：
 1. 先用一句话复述原始问题
 2. 从每个回答中提取最优质的内容，去除重复
 3. 引用观点时注明来源（如"— DeepSeek、ChatGPT"）
 4. 根据当前日期，去除过时的信息
 5. 模型有分歧时简要说明后给出最佳答案
-6. 用清晰标题组织答案
-
+6. 使用 Markdown 格式输出（标题用 ##，重点用 **加粗**，列表用 -）
 直接输出综合答案，每个观点注明来源。`;
 }
 
@@ -2563,6 +2567,13 @@ async function triggerMerge() {
     if (currentPanelPage !== targetPage) {
       currentPanelPage = targetPage;
       renderCurrentPage();
+    }
+
+    // 更新融合状态标签
+    const existingBadge = document.getElementById(existingPanel.id)?.querySelector('#merge-status-badge');
+    if (existingBadge) {
+      existingBadge.style.background = lastMergeType === 'auto' ? '#10b981' : '#f59e0b';
+      existingBadge.textContent = lastMergeType === 'auto' ? '自动融合' : '超时融合';
     }
 
     // 复用已有面板：直接注入提示词
@@ -2626,6 +2637,16 @@ async function triggerMerge() {
       <div class="panel-header-left">
         <img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="provider-icon" data-provider-id="${provider.id}">
         <span>${provider.name}(${t('merge')})</span>
+        <span id="merge-status-badge" style="
+          background: ${lastMergeType === 'auto' ? '#10b981' : '#f59e0b'};
+          color: white;
+          padding: 2px 6px;
+          font-size: 10px;
+          font-weight: 600;
+          border-radius: 3px;
+          margin-left: 6px;
+          white-space: nowrap;
+        ">${lastMergeType === 'auto' ? '自动融合' : '超时融合'}</span>
       </div>
       <div class="panel-header-right">${getPanelHeaderRightHtml(targetProvider)}</div>
     </div>
@@ -3296,53 +3317,6 @@ function showToast(message) {
     toast.style.transition = 'opacity 0.3s';
     setTimeout(() => toast.remove(), 300);
   }, 2000);
-}
-
-// 融合状态提示（自动完成 vs 超时）— 持久显示在融合面板顶部
-function showMergeStatus(type, message) {
-  const isAuto = type === 'auto';
-
-  // 找到融合面板
-  const mergePanelId = [...mergePanelIds].pop();
-  if (!mergePanelId) return;
-
-  const panelEl = document.getElementById(mergePanelId);
-  if (!panelEl) return;
-
-  // 移除旧的状态条
-  const old = panelEl.querySelector('.merge-status-banner');
-  if (old) old.remove();
-
-  // 创建新的状态条
-  const banner = document.createElement('div');
-  banner.className = 'merge-status-banner';
-  banner.style.cssText = `
-    background: ${isAuto ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #f59e0b, #d97706)'};
-    color: white;
-    padding: 10px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border-radius: 8px 8px 0 0;
-    flex-shrink: 0;
-    z-index: 10;
-    position: relative;
-  `;
-  banner.innerHTML = `
-    <span style="font-size: 16px;">${isAuto ? '✓' : '⏱'}</span>
-    <span>${message}</span>
-  `;
-
-  // 插入到面板内容顶部（iframe容器之前）
-  const iframeContainer = panelEl.querySelector('.panel-iframe-container');
-  if (iframeContainer) {
-    panelEl.insertBefore(banner, iframeContainer);
-    console.log('[Merge] Status banner inserted:', type, 'into panel:', mergePanelId);
-  } else {
-    console.warn('[Merge] No .panel-iframe-container found in panel:', mergePanelId);
-  }
 }
 
 // ===== Prompt Editor Functions =====

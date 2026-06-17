@@ -133,5 +133,54 @@
       "urlFilter": "https://gemini.google.com/*",
       "resourceTypes": ["sub_frame"]
     }
+  },
+  {
+    "id": 11,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://claude.ai/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 12,
+    "priority": 2,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" },
+        { "header": "X-Content-Type-Options", "operation": "remove" },
+        { "header": "Cross-Origin-Opener-Policy", "operation": "remove" },
+        { "header": "Cross-Origin-Embedder-Policy", "operation": "remove" },
+        { "header": "Cross-Origin-Resource-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://grok.com/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 13,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://yuanbao.tencent.com/*",
+      "resourceTypes": ["sub_frame"]
+    }
   }
 ]
