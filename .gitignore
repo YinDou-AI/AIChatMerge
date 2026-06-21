@@ -24,14 +24,20 @@ build/
 *.tmp
 *.bak
 *.log
+*.stackdump
 
 # Environment files
 .env
 .env.local
+.env.*
+!.env.example
 
 # Extension packaging
 *.crx
 *.pem
+*.key
+*.pfx
+*.p12
 _metadata/
 
 # Test files
@@ -46,6 +52,7 @@ test-results/
 task_plan.md
 findings.md
 progress.md
+AIChatMerge改造方案.md
 
 # User data (don't commit personal data)
 user-data/
