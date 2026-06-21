@@ -1,5 +1,6 @@
 // Text injection handler for all AI providers
 // Self-contained script without module imports (for iframe compatibility)
+// 图片注入功能已移除（v4.0）。如需恢复，参考 paste 模拟方案（DataTransfer + File + ClipboardEvent）
 
 // Anti frame-busting: only for sites known to use frame-busting JS
 // Makes top === self so frame-busting checks (if top !== self) fail gracefully
@@ -142,65 +143,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     'textarea.gLFyf'
   ];
 
-  // Provider image support configuration
-  const PROVIDER_IMAGE_SUPPORT = {
-    chatgpt: true,
-    claude: true,
-    gemini: true,
-    grok: true,
-    deepseek: true,
-    kimi: true,  // Kimi supports images
-    doubao: true,
-    google: true,  // Google AI Mode supports images
-    qianwen: false,
-    zhipu: false,
-    wenxin: false,
-    yuanbao: false,
-    metaso: false
-  };
 
-  // Provider-specific file input selectors for image upload
-  const FILE_INPUT_SELECTORS = {
-    chatgpt: ['input[type="file"][data-testid="file-upload-input"]', 'input[type="file"]'],
-    claude: ['input[type="file"]'],
-    gemini: ['input[type="file"]'],
-    grok: ['input[type="file"]'],
-    deepseek: ['input[type="file"]'],
-    kimi: ['input[type="file"]'],
-    doubao: ['input[type="file"]'],
-    google: ['input[type="file"]'],
-    qianwen: ['input[type="file"]'],
-    zhipu: ['input[type="file"]'],
-    wenxin: ['input[type="file"]'],
-    yuanbao: ['input[type="file"]'],
-    metaso: ['input[type="file"]']
-  };
-
-  // Provider-specific upload button selectors (to click before file input)
-  const UPLOAD_BUTTON_SELECTORS = {
-    chatgpt: ['button[aria-label="Attach files"]', 'button[data-testid="composer-attach-button"]', 'button:has(svg path[d*="M9"])'],
-    claude: ['button[aria-label="Attach file"]', 'button[aria-label="Upload file"]', 'fieldset button:has(svg)'],
-    gemini: ['button[aria-label="Upload file"]', 'button[mattooltip="Upload file"]', '.add-button', 'button:has(mat-icon)'],
-    grok: [],
-    deepseek: [],
-    kimi: [],  // Kimi supports drag-drop for images
-    doubao: [
-      '#input-engine-container button[data-slot="dropdown-menu-trigger"][aria-haspopup="menu"]'
-    ],
-    google: [
-      'button[aria-label="更多输入项"]',
-      'button[aria-label="Upload image"]',
-      'button[aria-label="上传图片"]',
-      'button[aria-label="上传文件"]',
-      'button[aria-label="Add image"]',
-      'button[aria-label="Upload image"]',
-      'button[aria-label="Add"]',
-      'button[title="Add image"]',
-      'button[title="Upload image"]',
-      'button[data-xid*="image"]',
-      'button[data-xid*="upload"]'
-    ]
-  };
 
   // Provider-specific send button selectors
   const SEND_BUTTON_SELECTORS = {
@@ -291,14 +234,29 @@ if ((window.__realParent__ || window.parent) !== window) {
       'button[class*="send"]'
     ],
     metaso: [
+      'button[data-testid*="send"]',
+      'button[data-test-id*="send"]',
+      '[role="button"][data-testid*="send"]',
+      '[role="button"][data-test-id*="send"]',
+      'button[title*="发送"]',
+      'button[title*="Send"]',
+      '[role="button"][title*="发送"]',
+      '[role="button"][title*="Send"]',
       'button[type="submit"]',
       'button[aria-label*="发送"]',
       'button[aria-label*="Send"]',
+      '[role="button"][aria-label*="发送"]',
+      '[role="button"][aria-label*="Send"]',
       'button[aria-label*="搜索"]',
       'button[aria-label*="Search"]',
+      '[role="button"][aria-label*="搜索"]',
+      '[role="button"][aria-label*="Search"]',
       'button[class*="search"]',
       'button[class*="submit"]',
-      'button[class*="send"]'
+      'button[class*="send"]',
+      '[role="button"][class*="search"]',
+      '[role="button"][class*="submit"]',
+      '[role="button"][class*="send"]'
     ]
   };
 
@@ -518,8 +476,49 @@ if ((window.__realParent__ || window.parent) !== window) {
 
   let isExtractMode = false;
 
+  // Provider pages are intentionally frameable while this extension is active.
+  // A parent window is therefore not trusted merely because it is the parent.
+  function getExtensionOrigin() {
+    try {
+      const extensionUrl = new URL(chrome.runtime.getURL('/'));
+      // Some URL implementations report a null origin for extension schemes.
+      // Chrome itself has a concrete chrome-extension://<id> origin.
+      return extensionUrl.origin === 'null'
+        ? `${extensionUrl.protocol}//${extensionUrl.host}`
+        : extensionUrl.origin;
+    } catch (error) {
+      console.warn('[MessageHandler] Unable to determine extension origin', error);
+      return null;
+    }
+  }
+
+  const extensionOrigin = getExtensionOrigin();
+
+  function isTrustedExtensionParent(event) {
+    return !!extensionOrigin && event.source === window.parent && event.origin === extensionOrigin;
+  }
+
+  function postToExtensionParent(message) {
+    if (window.parent !== window && extensionOrigin) {
+      window.parent.postMessage(message, extensionOrigin);
+    }
+  }
+
+  function postInjectionResult(injectionRequestId, provider, inputFound, injectSuccess, error = null) {
+    if (!injectionRequestId) return;
+    postToExtensionParent({
+      type: 'INJECT_TEXT_RESULT',
+      injectionRequestId,
+      provider,
+      inputFound,
+      injectSuccess,
+      error,
+      context: 'multi-panel-injection'
+    });
+  }
+
   window.addEventListener('message', (event) => {
-    if (event?.data?.type === 'SET_EXTRACT_MODE') {
+    if (event?.data?.type === 'SET_EXTRACT_MODE' && isTrustedExtensionParent(event)) {
       isExtractMode = event.data.enabled === true;
     }
   });
@@ -982,100 +981,6 @@ if ((window.__realParent__ || window.parent) !== window) {
     return true;
   }
 
-  function findGoogleFileInput() {
-    const fileInputs = querySelectorAllDeep('input[type="file"]');
-    let fallbackInput = null;
-
-    for (const input of fileInputs) {
-      const accept = (input.getAttribute('accept') || '').toLowerCase();
-      if (accept && accept.includes('image') && !accept.includes('.pdf') && !accept.includes('application/pdf')) {
-        return input;
-      }
-
-      if (!fallbackInput && (!accept || accept.includes('image') || accept.includes('*'))) {
-        fallbackInput = input;
-      }
-    }
-
-    return fallbackInput;
-  }
-
-  async function openGoogleImagePicker() {
-    const uploadButton = findDeepFirstVisibleElement(UPLOAD_BUTTON_SELECTORS.google);
-    if (uploadButton) {
-      uploadButton.click();
-      await sleep(150);
-    }
-
-    let fileInput = findGoogleFileInput();
-    if (fileInput) {
-      return fileInput;
-    }
-
-    const imageMenuAction = findDeepClickableElementByKeywords([
-      '更多输入项',
-      'add image',
-      'upload image',
-      'upload file',
-      'image',
-      'photo',
-      '上传图片',
-      '上传文件',
-      '图片',
-      '照片',
-      '图像'
-    ]);
-
-    if (imageMenuAction) {
-      imageMenuAction.click();
-      await sleep(150);
-    }
-
-    fileInput = findGoogleFileInput();
-    if (fileInput) {
-      return fileInput;
-    }
-
-    const addAction = findDeepClickableElementByKeywords([
-      'add',
-      'attach',
-      'plus',
-      '添加',
-      '附件'
-    ]);
-
-    if (addAction) {
-      addAction.click();
-      await sleep(150);
-    }
-
-    return findGoogleFileInput();
-  }
-
-  function assignFilesToInput(fileInput, files) {
-    if (!fileInput || !files || files.length === 0) {
-      return false;
-    }
-
-    try {
-      const dataTransfer = new DataTransfer();
-      files.forEach(file => dataTransfer.items.add(file));
-      fileInput.files = dataTransfer.files;
-      return true;
-    } catch (error) {
-      try {
-        Object.defineProperty(fileInput, 'files', {
-          configurable: true,
-          value: files
-        });
-        return true;
-      } catch (fallbackError) {
-        console.error('[Image Injection] Failed to assign files to input:', fallbackError);
-        return false;
-      }
-    }
-  }
-
   // Find text input element by selector
   function findTextInputElement(selector) {
     if (!selector || typeof selector !== 'string') {
@@ -1149,14 +1054,6 @@ if ((window.__realParent__ || window.parent) !== window) {
       }
     }
 
-    // For qianwen, wenxin, metaso: try Enter key first (like 群问AI)
-    if (provider === 'qianwen' || provider === 'wenxin' || provider === 'metaso') {
-      console.log('[Text Injection] Trying Enter key first for', provider);
-      if (pressEnterOnProviderInput(provider)) {
-        return true;
-      }
-    }
-
     // Try send button selectors
     const selectors = SEND_BUTTON_SELECTORS[provider];
     let foundDisabledButton = false;
@@ -1176,7 +1073,14 @@ if ((window.__realParent__ || window.parent) !== window) {
                 parent = parent.parentElement;
               }
             }
+            // Metaso keeps buttons from previous composer states in the DOM.
+            // Clicking a hidden one reports success here but performs no send,
+            // which prevents the retry loop from reaching the live button.
+            if (provider === 'metaso' && !isVisibleElement(targetElement)) {
+              continue;
+            }
             if (isExtractMode || isElementEnabled(targetElement)) {
+              targetElement.focus?.();
               targetElement.click();
               return true;
             } else {
@@ -1191,6 +1095,13 @@ if ((window.__realParent__ || window.parent) !== window) {
 
     // Button found but disabled — try Enter key (framework state not updated)
     if (foundDisabledButton) {
+      // Qianwen's controlled editor can enter an error state after a synthetic
+      // Enter. Metaso can ignore the simulated key while its real button is
+      // still enabling, so both must wait for a real enabled button.
+      if (provider === 'qianwen' || provider === 'metaso') {
+        console.log('[Text Injection] Send button is not ready for', provider, '- waiting for retry');
+        return false;
+      }
       console.log('[Text Injection] Send button disabled for', provider, '- trying Enter key');
       if (pressEnterOnProviderInput(provider)) {
         return true;
@@ -1198,6 +1109,10 @@ if ((window.__realParent__ || window.parent) !== window) {
     }
 
     // Fallback: press Enter on provider input
+    if (provider === 'qianwen') {
+      console.log('[Text Injection] No enabled send button for', provider, '- waiting for retry');
+      return false;
+    }
     console.log('[Text Injection] Send button not found, trying Enter key for', provider);
     if (pressEnterOnProviderInput(provider)) {
       return true;
@@ -1491,527 +1406,6 @@ if ((window.__realParent__ || window.parent) !== window) {
     return success;
   }
 
-  // ===== Image Injection Functions =====
-
-  // Helper function to inject text into provider's input field
-  function injectText(provider, text, autoSubmit, providerMode = null) {
-    if (provider === 'google') {
-      return handleGoogleTextInjection(text, autoSubmit, providerMode);
-    }
-
-    const selectors = PROVIDER_SELECTORS[provider];
-    if (!selectors) {
-      console.warn('[Text Injection] No selectors for provider:', provider);
-      return false;
-    }
-
-    for (const selector of selectors) {
-      const element = findTextInputElement(selector);
-      if (element) {
-        const success = injectTextIntoElement(element, text);
-        if (success) {
-          console.log('[Text Injection] Text injected via injectText helper for', provider);
-          if (autoSubmit) {
-            // Use longer delay for providers whose composer state updates asynchronously
-            const delay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin' || provider === 'metaso') ? 1500 : 500;
-            setTimeout(() => clickSendButton(provider, providerMode), delay);
-          }
-          return true;
-        }
-      }
-    }
-
-    console.warn('[Text Injection] No input element found for provider:', provider);
-    return false;
-  }
-
-  // Handle image injection message
-  async function handleImageInjection(event) {
-    const { text, images, autoSubmit, requestId } = event.data;
-    const provider = detectProvider();
-    const providerMode = provider === 'google'
-      ? normalizeGoogleProviderMode(event.data.providerMode)
-      : null;
-
-    if (!provider) {
-      console.warn('[Image Injection] Provider not detected');
-      return;
-    }
-
-    if (provider === 'google' && providerMode === GOOGLE_PROVIDER_MODE_SEARCH) {
-      console.warn('[Image Injection] Google Search mode does not support image injection, falling back to text only');
-      if (text && text.trim()) {
-        handleGoogleTextInjection(text, autoSubmit, providerMode);
-      }
-      return;
-    }
-
-    if (!PROVIDER_IMAGE_SUPPORT[provider]) {
-      console.warn('[Image Injection] Provider does not support images:', provider);
-      // For providers that don't support images, just inject text
-      if (text) {
-        injectText(provider, text, autoSubmit, providerMode);
-      }
-      return;
-    }
-
-    if (!images || images.length === 0) {
-      console.warn('[Image Injection] No images provided');
-      return;
-    }
-
-    console.log(`[Image Injection] Injecting ${images.length} images to ${provider}`);
-
-    try {
-      if (autoSubmit && requestId) {
-        startMultiPanelUserInteractionTracking(requestId, provider);
-      } else {
-        stopMultiPanelUserInteractionTracking();
-      }
-
-      if (provider === 'chatgpt' && autoSubmit && requestId) {
-        startChatgptSendTracking(requestId);
-      }
-
-      const imageInjectionResults = [];
-
-      // Inject images first
-      for (const image of images) {
-        imageInjectionResults.push(await injectSingleImage(provider, image));
-        // Wait a bit between images
-        await sleep(200);
-      }
-
-      const allImagesInjected = imageInjectionResults.every(Boolean);
-      if (!allImagesInjected) {
-        console.warn('[Image Injection] One or more images failed to inject for:', provider);
-      }
-
-      // Wait for images to upload
-      await sleep(500);
-
-      // Then inject text if provided
-      if (text && text.trim()) {
-        await sleep(300);
-        injectText(provider, text, autoSubmit && allImagesInjected, providerMode);
-      } else if (autoSubmit) {
-        if (!allImagesInjected) {
-          console.warn('[Image Injection] Skipping auto-submit because image injection failed for:', provider);
-          return;
-        }
-        // If no text but autoSubmit is true, click send button
-        await sleep(300);
-        clickSendButton(provider, providerMode);
-      }
-    } catch (error) {
-      console.error('[Image Injection] Error:', error);
-    }
-  }
-
-  // Inject a single image to the provider using provider-specific strategy
-  async function injectSingleImage(provider, imageData) {
-    console.log('[Image Injection] Injecting image to', provider);
-
-    // Use provider-specific strategies
-    switch (provider) {
-      case 'chatgpt':
-        return await injectImageToChatGPT(imageData);
-      case 'claude':
-        return await injectImageToClaude(imageData);
-      case 'gemini':
-        return await injectImageToGemini(imageData);
-      case 'grok':
-      case 'deepseek':
-        // These work with drag-drop
-        return await tryDragDropUpload(provider, imageData);
-      case 'doubao':
-        return await injectImageToDoubao(imageData);
-      case 'google':
-        return await injectImageToGoogle(imageData);
-      default:
-        // Fallback: try file input first, then drag-drop
-        if (await tryFileInputUpload(provider, imageData)) {
-          return true;
-        }
-        return await tryDragDropUpload(provider, imageData);
-    }
-  }
-
-  // ChatGPT-specific image injection
-  async function injectImageToChatGPT(imageData) {
-    try {
-      // ChatGPT: find and use file input directly
-      const fileInput = document.querySelector('input[type="file"]');
-      if (fileInput) {
-        const blob = await dataUrlToBlob(imageData.dataUrl);
-        const file = new File([blob], imageData.name, { type: imageData.type });
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        fileInput.files = dataTransfer.files;
-        fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-        console.log('[Image Injection] ChatGPT: File input triggered');
-        return true;
-      }
-      console.warn('[Image Injection] ChatGPT: No file input found');
-      return false;
-    } catch (error) {
-      console.error('[Image Injection] ChatGPT error:', error);
-      return false;
-    }
-  }
-
-  // Claude-specific image injection
-  async function injectImageToClaude(imageData) {
-    try {
-      // Claude: find the file input (it's usually hidden)
-      const fileInput = document.querySelector('input[type="file"]');
-      if (fileInput) {
-        const blob = await dataUrlToBlob(imageData.dataUrl);
-        const file = new File([blob], imageData.name, { type: imageData.type });
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        fileInput.files = dataTransfer.files;
-        fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-        console.log('[Image Injection] Claude: File input triggered');
-        return true;
-      }
-
-      // Try clicking the attachment button first
-      const attachBtnSelectors = UPLOAD_BUTTON_SELECTORS.claude;
-      for (const selector of attachBtnSelectors) {
-        const btn = document.querySelector(selector);
-        if (btn) {
-          btn.click();
-          await sleep(300);
-          // Now try to find and use the file input
-          const input = document.querySelector('input[type="file"]');
-          if (input) {
-            const blob = await dataUrlToBlob(imageData.dataUrl);
-            const file = new File([blob], imageData.name, { type: imageData.type });
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            input.files = dataTransfer.files;
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-            console.log('[Image Injection] Claude: File input triggered after button click');
-            return true;
-          }
-        }
-      }
-
-      console.warn('[Image Injection] Claude: No file input found');
-      return false;
-    } catch (error) {
-      console.error('[Image Injection] Claude error:', error);
-      return false;
-    }
-  }
-
-  // Gemini-specific image injection
-  async function injectImageToGemini(imageData) {
-    try {
-      console.log('[Image Injection] Gemini: Starting image injection');
-
-      // Strategy: Simulate paste event with image
-      // Find the editor (Quill editor or contenteditable)
-      const editorSelectors = ['.ql-editor', '[contenteditable="true"]', 'div[contenteditable]'];
-      let editor = null;
-      
-      for (const selector of editorSelectors) {
-        editor = querySelectorDeep(selector);
-        if (editor) {
-          console.log('[Image Injection] Gemini: Found editor:', selector);
-          break;
-        }
-      }
-      
-      if (!editor) {
-        console.warn('[Image Injection] Gemini: Editor not found');
-        return false;
-      }
-
-      // Convert dataUrl to blob
-      const blob = await dataUrlToBlob(imageData.dataUrl);
-      const file = new File([blob], imageData.name, { type: imageData.type });
-      
-      // Create DataTransfer for clipboard data
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      
-      // Focus the editor first
-      editor.focus();
-      
-      // Simulate paste event with the image
-      const pasteEvent = new ClipboardEvent('paste', {
-        bubbles: true,
-        cancelable: true,
-        clipboardData: dataTransfer
-      });
-      
-      editor.dispatchEvent(pasteEvent);
-      console.log('[Image Injection] Gemini: Paste event dispatched');
-      
-      // Also try drag-drop as fallback if paste doesn't work
-      await sleep(100);
-      const dropEvent = new DragEvent('drop', {
-        bubbles: true,
-        cancelable: true,
-        dataTransfer: dataTransfer
-      });
-      editor.dispatchEvent(dropEvent);
-      console.log('[Image Injection] Gemini: Drop event dispatched');
-      
-      return true;
-    } catch (error) {
-      console.error('[Image Injection] Gemini error:', error);
-      return false;
-    }
-  }
-
-  // Google AI Mode image injection
-  async function injectImageToGoogle(imageData) {
-    try {
-      let fileInput = findGoogleFileInput();
-      if (!fileInput) {
-        fileInput = await openGoogleImagePicker();
-      }
-
-      if (fileInput) {
-        const blob = await dataUrlToBlob(imageData.dataUrl);
-        const file = new File([blob], imageData.name, { type: imageData.type });
-        const assigned = assignFilesToInput(fileInput, [file]);
-        if (!assigned) {
-          return false;
-        }
-        fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-        console.log('[Image Injection] Google: File input triggered');
-        return true;
-      }
-      console.warn('[Image Injection] Google: No file input found');
-      return false;
-    } catch (error) {
-      console.error('[Image Injection] Google error:', error);
-      return false;
-    }
-  }
-
-  async function injectImageToDoubao(imageData) {
-    try {
-      const blob = await dataUrlToBlob(imageData.dataUrl);
-      const file = new File([blob], imageData.name, { type: imageData.type });
-
-      for (let attempt = 0; attempt < 3; attempt++) {
-        let fileInput = await waitForDoubaoFileInput(500);
-
-        if (!fileInput) {
-          const uploadButton = findDeepFirstVisibleElement(UPLOAD_BUTTON_SELECTORS.doubao) ||
-            findFirstVisibleElement(UPLOAD_BUTTON_SELECTORS.doubao);
-
-          if (uploadButton) {
-            uploadButton.click();
-            await sleep(200);
-            fileInput = await waitForDoubaoFileInput(800);
-          }
-        }
-
-        if (!fileInput) {
-          console.warn('[Image Injection] Doubao: No file input found on attempt', attempt + 1);
-          continue;
-        }
-
-        const assigned = assignFilesToInput(fileInput, [file]);
-        if (!assigned) {
-          await sleep(200);
-          continue;
-        }
-
-        fileInput.dispatchEvent(new Event('input', { bubbles: true }));
-        fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-
-        const uploadAccepted = await waitForDoubaoImagePreview(1200);
-
-        if (uploadAccepted) {
-          console.log('[Image Injection] Doubao: Image preview detected');
-          return true;
-        }
-
-        console.warn('[Image Injection] Doubao: Upload did not produce an image preview');
-        return false;
-      }
-
-      console.warn('[Image Injection] Doubao: Upload did not produce a preview after retries');
-      return false;
-    } catch (error) {
-      console.error('[Image Injection] Doubao error:', error);
-      return false;
-    }
-  }
-
-  async function waitForDoubaoFileInput(timeoutMs = 800) {
-    const start = Date.now();
-
-    while (Date.now() - start < timeoutMs) {
-      const fileInput = document.querySelector('#input-engine-container input[type="file"]') ||
-        document.querySelector('input[type="file"]');
-
-      if (fileInput) {
-        return fileInput;
-      }
-
-      await sleep(100);
-    }
-
-    return null;
-  }
-
-  function hasDoubaoImagePreview() {
-    return Boolean(
-      document.querySelector('.semi-image-preview-group') ||
-      document.querySelector('#input-engine-container img[src^="blob:"]') ||
-      document.querySelector('#input-engine-container img[src*="blob:"]')
-    );
-  }
-
-  async function waitForDoubaoImagePreview(timeoutMs = 1200) {
-    const start = Date.now();
-
-    while (Date.now() - start < timeoutMs) {
-      if (hasDoubaoImagePreview()) {
-        return true;
-      }
-
-      await sleep(100);
-    }
-
-    return false;
-  }
-
-  // Try to upload image via drag-drop event (works for Grok, DeepSeek)
-  async function tryDragDropUpload(provider, imageData) {
-    try {
-      const selectors = PROVIDER_SELECTORS[provider];
-      let targetElement = null;
-
-      for (const selector of selectors) {
-        targetElement = findTextInputElement(selector);
-        if (targetElement) break;
-      }
-
-      if (!targetElement) {
-        console.warn('[Image Injection] No target element found for drag-drop');
-        return false;
-      }
-
-      // Convert dataUrl to blob
-      const blob = await dataUrlToBlob(imageData.dataUrl);
-
-      // Create File object from blob
-      const file = new File([blob], imageData.name, { type: imageData.type });
-
-      // Create DataTransfer with file
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-
-      // Focus the element first
-      targetElement.focus();
-
-      // Dispatch drag events sequence
-      const dragEnterEvent = new DragEvent('dragenter', {
-        bubbles: true,
-        cancelable: true,
-        dataTransfer: dataTransfer
-      });
-
-      const dragOverEvent = new DragEvent('dragover', {
-        bubbles: true,
-        cancelable: true,
-        dataTransfer: dataTransfer
-      });
-
-      const dropEvent = new DragEvent('drop', {
-        bubbles: true,
-        cancelable: true,
-        dataTransfer: dataTransfer
-      });
-
-      targetElement.dispatchEvent(dragEnterEvent);
-      targetElement.dispatchEvent(dragOverEvent);
-      targetElement.dispatchEvent(dropEvent);
-
-      return true;
-    } catch (error) {
-      console.error('[Image Injection] Drag-drop upload failed:', error);
-      return false;
-    }
-  }
-
-  // Fallback: Try to upload image via file input
-  async function tryFileInputUpload(provider, imageData) {
-    try {
-      const fileInputSelectors = FILE_INPUT_SELECTORS[provider] || [];
-
-      // First try specific selectors
-      let fileInput = null;
-      for (const selector of fileInputSelectors) {
-        fileInput = document.querySelector(selector);
-        if (fileInput) break;
-      }
-
-      // If no direct file input, try to find any file input
-      if (!fileInput) {
-        const allFileInputs = document.querySelectorAll('input[type="file"]');
-        for (const input of allFileInputs) {
-          if (!input.accept || input.accept.includes('image') || input.accept.includes('*')) {
-            fileInput = input;
-            break;
-          }
-        }
-      }
-
-      if (!fileInput) {
-        console.warn('[Image Injection] No file input found');
-        return false;
-      }
-
-      // Convert dataUrl to blob
-      const blob = await dataUrlToBlob(imageData.dataUrl);
-
-      // Create File object
-      const file = new File([blob], imageData.name, { type: imageData.type });
-
-      // Create FileList-like object
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      fileInput.files = dataTransfer.files;
-
-      // Trigger change event
-      fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-
-      return true;
-    } catch (error) {
-      console.error('[Image Injection] File input upload failed:', error);
-      return false;
-    }
-  }
-
-  // Convert data URL to Blob
-  function dataUrlToBlob(dataUrl) {
-    return new Promise((resolve, reject) => {
-      try {
-        const arr = dataUrl.split(',');
-        const mime = arr[0].match(/:(.*?);/)[1];
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while (n--) {
-          u8arr[n] = bstr.charCodeAt(n);
-        }
-        resolve(new Blob([u8arr], { type: mime }));
-      } catch (error) {
-        reject(error);
-      }
-    });
-  }
-
   // Sleep utility
   function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -2076,7 +1470,9 @@ if ((window.__realParent__ || window.parent) !== window) {
   // retry with increasing delays so the AI's framework has time to process the
   // injected text and enable the send button.
   function attemptAutoSubmitWithRetry(provider, providerMode, initialDelay) {
-    const RETRY_DELAYS = [initialDelay, 1000, 2000, 3500];
+    const RETRY_DELAYS = provider === 'metaso'
+      ? [initialDelay, 1500, 2500, 4000, 5000]
+      : [initialDelay, 1000, 2000, 3500];
     let attempt = 0;
 
     function trySubmit() {
@@ -2115,6 +1511,7 @@ if ((window.__realParent__ || window.parent) !== window) {
           type: 'HEALTH_CHECK_RESULT',
           results,
           panelId: event.data.panelId,
+          requestId: event.data.requestId,
           context: 'multi-panel-health'
         }, '*');
       }
@@ -2207,32 +1604,39 @@ if ((window.__realParent__ || window.parent) !== window) {
       return;
     }
 
-    // Handle INJECT_TEXT_WITH_IMAGES messages
-    if (event.data.type === 'INJECT_TEXT_WITH_IMAGES' && event.data.context === 'multi-panel') {
-      handleImageInjection(event);
-      return;
-    }
-
     // Handle EXTRACT_ANSWER messages (collect AI responses from the page)
     if (event.data.type === 'EXTRACT_ANSWER' && event.data.context === 'multi-panel') {
       const provider = detectProvider();
-      // 优先使用 SSE 累积文本（更可靠），回退到 DOM 提取
-      let answerText = sseAccumulatedText;
-      if (!answerText || answerText.length === 0) {
-        answerText = extractLatestAnswer();
+      // SSE 文本和 DOM 提取都尝试，严格取更长的那个。千问的 SSE
+      // 可能遗漏最后的结构化总结段，不能因为它达到 DOM 的一半就覆盖
+      // 更完整的 DOM 提取结果。
+      const sseText = sseAccumulatedText || '';
+      const domText = extractLatestAnswer() || '';
+      let answerText;
+      if (sseText.length > domText.length && sseText.length > 50) {
+        answerText = sseText;
+        console.log('[TextInjection] Using SSE text for', provider, 'sse:', sseText.length, 'dom:', domText.length);
+      } else if (domText.length > 0) {
+        answerText = domText;
+        console.log('[TextInjection] Using DOM text for', provider, 'sse:', sseText.length, 'dom:', domText.length);
       } else {
-        console.log('[TextInjection] Using SSE accumulated text for', provider, 'length:', answerText.length);
+        answerText = sseText || domText;
+        console.log('[TextInjection] Using fallback text for', provider, 'sse:', sseText.length, 'dom:', domText.length);
+      }
+      // 清理引用标记等噪声
+      if (answerText) {
+        answerText = cleanCopyText(answerText);
       }
       console.log('[TextInjection] EXTRACT_ANSWER received. provider:', provider, 'answer length:', answerText ? answerText.length : 0);
       if ((window.__realParent__ || window.parent) !== window) {
-        window.parent.postMessage({
+        postToExtensionParent({
           type: 'EXTRACTED_ANSWER',
           provider: provider,
           panelId: event.data.panelId,
           answer: answerText,
           requestId: event.data.requestId,
           context: 'multi-panel-answer'
-        }, '*');
+        });
       }
       return;
     }
@@ -2299,12 +1703,14 @@ if ((window.__realParent__ || window.parent) !== window) {
 
     const provider = detectProvider();
     const mergeRequestId = event.data.mergeRequestId;
+    const injectionRequestId = event.data.injectionRequestId;
     console.log('[Text Injection] INJECT_TEXT received. provider:', provider, 'context:', context, 'autoSubmit:', autoSubmit, 'textLength:', text.length, 'mergeRequestId:', mergeRequestId);
     if (!provider) {
       console.warn('Unknown provider, cannot inject text');
       if (mergeRequestId && window.parent !== window) {
         window.parent.postMessage({ type: 'INJECT_TEXT_RECEIVED', mergeRequestId, inputFound: false, injectSuccess: false, provider: null, error: 'unknown-provider' }, '*');
       }
+      postInjectionResult(injectionRequestId, null, false, false, 'unknown-provider');
       return;
     }
 
@@ -2330,6 +1736,7 @@ if ((window.__realParent__ || window.parent) !== window) {
       const success = handleGoogleTextInjection(text, shouldAutoSubmit, providerMode);
       if (success) {
         console.log('[Text Injection] Text injected into Google using mode:', providerMode);
+        postInjectionResult(injectionRequestId, provider, true, true);
         return;
       }
 
@@ -2339,6 +1746,9 @@ if ((window.__realParent__ || window.parent) !== window) {
           const retried = handleGoogleTextInjection(text, shouldAutoSubmit, providerMode);
           if (!retried && index === delays.length - 1) {
             console.error('[Text Injection] Google editor not found after retries');
+            postInjectionResult(injectionRequestId, provider, false, false, 'editor-not-found-after-retry');
+          } else if (retried) {
+            postInjectionResult(injectionRequestId, provider, true, true);
           }
         }, delay);
       });
@@ -2369,6 +1779,7 @@ if ((window.__realParent__ || window.parent) !== window) {
       if (mergeRequestId && window.parent !== window) {
         window.parent.postMessage({ type: 'INJECT_TEXT_RECEIVED', mergeRequestId, inputFound: true, injectSuccess: success, provider }, '*');
       }
+      postInjectionResult(injectionRequestId, provider, true, success, success ? null : 'injection-failed');
       if (success) {
         console.log('[Text Injection] Text injected into', provider, 'using selector:', matchedSelector);
 
@@ -2406,9 +1817,10 @@ if ((window.__realParent__ || window.parent) !== window) {
             if (success) {
               console.log('[Text Injection] Text injected on retry into', provider, 'using selector:', retrySelector);
               if (shouldAutoSubmit) {
-                const submitDelay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin') ? 1500 : 500;
+                const submitDelay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin' || provider === 'metaso') ? 1500 : 500;
                 attemptAutoSubmitWithRetry(provider, providerMode, submitDelay);
               }
+              postInjectionResult(injectionRequestId, provider, true, true);
             }
           } else if (index === retryDelays.length - 1) {
             console.error(`[Text Injection] ${provider} editor not found after ${retryDelays.length} retries`);
@@ -2417,6 +1829,7 @@ if ((window.__realParent__ || window.parent) !== window) {
             if (mergeRequestId && window.parent !== window) {
               window.parent.postMessage({ type: 'INJECT_TEXT_RECEIVED', mergeRequestId, inputFound: false, injectSuccess: false, provider, error: 'editor-not-found-after-retry' }, '*');
             }
+            postInjectionResult(injectionRequestId, provider, false, false, 'editor-not-found-after-retry');
           }
         }, delay);
       });
@@ -2436,6 +1849,8 @@ if ((window.__realParent__ || window.parent) !== window) {
   // Clean known noise patterns from extracted answer text
   function cleanCopyText(text) {
     const patterns = [
+      /(?:\[]?\(?@?mark_underline=\d+\)?|\[citation:\d+\]|\[\])+/g,
+      /<grok:render[^>]*>[\s\S]*?<\/grok:render>/g,
       /Request interrupted by user\s*/g,
       /以上内容为 AI 生成，不代表开发者立场，请勿删除或修改本标记\s*/g,
       /以上内容为 AI 生成，仅供参考，请仔细甄别\s*/g,
@@ -2455,6 +1870,23 @@ if ((window.__realParent__ || window.parent) !== window) {
       cleaned = cleaned.replace(p, '');
     }
     return cleaned.trim();
+  }
+
+  // 为 SSE 文本注入换行符（SSE 流式文本没有段落结构）
+  function addLineBreaks(text) {
+    if (!text) return text;
+    return text
+      // 中文句号/问号/感叹号 + 后续中文字符 → 加换行
+      .replace(/([。！？])([一-鿿])/g, '$1\n$2')
+      // 英文句号/问号/感叹号 + 空格 + 大写字母 → 加换行
+      .replace(/([.!?])\s+([A-Z])/g, '$1\n$2')
+      // 编号列表 (1. 2. 3. 或 1、2、3、) → 加换行
+      .replace(/(\d+[.、])\s*/g, '\n$1 ')
+      // 项目符号 → 加换行
+      .replace(/([•·\-])\s+/g, '\n$1 ')
+      // 清理多余空行
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
   }
 
   // ===== Direct Answer Selectors (Phase 1) =====
@@ -2508,7 +1940,6 @@ if ((window.__realParent__ || window.parent) !== window) {
       try {
         const elements = document.querySelectorAll(sel);
         for (let i = elements.length - 1; i >= 0; i--) {
-          if (!isVisibleElement(elements[i])) continue;
           if (elements[i].closest('textarea, [contenteditable="true"], form, nav, aside, footer, [role="navigation"]')) continue;
           const clone = elements[i].cloneNode(true);
           clone.querySelectorAll(
@@ -2650,15 +2081,12 @@ if ((window.__realParent__ || window.parent) !== window) {
       try {
         const btns = document.querySelectorAll(btnSel);
         for (const btn of btns) {
-          if (!isVisibleElement(btn)) continue;
-
           let el = btn.parentElement;
           for (let depth = 0; depth < 10 && el; depth++) {
             for (const as of ansSel) {
               try {
                 const matches = el.querySelectorAll(as);
                 for (let i = matches.length - 1; i >= 0; i--) {
-                  if (!isVisibleElement(matches[i])) continue;
                   if (matches[i].contains(btn) || btn.contains(matches[i])) continue;
                   const t = extractText(matches[i]);
                   if (t.length > 0) {
@@ -2678,7 +2106,6 @@ if ((window.__realParent__ || window.parent) !== window) {
   function extractGenericMarkdownAnswer() {
     const bodies = document.querySelectorAll('.markdown-body');
     for (let i = bodies.length - 1; i >= 0; i--) {
-      if (!isVisibleElement(bodies[i])) continue;
       if (bodies[i].closest('textarea, [contenteditable="true"], form, nav, aside, footer, [role="navigation"]')) continue;
       const text = extractText(bodies[i]);
       if (text.length > 0) {
@@ -2687,7 +2114,6 @@ if ((window.__realParent__ || window.parent) !== window) {
     }
     const logAreas = document.querySelectorAll('[role="log"], [role="region"]');
     for (let i = logAreas.length - 1; i >= 0; i--) {
-      if (!isVisibleElement(logAreas[i])) continue;
       const text = extractText(logAreas[i]);
       if (text.length > 0) return text;
     }
@@ -2697,11 +2123,10 @@ if ((window.__realParent__ || window.parent) !== window) {
   // Shared fallback extractors used by multiple provider extractors
   function extractFromRoleLog() {
     const logArea = document.querySelector('[role="log"]');
-    if (!logArea || !isVisibleElement(logArea)) return '';
+    if (!logArea) return '';
     const text = extractText(logArea);
     if (text.length > 0) return text;
     for (let i = logArea.children.length - 1; i >= 0; i--) {
-      if (!isVisibleElement(logArea.children[i])) continue;
       const childText = extractText(logArea.children[i]);
       if (childText.length > 0) return childText;
     }
@@ -2711,10 +2136,8 @@ if ((window.__realParent__ || window.parent) !== window) {
   function extractFromRoleList() {
     const lists = document.querySelectorAll('[role="list"]');
     for (let i = lists.length - 1; i >= 0; i--) {
-      if (!isVisibleElement(lists[i])) continue;
       const items = lists[i].querySelectorAll('[role="listitem"]');
       for (let j = items.length - 1; j >= 0; j--) {
-        if (!isVisibleElement(items[j])) continue;
         if (items[j].closest('textarea, [contenteditable="true"], form, nav, aside')) continue;
         const text = extractText(items[j]);
         if (text.length > 0) return text;
@@ -2951,6 +2374,14 @@ if ((window.__realParent__ || window.parent) !== window) {
   let completionButtonTimeout = null;    // timeout for falling back to MutationObserver
   let completionButtonObserver = null;   // MutationObserver watching for stop button DOM changes
   let completionAlreadyDetected = false; // prevent duplicate COMPLETION_DETECTED from SSE path
+  let completionMergeSessionId = null;
+  let completionMonitorDelayTimer = null; // delay before starting DOM fallback
+  let beforeunloadListenerAdded = false; // Issue 8: track whether beforeunload cleanup is registered
+
+  // Issue 8: Clean up MutationObserver on page navigation to prevent leaked observers.
+  function handleBeforeUnload() {
+    stopCompletionMonitor();
+  }
 
   // ===== SSE 文本累积 =====
   let sseAccumulatedText = '';  // 累积的 SSE 文本（仅正式内容，不含思考）
@@ -2972,6 +2403,10 @@ if ((window.__realParent__ || window.parent) !== window) {
     if (completionButtonObserver) {
       completionButtonObserver.disconnect();
       completionButtonObserver = null;
+    }
+    if (completionMonitorDelayTimer) {
+      clearTimeout(completionMonitorDelayTimer);
+      completionMonitorDelayTimer = null;
     }
     completionPhase = null;
     completionProvider = null;
@@ -3014,27 +2449,26 @@ if ((window.__realParent__ || window.parent) !== window) {
       return;
     }
 
-    let targetNode = null;
-    for (const sel of selectors) {
-      try {
-        const elements = document.querySelectorAll(sel);
-        for (const el of elements) {
-          if (isExtractMode || isVisibleElement(el)) {
-            targetNode = el;
-            break;
-          }
-        }
-      } catch (_) {}
-      if (targetNode) break;
-    }
-
+    // Do not observe only the previous answer element. Most providers append
+    // the next answer as a sibling, so observing that old node misses a fast
+    // new reply entirely. The observer watches the page body while getAnswerLen
+    // below filters changes down to provider answer selectors.
+    const targetNode = document.body || document.documentElement;
     if (!targetNode) {
-      targetNode = document.body;
+      console.warn('[CompletionMonitor] No document root available for mutation fallback');
+      return;
     }
 
-    const STABLE_DELAY_MS = 10000;
+    // Wenxin can pause between search, reasoning and final answer segments.
+    // A longer quiet window avoids treating that pause as completion.
+    const STABLE_DELAY_MS = provider === 'wenxin' ? 30000 : provider === 'zhipu' ? 15000 : 10000;
+    // A pre-existing answer must never be treated as the answer to the current
+    // prompt.  Arm completion only after this monitoring session observes the
+    // answer content change.
+    let hasObservedAnswerChange = false;
 
     const resetStableTimer = () => {
+      if (!hasObservedAnswerChange) return;
       if (completionStableTimer) {
         clearTimeout(completionStableTimer);
       }
@@ -3066,11 +2500,12 @@ if ((window.__realParent__ || window.parent) !== window) {
 
         if (!completionAlreadyDetected && (window.__realParent__ || window.parent) !== window) {
           completionAlreadyDetected = true;
-          window.parent.postMessage({
+          postToExtensionParent({
             type: 'COMPLETION_DETECTED',
             provider,
+            mergeSessionId: completionMergeSessionId,
             context: 'multi-panel-completion'
-          }, '*');
+          });
         }
       }, STABLE_DELAY_MS);
     };
@@ -3102,6 +2537,7 @@ if ((window.__realParent__ || window.parent) !== window) {
       if (curLen !== prevAnswerLen) {
         // Answer content changed — AI still generating. Reset stability timer.
         prevAnswerLen = curLen;
+        hasObservedAnswerChange = true;
         resetStableTimer();
       }
       // else: DOM mutated but answer unchanged (UI noise) — don't reset timer
@@ -3113,8 +2549,8 @@ if ((window.__realParent__ || window.parent) !== window) {
       characterData: true
     });
 
-    resetStableTimer();
-    console.log('[CompletionMonitor] MutationObserver fallback active for provider:', provider);
+    console.log('[CompletionMonitor] MutationObserver fallback armed for provider:', provider,
+      'waiting for answer content to change before starting the stability timer');
   }
 
   /**
@@ -3177,11 +2613,12 @@ if ((window.__realParent__ || window.parent) !== window) {
 
           if (!completionAlreadyDetected && (window.__realParent__ || window.parent) !== window) {
             completionAlreadyDetected = true;
-            window.parent.postMessage({
+            postToExtensionParent({
               type: 'COMPLETION_DETECTED',
               provider,
+              mergeSessionId: completionMergeSessionId,
               context: 'multi-panel-completion'
-            }, '*');
+            });
           }
         }, BUTTON_DISAPPEAR_SETTLE_MS);
       }
@@ -3224,14 +2661,48 @@ if ((window.__realParent__ || window.parent) !== window) {
     console.log('[CompletionMonitor] Button-state monitoring started for provider:', provider, 'phase:', completionPhase);
   }
 
-  function startCompletionMonitor() {
+  // SSE 优先，DOM 兜底：SSE 先到就用 SSE，SSE 没到则 DOM 检测作为后备
+  const SSE_SUPPORTED_PROVIDERS = ['deepseek', 'doubao', 'qianwen', 'yuanbao', 'wenxin', 'zhipu', 'kimi', 'chatgpt', 'claude', 'gemini', 'grok', 'metaso'];
+
+  function startCompletionMonitor(mergeSessionId) {
     stopCompletionMonitor();
     completionAlreadyDetected = false;
+    completionMergeSessionId = mergeSessionId || null;
 
     const provider = detectProvider();
     if (!provider) {
       console.warn('[CompletionMonitor] Provider not detected');
       return;
+    }
+
+    // Wenxin and Zhipu may finish a fast response before the old 3-second
+    // SSE grace period expired. Start their DOM observer now (before text is
+    // injected) so it sees the entire answer change; their SSE completion
+    // events are intentionally ignored because they can represent a sub-flow.
+    if (provider === 'wenxin' || provider === 'zhipu') {
+      console.log('[CompletionMonitor] Starting DOM-first monitor for', provider);
+      startMutationFallback(provider);
+      return;
+    }
+
+    if (SSE_SUPPORTED_PROVIDERS.includes(provider)) {
+      // 延迟启动 DOM 检测：给 SSE 检测 3 秒时间
+      // 如果 SSE 在 3 秒内完成，completionAlreadyDetected 会被设为 true，DOM 检测不会重复触发
+      console.log('[CompletionMonitor] Delaying DOM monitor for', provider, '(waiting 3s for SSE)');
+      completionMonitorDelayTimer = setTimeout(() => {
+        if (!completionAlreadyDetected) {
+          console.log('[CompletionMonitor] SSE not detected after 3s, falling back to DOM for', provider);
+          startButtonStateMonitor(provider);
+        }
+      }, 3000);
+      return;
+    }
+
+    // Issue 8: Register beforeunload listener once to clean up observers on page navigation.
+    // Prevents leaked MutationObservers if the page navigates away while monitoring is active.
+    if (!beforeunloadListenerAdded) {
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      beforeunloadListenerAdded = true;
     }
 
     // Primary: Use button-state monitoring (more reliable)
@@ -3241,6 +2712,16 @@ if ((window.__realParent__ || window.parent) !== window) {
   // Listen for messages from the multi-panel host and SSE bridge
   window.addEventListener('message', (event) => {
     if (!event || !event.data || typeof event.data !== 'object') return;
+
+    const isSameFrameSseMessage = event.source === window &&
+      event.origin === window.location.origin &&
+      ['__sse_text_reset__', '__sse_text__', '__sse_complete__'].includes(event.data.type);
+
+    // Do not accept commands from an arbitrary page that embeds this provider.
+    if (!isSameFrameSseMessage && !isTrustedExtensionParent(event)) {
+      console.warn('[MessageHandler] Rejected message from an untrusted origin');
+      return;
+    }
 
     // SSE 文本重置：新对话开始时清空累积文本
     if (event.data.type === '__sse_text_reset__') {
@@ -3261,23 +2742,22 @@ if ((window.__realParent__ || window.parent) !== window) {
       return;
     }
 
-    // SSE检测完成：停止DOM监控，并通知parent（merge monitor需要此信号）
+    // SSE检测完成：仅停止 DOM 监控。
+    // 修复 #6：COMPLETION_DETECTED 的转发职责已统一由 sse-bridge.js 承担，
+    // 此处不再重复转发，避免 parent 收到双重完成信号。
     if (event.data.type === '__sse_complete__') {
+      const sseProvider = detectProvider();
+      if (sseProvider === 'wenxin' || sseProvider === 'zhipu') {
+        console.log('[CompletionMonitor] Ignoring', sseProvider, 'SSE completion; waiting for DOM confirmation');
+        return;
+      }
       console.log('[CompletionMonitor] SSE completion received, stopping DOM monitor');
       stopCompletionMonitor();
-      if (!completionAlreadyDetected && (window.__realParent__ || window.parent) !== window) {
-        completionAlreadyDetected = true;
-        window.parent.postMessage({
-          type: 'COMPLETION_DETECTED',
-          provider: detectProvider(),
-          context: 'multi-panel-completion'
-        }, '*');
-      }
       return;
     }
 
     if (event.data.type === 'MONITOR_COMPLETION' && event.data.context === 'multi-panel') {
-      startCompletionMonitor();
+      startCompletionMonitor(event.data.mergeSessionId);
       return;
     }
 

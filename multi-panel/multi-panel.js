@@ -14,7 +14,7 @@ import {
   getGoogleProviderUrl,
   normalizeGoogleProviderMode
 } from '../modules/google-mode.js';
-import { saveSetting } from '../modules/settings.js';
+import { saveSetting, getSettings } from '../modules/settings.js';
 import { applyTheme } from '../modules/theme-manager.js';
 import {
   getAllPrompts,
@@ -48,10 +48,10 @@ const I18N = {
     // Input area
     inputPlaceholder: '输入你的问题，同时发送给所有AI...',
     promptLibrary: '提示词库',
-    uploadImage: '上传图片',
     sendToAllAI: '发送给所有AI',
-    mergeTooltip: '融合总结：收集所有回答并发送给目标 AI 对比',
+    mergeTooltip: '融合总结：收集所有回答并发送给目标 AI 融合',
     mergeTargetAI: '融合目标 AI',
+    mergeTimeoutTooltip: '超时触发，可在设置中调整等待时间',
     copyAllAnswers: '复制所有回答',
     // Panel header
     copyLink: '复制链接',
@@ -101,10 +101,6 @@ const I18N = {
     apply: '应用',
     // Toast messages
     minOnePanel: '至少需要保留一个面板',
-    selectImageFile: '请选择图片文件',
-    imageSizeLimit: '图片大小不能超过20MB',
-    maxImagesReached: '最多允许上传 $1 张图片',
-    addImageFailed: '添加图片失败',
     clearedAllInputs: '已清空所有输入',
     noAnswersFound: '未找到回答，请确认AI已回复',
     copiedAnswers: '已复制 $1 个回答到剪贴板',
@@ -128,16 +124,19 @@ const I18N = {
     // Status messages
     sending: '发送中...',
     filling: '填入中...',
-    sentToAI: '已发送到 $1 个AI',
-    filledToInput: '已填入 $1 个输入',
-    sentToPartial: '已发送到 $1/$2',
-    filledPartial: '已填入 $1/$2',
+    sentToAI: '已发送',
+    filledToInput: '已填入',
+    sentToPartial: '已发送',
+    filledPartial: '已填入',
     sendFailed: '发送失败',
     fillFailed: '填入失败',
     errorOccurred: '发生错误',
-    inputOrUploadImage: '请输入消息或上传图片',
     addedBadge: '已添加',
     varInputPlaceholder: '输入 $1 的值',
+    clickToRetry: '点击重试',
+    retrying: '正在重试...',
+    autoMerge: '自动融合',
+    timeoutMerge: '超时融合',
   },
   en: {
     // Bottom bar buttons
@@ -156,10 +155,10 @@ const I18N = {
     // Input area
     inputPlaceholder: 'Enter your question to send to all AIs...',
     promptLibrary: 'Prompt Library',
-    uploadImage: 'Upload Image',
     sendToAllAI: 'Send to all AIs',
-    mergeTooltip: 'Merge: collect all answers and send to target AI for comparison',
+    mergeTooltip: 'Merge: collect all answers and send to target AI for fusion',
     mergeTargetAI: 'Merge Target AI',
+    mergeTimeoutTooltip: 'Timeout triggered. Adjust wait time in settings.',
     copyAllAnswers: 'Copy All Answers',
     // Panel header
     copyLink: 'Copy Link',
@@ -209,10 +208,6 @@ const I18N = {
     apply: 'Apply',
     // Toast messages
     minOnePanel: 'At least one panel is required',
-    selectImageFile: 'Please select an image file',
-    imageSizeLimit: 'Image size cannot exceed 20MB',
-    maxImagesReached: 'Maximum $1 images allowed',
-    addImageFailed: 'Failed to add image',
     clearedAllInputs: 'All inputs cleared',
     noAnswersFound: 'No answers found, please confirm AIs have replied',
     copiedAnswers: 'Copied $1 answers to clipboard',
@@ -236,16 +231,19 @@ const I18N = {
     // Status messages
     sending: 'Sending...',
     filling: 'Filling...',
-    sentToAI: 'Sent to $1 AIs',
-    filledToInput: 'Filled $1 inputs',
-    sentToPartial: 'Sent to $1/$2',
-    filledPartial: 'Filled $1/$2',
+    sentToAI: 'Sent',
+    filledToInput: 'Filled',
+    sentToPartial: 'Sent',
+    filledPartial: 'Filled',
     sendFailed: 'Send failed',
     fillFailed: 'Fill failed',
     errorOccurred: 'An error occurred',
-    inputOrUploadImage: 'Please enter a message or upload an image',
     addedBadge: 'Added',
     varInputPlaceholder: 'Enter value for $1',
+    clickToRetry: 'Click to retry',
+    retrying: 'Retrying...',
+    autoMerge: 'Auto Merge',
+    timeoutMerge: 'Timeout Merge',
   }
 };
 
@@ -292,8 +290,8 @@ function applyI18n() {
 // ===== State Management =====
 let currentLayout = '1x3';
 let panels = []; // Array of { id, providerId, iframe, state }
+const pendingPanelInjections = new Map();
 let currentPanelPage = 0; // 当前页码，从0开始
-let uploadedImages = []; // Array of uploaded images { id, name, type, dataUrl }
 let loadingPanelIds = new Set(); // Track iframes still loading, used for focus protection
 let newChatFocusRestoreTimerIds = [];
 let isRestoringFocusAfterNewChat = false;
@@ -648,6 +646,49 @@ function reloadPanelIframe(panel, overrideUrl = null) {
   panel.iframe = iframe;
 }
 
+// Wenxin and Qianwen sometimes finish loading an error shell without firing an
+// iframe error event.  Verify that their content script can see an input and
+// retry one time automatically when it cannot.
+const AUTO_RECOVER_PROVIDERS = new Set(['wenxin', 'qianwen']);
+
+function schedulePanelHealthCheck(panel) {
+  if (!panel || !AUTO_RECOVER_PROVIDERS.has(panel.providerId)) return;
+
+  clearTimeout(panel.healthCheckTimer);
+  clearTimeout(panel.healthRecoveryTimer);
+  const requestId = `health-${panel.id}-${Date.now()}`;
+  panel.healthCheckRequestId = requestId;
+
+  panel.healthCheckTimer = setTimeout(() => {
+    if (panel.healthCheckRequestId !== requestId || !panel.iframe?.contentWindow) return;
+    panel.iframe.contentWindow.postMessage({
+      type: 'HEALTH_CHECK',
+      requestId,
+      panelId: panel.id,
+      context: 'multi-panel'
+    }, '*');
+  }, 4000);
+
+  panel.healthRecoveryTimer = setTimeout(() => {
+    if (panel.healthCheckRequestId !== requestId || (panel.healthReloadAttempts || 0) >= 1) return;
+    panel.healthReloadAttempts = (panel.healthReloadAttempts || 0) + 1;
+    console.warn('[MultiPanel] No healthy input detected; reloading', panel.providerId);
+    reloadPanelIframe(panel);
+  }, 10000);
+}
+
+function handlePanelHealthCheckResult(panel, data) {
+  if (!panel || data.requestId !== panel.healthCheckRequestId) return;
+  clearTimeout(panel.healthRecoveryTimer);
+  panel.healthRecoveryTimer = null;
+  const hasUsableInput = data.results?.input?.some(result => result.found && result.visible);
+  if (hasUsableInput || (panel.healthReloadAttempts || 0) >= 1) return;
+
+  panel.healthReloadAttempts = (panel.healthReloadAttempts || 0) + 1;
+  console.warn('[MultiPanel] Provider input unavailable; reloading', panel.providerId);
+  reloadPanelIframe(panel);
+}
+
 function bindPanelHeaderActions(panelId) {
   const panel = panels.find(p => p.id === panelId);
   const panelEl = document.getElementById(panelId);
@@ -781,6 +822,24 @@ function registerStorageChangeListener() {
         currentLocale = detectLocale();
       }
       applyI18n();
+    }
+
+    // Keep the current panel in sync when the merge timeout is changed from
+    // the options page. Previously this value was only read at panel startup.
+    if (changes.mergeMaxWait) {
+      const nextMergeMaxWait = Number(changes.mergeMaxWait.newValue);
+      if (Number.isFinite(nextMergeMaxWait) && nextMergeMaxWait > 0) {
+        MERGE_MAX_WAIT = nextMergeMaxWait;
+        console.log('[Merge] Timeout setting updated:', MERGE_MAX_WAIT, 'ms');
+      }
+    }
+    if (changes.autoMergeEnabled) {
+      AUTO_MERGE_ENABLED = changes.autoMergeEnabled.newValue !== false;
+      console.log('[Merge] Auto merge mode updated:', AUTO_MERGE_ENABLED ? 'enabled' : 'manual');
+      if (!AUTO_MERGE_ENABLED && mergeTimeoutTimer) {
+        clearTimeout(mergeTimeoutTimer);
+        mergeTimeoutTimer = null;
+      }
     }
 
     // Google provider mode change
@@ -1080,12 +1139,41 @@ function handleProviderStatusMessage(event) {
     return;
   }
 
+  // Validate the sender before handling every message type, including answer
+  // extraction and completion notifications.
+  const panel = panels.find(candidate => candidate.iframe?.contentWindow === event.source);
+  if (!panel) {
+    return;
+  }
+
+  let expectedOrigin;
+  try {
+    expectedOrigin = new URL(panel.iframe.src || panel.url).origin;
+  } catch {
+    return;
+  }
+  if (event.origin !== expectedOrigin) {
+    console.warn('[MultiPanel] Rejected message with unexpected origin:', event.origin);
+    return;
+  }
+
   // Log ALL messages for debugging
   console.log('[MultiPanel] Received message:', data.type, data.context);
 
   // Handle answer extraction responses
   if (data.type === 'EXTRACTED_ANSWER' && data.context === 'multi-panel-answer') {
     handleExtractedAnswer(data);
+    return;
+  }
+
+  if (data.type === 'INJECT_TEXT_RESULT' && data.context === 'multi-panel-injection') {
+    if (data.provider !== panel.providerId) return;
+    handlePanelInjectionResult(data);
+    return;
+  }
+
+  if (data.type === 'HEALTH_CHECK_RESULT' && data.context === 'multi-panel-health') {
+    handlePanelHealthCheckResult(panel, data);
     return;
   }
 
@@ -1107,8 +1195,7 @@ function handleProviderStatusMessage(event) {
     return;
   }
 
-  const panel = panels.find(candidate => candidate.iframe?.contentWindow === event.source);
-  if (!panel || data.provider !== panel.providerId) {
+  if (data.provider !== panel.providerId) {
     return;
   }
 
@@ -1238,13 +1325,20 @@ async function loadSettings() {
       multiPanelProviders: DEFAULT_PROVIDERS,
       openMode: 'tab',
       googleProviderMode: DEFAULT_GOOGLE_PROVIDER_MODE,
-      currentPanelPage: 0
+      currentPanelPage: 0,
+      mergeMaxWait: 120000,
+      autoMergeEnabled: true
     });
 
     currentLayout = normalizeLayout(settings.multiPanelLayout);
     currentOpenMode = settings.openMode || 'tab';
     currentGoogleProviderMode = normalizeGoogleProviderMode(settings.googleProviderMode);
     currentPanelPage = settings.currentPanelPage || 0;
+    const storedMergeMaxWait = Number(settings.mergeMaxWait);
+    MERGE_MAX_WAIT = Number.isFinite(storedMergeMaxWait) && storedMergeMaxWait > 0
+      ? storedMergeMaxWait
+      : 120000;
+    AUTO_MERGE_ENABLED = settings.autoMergeEnabled !== false;
 
     const panelGrid = document.getElementById('panel-grid');
     panelGrid.className = `layout-${currentLayout}`;
@@ -1291,7 +1385,6 @@ function updateToggleButton() {
 function collectCurrentState() {
   const state = {
     inputText: document.getElementById('unified-input')?.value || '',
-    uploadedImages: [...uploadedImages],
     currentLayout: currentLayout,
     panels: panels.map(p => ({
       providerId: p.providerId
@@ -1361,12 +1454,6 @@ async function restoreStateIfNeeded() {
       const input = document.getElementById('unified-input');
       if (input && state.inputText) {
         input.value = state.inputText;
-      }
-
-      // 恢复图片
-      if (state.uploadedImages && state.uploadedImages.length > 0) {
-        uploadedImages = state.uploadedImages;
-        renderImagePreviews();
       }
 
       // 恢复布局
@@ -1482,6 +1569,9 @@ async function addPanel(providerId) {
     if (isTemporaryChatModeEnabled && panel && requiresTemporaryChatActivationRetry(panel.providerId)) {
       startTemporaryChatActivationForPanel(panel);
     }
+    if (panel) {
+      schedulePanelHealthCheck(panel);
+    }
     setTimeout(() => {
       loadingPanelIds.delete(panelId);
     }, LOAD_GRACE_PERIOD);
@@ -1490,12 +1580,26 @@ async function addPanel(providerId) {
   iframe.addEventListener('error', () => {
     loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">${t('providerLoadFailed', provider.name)}</span>`;
     loadingPanelIds.delete(panelId);
+    // Click to retry: reload iframe with original URL
+    loadingEl.style.cursor = 'pointer';
+    loadingEl.title = t('clickToRetry');
+    loadingEl.addEventListener('click', () => {
+      const panel = panels.find(p => p.id === panelId);
+      if (panel && panel.url) {
+        loadingEl.innerHTML = `<img src="${getThemeAwareProviderIcon(provider)}" alt="${provider.name}" class="loading-icon" data-provider-id="${provider.id}"><span class="loading-text">${t('retrying')}</span>`;
+        loadingEl.style.cursor = '';
+        loadingEl.title = '';
+        loadingPanelIds.add(panelId);
+        iframe.src = panel.url;
+      }
+    });
   });
 
   // Add to panels array
   panels.push({
     id: panelId,
     providerId,
+    url: getProviderFrameUrl(providerId),
     iframe,
     state: 'loading'
   });
@@ -1598,27 +1702,21 @@ function getNonMergePanels() {
 }
 
 // ===== Message Broadcasting =====
-async function broadcastMessage(text, autoSubmit = true) {
+async function broadcastMessage(text, autoSubmit = true, mergeSessionId = null) {
   const sendBtn = document.getElementById('send-all-btn');
   const statusEl = document.getElementById('send-status');
 
-  const hasImages = uploadedImages.length > 0;
-
-  if (!text.trim() && !hasImages) {
+  if (!text.trim()) {
     // If input is empty and autoSubmit is true, just trigger send buttons
     // (this happens when user clicks Fill first, then Send All)
     if (autoSubmit) {
       await triggerSendButtons();
       return;
     }
-    showToast(t('inputOrUploadImage'));
     return;
   }
 
-  // When images are present, always fill first without auto-submit
-  // User needs to click "Send All" again to actually send
-  // This gives users a chance to verify content before sending
-  const shouldAutoSubmit = hasImages ? false : autoSubmit;
+  const shouldAutoSubmit = autoSubmit;
   const sendFocusRequestId = shouldAutoSubmit
     ? restoreUnifiedInputFocusAfterSend(getChatgptPanelsWithFrames())
     : null;
@@ -1629,17 +1727,10 @@ async function broadcastMessage(text, autoSubmit = true) {
     statusEl.textContent = shouldAutoSubmit ? t('sending') : t('filling');
     statusEl.className = 'send-status';
 
-    // Prepare images payload
-    const imagesPayload = uploadedImages.map(img => ({
-      dataUrl: img.dataUrl,
-      name: img.name,
-      type: img.type
-    }));
-
     // Send to all panels (skip merge panels)
     const targetPanels = getNonMergePanels();
     const panelResults = await Promise.allSettled(
-      targetPanels.map(panel => sendToPanel(panel, text, imagesPayload, shouldAutoSubmit, sendFocusRequestId))
+      targetPanels.map(panel => sendToPanel(panel, text, shouldAutoSubmit, sendFocusRequestId, 0, mergeSessionId))
     );
 
     // Count results (panels only)
@@ -1672,12 +1763,9 @@ async function broadcastMessage(text, autoSubmit = true) {
 
     // Clear input and save history
     if (totalSuccessful > 0) {
-      document.getElementById('unified-input').value = '';
-
-      // Clear images after successful fill/send
-      if (uploadedImages.length > 0) {
-        clearAllImages();
-      }
+      var unifiedInput = document.getElementById('unified-input');
+      unifiedInput.value = '';
+      unifiedInput.style.height = 'auto';
     }
   } catch (error) {
     console.error('Error in broadcastMessage:', error);
@@ -1693,7 +1781,42 @@ async function broadcastMessage(text, autoSubmit = true) {
   }
 }
 
-async function sendToPanel(panel, text, images = [], autoSubmit = true, requestId = null) {
+function handlePanelInjectionResult(data) {
+  const entry = pendingPanelInjections.get(data.injectionRequestId);
+  if (!entry) return;
+  clearTimeout(entry.timeoutId);
+  pendingPanelInjections.delete(data.injectionRequestId);
+
+  if (data.inputFound && data.injectSuccess) {
+    entry.resolve(true);
+    return;
+  }
+  recoverFailedPanelInjection(entry);
+}
+
+function recoverFailedPanelInjection(entry) {
+  const { panel } = entry;
+  if (!AUTO_RECOVER_PROVIDERS.has(panel.providerId) || entry.recoveryAttempt >= 1) {
+    entry.resolve(false);
+    return;
+  }
+
+  console.warn('[MultiPanel] Retrying failed injection after reload:', panel.providerId);
+  const iframe = panel.iframe;
+  const retryTimeout = setTimeout(() => {
+    iframe.removeEventListener('load', retryAfterLoad);
+    entry.resolve(false);
+  }, 15000);
+  const retryAfterLoad = () => {
+    clearTimeout(retryTimeout);
+    sendToPanel(panel, entry.text, entry.autoSubmit, entry.requestId, entry.recoveryAttempt + 1, entry.mergeSessionId)
+      .then(entry.resolve);
+  };
+  iframe.addEventListener('load', retryAfterLoad, { once: true });
+  reloadPanelIframe(panel);
+}
+
+async function sendToPanel(panel, text, autoSubmit = true, requestId = null, recoveryAttempt = 0, mergeSessionId = null) {
   return new Promise((resolve) => {
     try {
       if (!panel.iframe || !panel.iframe.contentWindow) {
@@ -1701,23 +1824,27 @@ async function sendToPanel(panel, text, images = [], autoSubmit = true, requestI
         return;
       }
 
-      // Determine message type based on whether images are included
-      const messageType = images.length > 0 ? 'INJECT_TEXT_WITH_IMAGES' : 'INJECT_TEXT';
+      const injectionRequestId = `inject-${panel.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const timeoutId = setTimeout(() => {
+        const entry = pendingPanelInjections.get(injectionRequestId);
+        if (!entry) return;
+        pendingPanelInjections.delete(injectionRequestId);
+        recoverFailedPanelInjection(entry);
+      }, 6000);
+      pendingPanelInjections.set(injectionRequestId, {
+        resolve, panel, text, autoSubmit, requestId, recoveryAttempt, mergeSessionId, timeoutId
+      });
 
-      // Send message to content script inside iframe with autoSubmit flag
-      // Add context identifier so receivers can validate origin
       panel.iframe.contentWindow.postMessage({
-        type: messageType,
-        text: text,
-        images: images,
-        autoSubmit: autoSubmit,
-        requestId: requestId,
+        type: 'INJECT_TEXT',
+        text,
+        autoSubmit,
+        requestId,
+        mergeSessionId,
+        injectionRequestId,
         providerMode: getPanelProviderMode(panel),
-        context: 'multi-panel'  // Identify this is from multi-panel
+        context: 'multi-panel'
       }, '*');
-
-      // Assume success (we can't easily verify)
-      resolve(true);
     } catch (error) {
       console.error(`Error sending to ${panel.providerId}:`, error);
       resolve(false);
@@ -1728,17 +1855,15 @@ async function sendToPanel(panel, text, images = [], autoSubmit = true, requestI
 // Clear all input boxes (unified input + all panels)
 async function clearAllInputs() {
   // Clear unified input
-  document.getElementById('unified-input').value = '';
-
-  // Clear uploaded images
-  clearAllImages();
+  var unifiedInput = document.getElementById('unified-input');
+  unifiedInput.value = '';
+  unifiedInput.style.height = 'auto';
 
   // Send clear message to all panels (skip merge panels)
   getNonMergePanels().forEach(panel => {
     if (panel.iframe && panel.iframe.contentWindow) {
       panel.iframe.contentWindow.postMessage({
         type: 'CLEAR_INPUT',
-        clearImages: true,
         providerMode: getPanelProviderMode(panel),
         context: 'multi-panel'
       }, '*');
@@ -1746,94 +1871,6 @@ async function clearAllInputs() {
   });
   showToast(t('clearedAllInputs'));
 }
-
-// ===== Image Management =====
-const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB per image
-const MAX_IMAGE_COUNT = 10;
-
-async function addImage(file) {
-  try {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      showToast(t('selectImageFile'));
-      return false;
-    }
-
-    // Validate file size
-    if (file.size > MAX_IMAGE_SIZE) {
-      showToast(t('imageSizeLimit'));
-      return false;
-    }
-
-    // Validate image count
-    if (uploadedImages.length >= MAX_IMAGE_COUNT) {
-      showToast(t('maxImagesReached', MAX_IMAGE_COUNT));
-      return false;
-    }
-
-    // Convert to base64
-    const dataUrl = await fileToDataUrl(file);
-
-    // Add to uploadedImages array with string ID
-    const imageId = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
-    uploadedImages.push({
-      id: imageId,
-      name: file.name,
-      type: file.type,
-      dataUrl: dataUrl
-    });
-
-    // Render preview
-    renderImagePreviews();
-    return true;
-  } catch (error) {
-    console.error('Error adding image:', error);
-    showToast(t('addImageFailed'));
-    return false;
-  }
-}
-
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-function removeImage(imageId) {
-  uploadedImages = uploadedImages.filter(img => img.id !== imageId);
-  renderImagePreviews();
-}
-
-function clearAllImages() {
-  uploadedImages = [];
-  renderImagePreviews();
-}
-
-function renderImagePreviews() {
-  const container = document.getElementById('image-preview-container');
-
-  if (uploadedImages.length === 0) {
-    container.innerHTML = '';
-    return;
-  }
-
-  container.innerHTML = uploadedImages.map(img => `
-    <div class="image-preview-item" data-image-id="${img.id}">
-      <img src="${img.dataUrl}" alt="${img.name}">
-      <button class="remove-image" onclick="window.removeImageById('${img.id}')" title="${t('close')}">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    </div>
-  `).join('');
-}
-
-// Expose removeImage to window for onclick handler
-window.removeImageById = (imageId) => {
-  removeImage(imageId);
-};
 
 // Create new chat for all panels
 async function newChatAllProviders() {
@@ -2221,6 +2258,8 @@ async function extractAllAnswers() {
     const timeout = setTimeout(() => {
       const entry = pendingAnswerExtractions.get(requestId);
       if (entry) {
+        entry.completed = true;
+        if (entry.retryTimer) { clearTimeout(entry.retryTimer); entry.retryTimer = null; }
         const responded = entry.respondedPanels ? entry.respondedPanels.size : 0;
         console.log('[CopyAll] Timeout. Responded:', responded, '/', getNonMergePanels().length, 'Answers:', entry.answers.length);
         resolve(entry.answers);
@@ -2235,7 +2274,9 @@ async function extractAllAnswers() {
     pendingAnswerExtractions.set(requestId, {
       resolve,
       timer: timeout,
-      answers
+      answers,
+      completed: false,
+      retryTimer: null
     });
 
     const targetPanels = getNonMergePanels();
@@ -2263,9 +2304,10 @@ async function extractAllAnswers() {
     }
 
     // 3秒后对未响应的面板重试一次（iframe content script 可能还没加载完）
-    setTimeout(() => {
+    const retryTimer = setTimeout(() => {
       const entry = pendingAnswerExtractions.get(requestId);
-      if (!entry) return; // 已完成或超时
+      if (!entry || entry.completed) return; // 已完成或超时
+      entry.retryTimer = null;
       const responded = entry.respondedPanels || new Set();
       const missing = targetPanels.filter(p => !responded.has(p.id));
       if (missing.length > 0) {
@@ -2282,6 +2324,9 @@ async function extractAllAnswers() {
         });
       }
     }, 3000);
+    // Store retry timer ID so it can be cleared on early completion
+    const entryForRetry = pendingAnswerExtractions.get(requestId);
+    if (entryForRetry) entryForRetry.retryTimer = retryTimer;
   });
 }
 
@@ -2322,7 +2367,9 @@ function handleExtractedAnswer(data) {
 
   const nonMergeCount = getNonMergePanels().length;
   if (entry.respondedPanels.size >= nonMergeCount) {
+    entry.completed = true;
     clearTimeout(entry.timer);
+    if (entry.retryTimer) { clearTimeout(entry.retryTimer); entry.retryTimer = null; }
     console.log('[CopyAll] All panels responded. Valid answers:', entry.answers.length, 'of', nonMergeCount);
     entry.resolve(entry.answers);
     pendingAnswerExtractions.delete(data.requestId);
@@ -2397,60 +2444,72 @@ const MERGE_TARGET_URLS = {
   grok: 'https://grok.com/'
 };
 
-const MERGE_MAX_WAIT = 60000;       // 最长1分钟
+let MERGE_MAX_WAIT = 120000;         // 默认120秒，可从设置读取
+let AUTO_MERGE_ENABLED = true;
 
 let mergeCompletedPanels = new Set();
 let mergeTimeoutTimer = null;
-let mergeStartDelayTimer = null;
 let mergeIsActive = false;
+let activeMergeSessionId = null;
 let lastSentQuestion = '';
 let lastMergeType = null; // 'auto' | 'timeout' | null
 
-function startMergeMonitor() {
+function startMergeMonitor(mergeSessionId) {
   stopMergeMonitor();
   mergeIsActive = true;
+  activeMergeSessionId = mergeSessionId;
   mergeCompletedPanels = new Set();
   const mergeBtn = document.getElementById('merge-btn');
   if (mergeBtn) mergeBtn.classList.add('active');
 
-  console.log('[Merge] Monitoring started, waiting 3s before starting detection...');
+  console.log('[Merge] Monitoring started, mode:', AUTO_MERGE_ENABLED ? `${MERGE_MAX_WAIT}ms timeout` : 'manual');
 
   // 开启提取模式，让隐藏页的停止按钮也能被检测到
   setExtractMode(true);
 
-  // 延迟 3 秒再开始监控（内容脚本有快速检测：如果 AI 已完成会立即报告）
-  mergeStartDelayTimer = setTimeout(() => {
-    if (!mergeIsActive) return;
-    const nonMergePanels = getNonMergePanels();
-    console.log('[Merge] Sending MONITOR_COMPLETION to', nonMergePanels.length, 'panels (excluded merge panels)');
-    nonMergePanels.forEach(panel => {
-      if (panel.iframe && panel.iframe.contentWindow) {
-        panel.iframe.contentWindow.postMessage({
-          type: 'MONITOR_COMPLETION',
-          context: 'multi-panel'
-        }, '*');
-      }
-    });
-  }, 3000);
+  const nonMergePanels = getNonMergePanels();
+  console.log('[Merge] Sending MONITOR_COMPLETION to', nonMergePanels.length, 'panels (excluded merge panels)');
+  nonMergePanels.forEach(panel => {
+    if (panel.iframe && panel.iframe.contentWindow) {
+      panel.iframe.contentWindow.postMessage({
+        type: 'MONITOR_COMPLETION',
+        mergeSessionId,
+        context: 'multi-panel'
+      }, '*');
+    }
+  });
 
-  // Safety net: force merge after max wait (从 Send All 开始计时)
-  mergeTimeoutTimer = setTimeout(() => {
-    if (!mergeIsActive) return;
-    const nonMergePanels = getNonMergePanels();
-    const completed = nonMergePanels.filter(p => mergeCompletedPanels.has(p.id));
-    const incomplete = nonMergePanels.filter(p => !mergeCompletedPanels.has(p.id));
-    console.log('[Merge] Timeout, triggering merge. Completed:', completed.map(p => p.providerId).join(',') || 'none',
-      '| Incomplete:', incomplete.map(p => p.providerId).join(',') || 'none');
-    lastMergeType = 'timeout';
-    stopMergeMonitor();
-    triggerMerge();
-  }, MERGE_MAX_WAIT);
+  // Safety net: force merge after max wait (from Send All). In manual mode
+  // neither a timeout nor all-complete detection may initiate a merge.
+  if (AUTO_MERGE_ENABLED) {
+    mergeTimeoutTimer = setTimeout(() => {
+      if (!mergeIsActive || !AUTO_MERGE_ENABLED) return;
+      const nonMergePanels = getNonMergePanels();
+      const completed = nonMergePanels.filter(p => mergeCompletedPanels.has(p.id));
+      const incomplete = nonMergePanels.filter(p => !mergeCompletedPanels.has(p.id));
+      console.log('[Merge] Timeout, triggering merge. Completed:', completed.map(p => p.providerId).join(',') || 'none',
+        '| Incomplete:', incomplete.map(p => p.providerId).join(',') || 'none');
+      lastMergeType = 'timeout';
+      stopMergeMonitor();
+      triggerMerge();
+    }, MERGE_MAX_WAIT);
+  }
 }
 
 function handleMergeCompletionDetected(data) {
   console.log('[Merge] COMPLETION_DETECTED received:', data.provider, 'active:', mergeIsActive, 'context:', data.context);
-  if (!mergeIsActive || data.context !== 'multi-panel-completion') {
-    console.log('[Merge] Ignoring COMPLETION_DETECTED: mergeIsActive=', mergeIsActive, 'context=', data.context);
+  if (data.context !== 'multi-panel-completion') {
+    console.log('[Merge] Ignoring COMPLETION_DETECTED: wrong context=', data.context);
+    return;
+  }
+
+  if (!activeMergeSessionId || data.mergeSessionId !== activeMergeSessionId) {
+    console.log('[Merge] Ignoring completion from a different session');
+    return;
+  }
+
+  if (!mergeIsActive) {
+    console.log('[Merge] Ignoring COMPLETION_DETECTED: monitoring is inactive');
     return;
   }
 
@@ -2464,9 +2523,15 @@ function handleMergeCompletionDetected(data) {
 
   mergeCompletedPanels.add(panel.id);
   const nonMergeCount = getNonMergePanels().length;
-  console.log('[Merge] Panel completed:', panel.id, 'provider:', data.provider, '(', mergeCompletedPanels.size, '/', nonMergeCount, ')');
+  const completedProviders = getNonMergePanels().filter(p => mergeCompletedPanels.has(p.id)).map(p => p.providerId);
+  console.log('[Merge] Panel completed:', panel.id, 'provider:', data.provider, '(', mergeCompletedPanels.size, '/', nonMergeCount, ')', 'completed:', completedProviders.join(','));
 
   if (mergeCompletedPanels.size >= nonMergeCount) {
+    if (!AUTO_MERGE_ENABLED) {
+      console.log('[Merge] All panels completed; manual merge mode is enabled');
+      stopMergeMonitor();
+      return;
+    }
     console.log('[Merge] All panels completed, triggering merge');
     lastMergeType = 'auto';
     stopMergeMonitor();
@@ -2476,13 +2541,9 @@ function handleMergeCompletionDetected(data) {
 
 function stopMergeMonitor() {
   mergeIsActive = false;
+  activeMergeSessionId = null;
   mergeCompletedPanels.clear();
   setExtractMode(false);
-
-  if (mergeStartDelayTimer) {
-    clearTimeout(mergeStartDelayTimer);
-    mergeStartDelayTimer = null;
-  }
 
   if (mergeTimeoutTimer) {
     clearTimeout(mergeTimeoutTimer);
@@ -2504,19 +2565,19 @@ function stopMergeMonitor() {
 }
 
 function buildMergePrompt(question, answers) {
-  const parts = answers.map(a => `【${a.providerName}】\n${a.answer}`);
+  const parts = answers.map(a => `【${a.providerName}】\n${a.answer.replace(/^[ \t]*\n/gm, '')}`);
   const todayZh = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
   const todayEn = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
 
   if (currentLocale === 'en') {
-    const partsEn = answers.map(a => `[${a.providerName}]\n${a.answer}`);
+    const partsEn = answers.map(a => `[${a.providerName}]\n${a.answer.replace(/^[ \t]*\n/gm, '')}`);
     return `You are a skilled answer synthesizer. Today: ${todayEn}.
 [Original Question]
 ${question}
 [Model Responses]
 ${partsEn.join('\n\n')}
 Rules:
-1. Restate the question in one sentence
+1. Quote the original question as-is
 2. Extract the best content from each response, remove duplicates
 3. When citing a viewpoint, note which model(s) support it (e.g. "— DeepSeek, ChatGPT")
 4. Remove outdated info based on today's date
@@ -2531,7 +2592,7 @@ ${question}
 【各模型回答】
 ${parts.join('\n')}
 规则：
-1. 先用一句话复述原始问题
+1. 先原样引用原始问题
 2. 从每个回答中提取最优质的内容，去除重复
 3. 引用观点时注明来源（如"— DeepSeek、ChatGPT"）
 4. 根据当前日期，去除过时的信息
@@ -2573,7 +2634,8 @@ async function triggerMerge() {
     const existingBadge = document.getElementById(existingPanel.id)?.querySelector('#merge-status-badge');
     if (existingBadge) {
       existingBadge.style.background = lastMergeType === 'auto' ? '#10b981' : '#f59e0b';
-      existingBadge.textContent = lastMergeType === 'auto' ? '自动融合' : '超时融合';
+      existingBadge.textContent = lastMergeType === 'auto' ? t('autoMerge') : t('timeoutMerge');
+      existingBadge.title = lastMergeType === 'auto' ? '' : t('mergeTimeoutTooltip');
     }
 
     // 复用已有面板：直接注入提示词
@@ -2646,7 +2708,7 @@ async function triggerMerge() {
           border-radius: 3px;
           margin-left: 6px;
           white-space: nowrap;
-        ">${lastMergeType === 'auto' ? '自动融合' : '超时融合'}</span>
+        " title="${lastMergeType === 'auto' ? '' : t('mergeTimeoutTooltip')}">${lastMergeType === 'auto' ? t('autoMerge') : t('timeoutMerge')}</span>
       </div>
       <div class="panel-header-right">${getPanelHeaderRightHtml(targetProvider)}</div>
     </div>
@@ -2687,19 +2749,55 @@ async function triggerMerge() {
   currentPanelPage = 0;
   renderCurrentPage();
 
-  // 等 iframe 加载完成后注入提示词
+  // 等 iframe 加载完成后注入提示词（带重试机制）
   iframe.addEventListener('load', () => {
     loadingEl.classList.add('hidden');
-    console.log('[Merge] Panel loaded, injecting prompt in 2s...');
-    setTimeout(() => {
+    const mergeRequestId = `merge-new-${Date.now()}`;
+    let retryCount = 0;
+    const MAX_RETRIES = 3;
+    let gotResponse = false;
+    let pendingRetry = null;
+
+    const diagHandler = (event) => {
+      if (event?.data?.type === 'INJECT_TEXT_RECEIVED' && event?.data?.mergeRequestId === mergeRequestId) {
+        gotResponse = true;
+        window.removeEventListener('message', diagHandler);
+        if (pendingRetry) { clearTimeout(pendingRetry); pendingRetry = null; }
+        console.log('[Merge] Content script confirmed receipt. Input found:', event.data.inputFound, 'injectSuccess:', event.data.injectSuccess);
+      }
+    };
+    window.addEventListener('message', diagHandler);
+
+    function doInject() {
+      console.log('[Merge] Injecting prompt into panel', panelId, '(attempt', retryCount + 1, 'of', MAX_RETRIES, ')');
       iframe.contentWindow.postMessage({
         type: 'INJECT_TEXT',
         text: prompt,
         autoSubmit: true,
-        context: 'auto-merge'
+        context: 'auto-merge',
+        mergeRequestId
       }, '*');
-      console.log('[Merge] Prompt injected into panel', panelId);
-    }, 2000);
+    }
+
+    // Send immediately
+    doInject();
+
+    // Schedule retries if no response within 2s
+    function scheduleRetry() {
+      pendingRetry = setTimeout(() => {
+        if (gotResponse || retryCount >= MAX_RETRIES) {
+          window.removeEventListener('message', diagHandler);
+          if (!gotResponse) {
+            console.warn('[Merge] No response from content script after', MAX_RETRIES, 'retries.');
+          }
+          return;
+        }
+        retryCount++;
+        doInject();
+        scheduleRetry();
+      }, 2000);
+    }
+    scheduleRetry();
   });
 }
 
@@ -2771,45 +2869,6 @@ function setupEventListeners() {
   document.getElementById('prompt-library-btn').addEventListener('click', openPromptModal);
   document.getElementById('close-prompt-modal').addEventListener('click', closePromptModal);
 
-  // Image upload button
-  const imageUploadBtn = document.getElementById('image-upload-btn');
-  const imageFileInput = document.getElementById('image-file-input');
-  const inputWrapper = document.querySelector('.input-wrapper');
-
-  imageUploadBtn.addEventListener('click', () => {
-    imageFileInput.click();
-  });
-
-  imageFileInput.addEventListener('change', async (e) => {
-    const files = Array.from(e.target.files);
-    for (const file of files) {
-      await addImage(file);
-    }
-    // Clear input to allow re-uploading the same file
-    e.target.value = '';
-  });
-
-  // Drag and drop support
-  inputWrapper.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    inputWrapper.classList.add('drag-over');
-  });
-
-  inputWrapper.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    inputWrapper.classList.remove('drag-over');
-  });
-
-  inputWrapper.addEventListener('drop', async (e) => {
-    e.preventDefault();
-    inputWrapper.classList.remove('drag-over');
-
-    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
-    for (const file of files) {
-      await addImage(file);
-    }
-  });
-
   // Prompt search
   const promptSearch = document.getElementById('prompt-search');
   let searchTimeout;
@@ -2879,9 +2938,11 @@ function setupEventListeners() {
   sendAllBtn.addEventListener('click', () => {
     const input = document.getElementById('unified-input');
     lastSentQuestion = input.value || '';
-    broadcastMessage(input.value, true);
-    // Start merge monitoring after sending
-    startMergeMonitor();
+    // Arm monitoring before sending so a fast response cannot be mistaken for
+    // a completion from the previous conversation.
+    const mergeSessionId = `merge-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    startMergeMonitor(mergeSessionId);
+    broadcastMessage(input.value, true, mergeSessionId);
   });
 
   // Merge button (manual trigger)
@@ -2906,6 +2967,13 @@ function setupEventListeners() {
   inputTextarea.addEventListener('compositionend', () => {
     isInputComposing = false;
   });
+  // 自动调整输入框高度（用 requestAnimationFrame 合并重排，避免抖动）
+  inputTextarea.addEventListener('input', () => {
+    requestAnimationFrame(() => {
+      inputTextarea.style.height = '0';
+      inputTextarea.style.height = Math.min(inputTextarea.scrollHeight, 150) + 'px';
+    });
+  });
   inputTextarea.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       if (isInputComposing || e.isComposing) {
@@ -2913,22 +2981,9 @@ function setupEventListeners() {
       }
       e.preventDefault();
       lastSentQuestion = inputTextarea.value || '';
-      broadcastMessage(inputTextarea.value, true);
-      startMergeMonitor();
-    }
-  });
-
-  // Paste image support (must be after inputTextarea is defined)
-  inputTextarea.addEventListener('paste', async (e) => {
-    const items = Array.from(e.clipboardData.items);
-    for (const item of items) {
-      if (item.type.startsWith('image/')) {
-        e.preventDefault();
-        const file = item.getAsFile();
-        if (file) {
-          await addImage(file);
-        }
-      }
+      const mergeSessionId = `merge-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      startMergeMonitor(mergeSessionId);
+      broadcastMessage(inputTextarea.value, true, mergeSessionId);
     }
   });
 

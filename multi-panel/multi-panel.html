@@ -4,14 +4,80 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AIChatMerge - AI Comparison</title>
-  <!-- 立即应用主题，避免白色闪烁 -->
+  <!-- 立即应用主题和i18n，避免白色闪烁和中英文同时显示 -->
   <script>
     (function() {
       try {
-        chrome.storage.sync.get({ theme: 'auto' }, function(s) {
+        chrome.storage.sync.get({ theme: 'auto', language: null }, function(s) {
+          // 主题
           var t = s.theme;
           if (t === 'auto') t = window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
           document.documentElement.setAttribute('data-theme', t);
+
+          // i18n: 确定语言
+          var lang = s.language;
+          if (!lang) {
+            try { lang = chrome.i18n.getUILanguage(); } catch(e) { lang = navigator.language || 'en'; }
+          }
+          var isZh = lang.startsWith('zh');
+
+          // 同步翻译静态元素（placeholder, title, textContent）
+          var translations = {
+            zh: {
+              prevPage: '上一页', nextPage: '下一页',
+              promptLibrary: '提示词库', uploadImage: '上传图片',
+              inputPlaceholder: '输入你的问题，同时发送给所有AI...',
+              sendToAllAI: '发送给所有AI', mergeTooltip: '融合总结：收集所有回答并发送给目标 AI 融合',
+              mergeTargetAI: '融合目标 AI', copyAllAnswers: '复制所有回答',
+              addPanel: '添加面板', newChat: '全部新建对话', layout: '切换布局',
+              switchToPopupMode: '弹窗模式', settings: '设置',
+              selectLayout: '选择布局', singlePanel: '单面板', twoPanels: '两面板',
+              threePanels: '三面板', fourPanels: '四面板', fivePanels: '五面板',
+              promptLibraryTitle: '提示词库', newPrompt: '新建提示词',
+              searchPrompts: '搜索提示词...', allCategories: '所有分类',
+              showFavoritesOnly: '仅显示收藏', recentUsed: '最近使用',
+              newPromptTitle: '新建提示词', title: '标题', titlePlaceholder: '输入提示词标题...',
+              content: '内容', contentPlaceholder: '输入提示词内容... 使用 {variable} 作为变量',
+              category: '分类', categoryPlaceholder: '例如：写作、编程、调研',
+              tags: '标签（逗号分隔）', tagsPlaceholder: '例如：写作、创意、博客',
+              delete: '删除', cancel: '取消', save: '保存',
+              fillVariables: '填写变量', variableInstruction: '此提示词包含变量，请填写：', apply: '应用'
+            },
+            en: {
+              prevPage: 'Previous page', nextPage: 'Next page',
+              promptLibrary: 'Prompt Library', uploadImage: 'Upload Image',
+              inputPlaceholder: 'Enter your question to send to all AIs...',
+              sendToAllAI: 'Send to all AIs', mergeTooltip: 'Merge: collect all answers and send to target AI for fusion',
+              mergeTargetAI: 'Merge Target AI', copyAllAnswers: 'Copy All Answers',
+              addPanel: 'Add Panel', newChat: 'New Chat', layout: 'Layout',
+              switchToPopupMode: 'Popup Mode', settings: 'Settings',
+              selectLayout: 'Select Layout', singlePanel: 'Single Panel', twoPanels: 'Two Panels',
+              threePanels: 'Three Panels', fourPanels: 'Four Panels', fivePanels: 'Five Panels',
+              promptLibraryTitle: 'Prompt Library', newPrompt: 'New Prompt',
+              searchPrompts: 'Search prompts...', allCategories: 'All Categories',
+              showFavoritesOnly: 'Show Favorites Only', recentUsed: 'Recently Used',
+              newPromptTitle: 'New Prompt', title: 'Title', titlePlaceholder: 'Enter prompt title...',
+              content: 'Content', contentPlaceholder: 'Enter prompt content... Use {variable} as variables',
+              category: 'Category', categoryPlaceholder: 'e.g.: Writing, Programming, Research',
+              tags: 'Tags (comma separated)', tagsPlaceholder: 'e.g.: Writing, Creative, Blog',
+              delete: 'Delete', cancel: 'Cancel', save: 'Save',
+              fillVariables: 'Fill Variables', variableInstruction: 'This prompt contains variables, please fill in:', apply: 'Apply'
+            }
+          };
+          var dict = isZh ? translations.zh : translations.en;
+
+          document.querySelectorAll('[data-i18n]').forEach(function(el) {
+            var key = el.getAttribute('data-i18n');
+            if (dict[key]) el.textContent = dict[key];
+          });
+          document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+            var key = el.getAttribute('data-i18n-placeholder');
+            if (dict[key]) el.setAttribute('placeholder', dict[key]);
+          });
+          document.querySelectorAll('[data-i18n-title]').forEach(function(el) {
+            var key = el.getAttribute('data-i18n-title');
+            if (dict[key]) el.setAttribute('title', dict[key]);
+          });
         });
       } catch(e) {}
     })();
@@ -44,14 +110,14 @@
   <div id="app">
     <!-- Main Content Area -->
     <div id="main-content">
-      <button id="scroll-left-btn" class="panel-scroll-arrow panel-scroll-left" data-i18n-title="prevPage" title="上一页">
+      <button id="scroll-left-btn" class="panel-scroll-arrow panel-scroll-left" data-i18n-title="prevPage">
         <span class="material-symbols-outlined">chevron_left</span>
       </button>
       <!-- Panel Grid Container -->
       <div id="panel-grid" class="layout-1x3">
         <!-- Panels will be dynamically generated -->
       </div>
-      <button id="scroll-right-btn" class="panel-scroll-arrow panel-scroll-right" data-i18n-title="nextPage" title="下一页">
+      <button id="scroll-right-btn" class="panel-scroll-arrow panel-scroll-right" data-i18n-title="nextPage">
         <span class="material-symbols-outlined">chevron_right</span>
       </button>
     </div>
@@ -59,51 +125,52 @@
     <!-- Bottom Input Bar -->
     <footer id="input-bar">
       <div class="input-container">
-        <button id="prompt-library-btn" class="input-btn" data-i18n-title="promptLibrary" title="提示词库">
+        <button id="prompt-library-btn" class="input-btn" data-i18n-title="promptLibrary">
           <span class="material-symbols-outlined">auto_awesome</span>
         </button>
-        <button id="image-upload-btn" class="input-btn" data-i18n-title="uploadImage" title="上传图片">
+        <!-- 图片上传功能已移除（v4.0），如需恢复参考 paste 模拟方案 -->
+        <button id="image-upload-btn" class="input-btn" data-i18n-title="uploadImage" style="display: none;">
           <span class="material-symbols-outlined">add_photo_alternate</span>
         </button>
         <input type="file" id="image-file-input" accept="image/*" multiple style="display: none;">
         <div class="input-wrapper">
-          <div id="image-preview-container" class="image-preview-container"></div>
-          <textarea id="unified-input" data-i18n-placeholder="inputPlaceholder" placeholder="输入你的问题，同时发送给所有AI..." rows="1"></textarea>
+          <div id="image-preview-container" class="image-preview-container" style="display: none;"></div>
+          <textarea id="unified-input" data-i18n-placeholder="inputPlaceholder" rows="1"></textarea>
         </div>
         <div class="input-actions">
           <span id="send-status" class="send-status"></span>
           <!-- Send All Button -->
-          <button id="send-all-btn" class="send-btn" data-i18n-title="sendToAllAI" title="发送给所有AI">
+          <button id="send-all-btn" class="send-btn" data-i18n-title="sendToAllAI">
             <span class="material-symbols-outlined">send</span>
           </button>
           <!-- Merge Button -->
-          <button id="merge-btn" class="merge-btn" data-i18n-title="mergeTooltip" title="融合总结：收集所有回答并发送给目标 AI 对比">
+          <button id="merge-btn" class="merge-btn" data-i18n-title="mergeTooltip">
             <span class="material-symbols-outlined">call_merge</span>
           </button>
           <!-- Merge Target AI Select -->
-          <button id="merge-target-btn" class="merge-select" data-i18n-title="mergeTargetAI" title="融合目标 AI">
+          <button id="merge-target-btn" class="merge-select" data-i18n-title="mergeTargetAI">
             <span id="merge-target-label">DeepSeek</span>
             <span class="material-symbols-outlined" style="font-size:16px;">expand_more</span>
           </button>
           <!-- Copy All Answers Button -->
-          <button id="copy-all-btn" class="copy-all-bottom-btn" data-i18n-title="copyAllAnswers" title="复制所有回答">
+          <button id="copy-all-btn" class="copy-all-bottom-btn" data-i18n-title="copyAllAnswers">
             <span class="material-symbols-outlined">content_copy</span>
           </button>
           <!-- Add Panel Button -->
-          <button id="add-panel-btn" class="bottom-action-btn" data-i18n-title="addPanel" title="添加面板">
+          <button id="add-panel-btn" class="bottom-action-btn" data-i18n-title="addPanel">
             <span class="material-symbols-outlined">add</span>
           </button>
           <!-- Toolbar action buttons (moved from header) -->
-          <button id="new-chat-btn" class="bottom-action-btn" data-i18n-title="newChat" title="全部新建对话">
+          <button id="new-chat-btn" class="bottom-action-btn" data-i18n-title="newChat">
             <span class="material-symbols-outlined">add_comment</span>
           </button>
-          <button id="layout-btn" class="bottom-action-btn" data-i18n-title="layout" title="切换布局">
+          <button id="layout-btn" class="bottom-action-btn" data-i18n-title="layout">
             <span class="material-symbols-outlined">grid_view</span>
           </button>
-          <button id="toggle-open-mode-btn" class="bottom-action-btn" data-i18n-title="switchToPopupMode" title="弹窗模式">
+          <button id="toggle-open-mode-btn" class="bottom-action-btn" data-i18n-title="switchToPopupMode">
             <span class="material-symbols-outlined">open_in_new</span>
           </button>
-          <button id="settings-btn" class="bottom-action-btn" data-i18n-title="settings" title="设置">
+          <button id="settings-btn" class="bottom-action-btn" data-i18n-title="settings">
             <span class="material-symbols-outlined">settings</span>
           </button>
         </div>
@@ -121,31 +188,31 @@
         </div>
         <div class="modal-body">
           <div class="layout-options">
-            <button class="layout-option" data-layout="1x1" data-i18n-title="singlePanel" title="单面板">
+            <button class="layout-option" data-layout="1x1" data-i18n-title="singlePanel">
               <div class="layout-preview layout-1x1-preview">
                 <div></div>
               </div>
               <span>1x1</span>
             </button>
-            <button class="layout-option" data-layout="1x2" data-i18n-title="twoPanels" title="两面板">
+            <button class="layout-option" data-layout="1x2" data-i18n-title="twoPanels">
               <div class="layout-preview layout-1x2-preview">
                 <div></div><div></div>
               </div>
               <span>1x2</span>
             </button>
-            <button class="layout-option" data-layout="1x3" data-i18n-title="threePanels" title="三面板">
+            <button class="layout-option" data-layout="1x3" data-i18n-title="threePanels">
               <div class="layout-preview layout-1x3-preview">
                 <div></div><div></div><div></div>
               </div>
               <span>1x3</span>
             </button>
-            <button class="layout-option" data-layout="1x4" data-i18n-title="fourPanels" title="四面板">
+            <button class="layout-option" data-layout="1x4" data-i18n-title="fourPanels">
               <div class="layout-preview layout-1x4-preview">
                 <div></div><div></div><div></div><div></div>
               </div>
               <span>1x4</span>
             </button>
-            <button class="layout-option" data-layout="1x5" data-i18n-title="fivePanels" title="五面板">
+            <button class="layout-option" data-layout="1x5" data-i18n-title="fivePanels">
               <div class="layout-preview layout-1x5-preview">
                 <div></div><div></div><div></div><div></div><div></div>
               </div>
@@ -162,7 +229,7 @@
         <div class="modal-header">
           <h3 data-i18n="promptLibraryTitle">提示词库</h3>
           <div class="modal-header-actions">
-            <button id="new-prompt-btn" class="header-action-btn" data-i18n-title="newPrompt" title="新建提示词">
+            <button id="new-prompt-btn" class="header-action-btn" data-i18n-title="newPrompt">
               <span class="material-symbols-outlined">add</span>
             </button>
             <button class="close-btn" id="close-prompt-modal">
@@ -173,16 +240,16 @@
         <div class="modal-body">
           <div class="prompt-filters">
             <div class="prompt-search-wrapper">
-              <input type="text" id="prompt-search" data-i18n-placeholder="searchPrompts" placeholder="搜索提示词...">
+              <input type="text" id="prompt-search" data-i18n-placeholder="searchPrompts">
             </div>
             <div class="prompt-filter-buttons">
               <select id="prompt-category-filter">
                 <option value="" data-i18n="allCategories">所有分类</option>
               </select>
-              <button id="prompt-favorites-btn" class="filter-btn" data-i18n-title="showFavoritesOnly" title="仅显示收藏">
+              <button id="prompt-favorites-btn" class="filter-btn" data-i18n-title="showFavoritesOnly">
                 <span class="material-symbols-outlined">star</span>
               </button>
-              <button id="prompt-recent-btn" class="filter-btn active" data-i18n-title="recentUsed" title="最近使用">
+              <button id="prompt-recent-btn" class="filter-btn active" data-i18n-title="recentUsed">
                 <span class="material-symbols-outlined">schedule</span>
               </button>
             </div>
@@ -206,19 +273,19 @@
         <div class="modal-body">
           <div class="form-group">
             <label for="prompt-title-input" data-i18n="title">标题</label>
-            <input type="text" id="prompt-title-input" data-i18n-placeholder="titlePlaceholder" placeholder="输入提示词标题...">
+            <input type="text" id="prompt-title-input" data-i18n-placeholder="titlePlaceholder">
           </div>
           <div class="form-group">
             <label for="prompt-content-input" data-i18n="content">内容</label>
-            <textarea id="prompt-content-input" rows="8" data-i18n-placeholder="contentPlaceholder" placeholder="输入提示词内容... 使用 {variable} 作为变量"></textarea>
+            <textarea id="prompt-content-input" rows="8" data-i18n-placeholder="contentPlaceholder"></textarea>
           </div>
           <div class="form-group">
             <label for="prompt-category-input" data-i18n="category">分类</label>
-            <input type="text" id="prompt-category-input" data-i18n-placeholder="categoryPlaceholder" placeholder="例如：写作、编程、调研">
+            <input type="text" id="prompt-category-input" data-i18n-placeholder="categoryPlaceholder">
           </div>
           <div class="form-group">
             <label for="prompt-tags-input" data-i18n="tags">标签（逗号分隔）</label>
-            <input type="text" id="prompt-tags-input" data-i18n-placeholder="tagsPlaceholder" placeholder="例如：写作、创意、博客">
+            <input type="text" id="prompt-tags-input" data-i18n-placeholder="tagsPlaceholder">
           </div>
         </div>
         <div class="modal-footer">

@@ -8,7 +8,13 @@ const contentScriptSource = readFileSync(
 );
 
 function dispatchMultiPanelMessage(payload) {
-  window.dispatchEvent(new MessageEvent('message', { data: payload }));
+  const event = new Event('message');
+  Object.defineProperties(event, {
+    data: { value: payload },
+    source: { value: window.parent },
+    origin: { value: 'chrome-extension://test-extension' },
+  });
+  window.dispatchEvent(event);
 }
 
 function wait(ms) {
@@ -61,6 +67,10 @@ function getTemporaryChatEnabledCalls(postMessageSpy) {
 
 describe('temporary chat content script', () => {
   beforeAll(() => {
+    Object.defineProperty(window, 'parent', {
+      configurable: true,
+      value: { postMessage: vi.fn() }
+    });
     window.eval(contentScriptSource);
   });
 

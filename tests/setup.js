@@ -3,6 +3,7 @@
 
 global.chrome = {
   runtime: {
+    getURL: vi.fn((path = '') => `chrome-extension://test-extension/${path}`),
     sendMessage: vi.fn((message, callback) => {
       if (callback) callback({ success: true });
       return Promise.resolve({ success: true });

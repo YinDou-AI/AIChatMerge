@@ -641,7 +641,7 @@
     "message": "AIChatMerge - Settings"
   },
   "headerSettingsTitle": {
-    "message": "Settings: AIChatMerge"
+    "message": "Settings"
   },
   "headerSettingsSubtitle": {
     "message": "Customize your multi-AI comparison experience"
@@ -833,5 +833,17 @@
         "content": "$1"
       }
     }
+  },
+  "labelMergeTimeout": {
+    "message": "Merge Wait Mode"
+  },
+  "descMergeTimeout": {
+    "message": "Choose the maximum automatic merge wait time, or use manual merge only."
+  },
+  "mergeTimeoutTooltip": {
+    "message": "Timeout triggered. Adjust wait time in settings."
+  },
+  "msgMergeTimeoutUpdated": {
+    "message": "Merge wait mode updated"
   }
 }

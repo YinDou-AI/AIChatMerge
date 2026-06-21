@@ -39,7 +39,10 @@ export function migrateEnabledProvidersOnUpdate(enabledProviders, providerOrder)
     return null;
   }
 
-  const migratedProviderIds = buildMigratedProviderOrder(nextProviderOrder || nextEnabledProviders);
+  const sourceOrder = nextProviderOrder || nextEnabledProviders;
+  const migratedProviderIds = arraysHaveSameOrder(sourceOrder, LEGACY_DEFAULT_PROVIDER_IDS)
+    ? DEFAULT_PROVIDER_IDS
+    : buildMigratedProviderOrder(sourceOrder);
 
   return {
     enabledProviders: migratedProviderIds,
@@ -63,12 +66,17 @@ function buildMigratedProviderOrder(providerOrder) {
   }
 
   const filteredExistingOrder = providerOrder.filter((providerId) =>
-    LEGACY_DEFAULT_PROVIDER_IDS.includes(providerId)
+    DEFAULT_PROVIDER_IDS.includes(providerId)
   );
   const uniqueExistingOrder = [...new Set(filteredExistingOrder)];
-  const missingLegacyProviders = LEGACY_DEFAULT_PROVIDER_IDS.filter(
+  const missingDefaultProviders = DEFAULT_PROVIDER_IDS.filter(
     (providerId) => !uniqueExistingOrder.includes(providerId)
   );
 
-  return [...uniqueExistingOrder, ...missingLegacyProviders, 'doubao', 'yuanbao', 'metaso'];
+  return [...uniqueExistingOrder, ...missingDefaultProviders];
+}
+
+function arraysHaveSameOrder(left, right) {
+  return Array.isArray(left) && Array.isArray(right) &&
+    left.length === right.length && left.every((value, index) => value === right[index]);
 }

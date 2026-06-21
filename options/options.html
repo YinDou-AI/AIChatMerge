@@ -21,8 +21,7 @@
 <body>
   <div class="container">
     <header>
-      <h1 data-i18n="headerSettingsTitle">设置：AIChatMerge</h1>
-      <p data-i18n="headerSettingsSubtitle">自定义您的多 AI 对比体验</p>
+      <h1 data-i18n="headerSettingsTitle">设置</h1>
     </header>
 
     <div class="content">
@@ -88,6 +87,27 @@
             <select id="open-mode-select" class="setting-select">
               <option value="tab" data-i18n="optionTabMode">标签页模式</option>
               <option value="popup" data-i18n="optionPopupMode">弹窗模式</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelMergeTimeout">融合等待方式</div>
+            <div class="setting-description" data-i18n="descMergeTimeout">
+              选择自动融合的最长等待时间；选择不自动融合时，仅手动融合。
+            </div>
+          </div>
+          <div class="setting-control">
+            <select id="merge-timeout-select" class="setting-select">
+              <option value="30000">30 秒</option>
+              <option value="60000">60 秒</option>
+              <option value="90000">90 秒</option>
+              <option value="120000">120 秒</option>
+              <option value="180000">180 秒</option>
+              <option value="240000">240 秒</option>
+              <option value="300000">300 秒</option>
+              <option value="manual">不自动融合</option>
             </select>
           </div>
         </div>

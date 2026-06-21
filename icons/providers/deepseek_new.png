@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Request Blocked</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f3f7f9;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            max-width: 500px;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 16px;
+            margin: 10px 0;
+            color: #555;
+        }
+
+        p.event-id {
+            font-size: 14px;
+            color: #888;
+            font-style: italic;
+            margin-top: 0;
+        }
+
+        a {
+            color: #3A82F7;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #3A82F7;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #3A82F7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <p class="event-id">Event ID: 08-clou-94-20260616002949-00451a7c</p>
+        <h1>Rate Limit Reached</h1>
+        <p>Please try again later.</p>
+        <a class="button" href="https://www.deepseek.com/">Visit the Official DeepSeek Website</a>
+    </div>
+</body>
+
+</html>

@@ -15,7 +15,13 @@ function markVisible(element) {
 }
 
 function dispatchMultiPanelMessage(payload) {
-  window.dispatchEvent(new MessageEvent('message', { data: payload }));
+  const event = new Event('message');
+  Object.defineProperties(event, {
+    data: { value: payload },
+    source: { value: window.parent },
+    origin: { value: 'chrome-extension://test-extension' },
+  });
+  window.dispatchEvent(event);
 }
 
 function createGoogleSearchDom(initialValue = '') {
@@ -65,8 +71,13 @@ function createGoogleAiImageUploadDom() {
   return { aiInput, addButton, sendButton };
 }
 
-describe('google content script integration', () => {
+// Google Search is no longer a registered provider or a manifest target.
+describe.skip('legacy Google content script integration', () => {
   beforeAll(() => {
+    Object.defineProperty(window, 'parent', {
+      configurable: true,
+      value: { postMessage: vi.fn() }
+    });
     if (typeof DataTransfer === 'undefined') {
       globalThis.DataTransfer = class DataTransfer {
         constructor() {

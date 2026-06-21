@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "AIChatMerge",
+  "name": "__MSG_extensionName__",
   "version": "1.0",
   "description": "Compare AI assistants side by side in one window. Send one prompt and review responses faster.",
   "default_locale": "en",
@@ -68,28 +68,6 @@
     "128": "icons/icon-128.png"
   },
   "content_scripts": [
-    {
-      "matches": [
-        "https://chat.deepseek.com/*",
-        "https://www.kimi.com/*",
-        "https://kimi.com/*",
-        "https://www.doubao.com/*",
-        "https://doubao.com/*",
-        "https://www.qianwen.com/*",
-        "https://qianwen.com/*",
-        "https://yuanbao.tencent.com/*",
-        "https://yiyan.baidu.com/*",
-        "https://chatglm.cn/*",
-        "https://chatgpt.com/*",
-        "https://claude.ai/*",
-        "https://gemini.google.com/*",
-        "https://grok.com/*",
-        "https://metaso.cn/*"
-      ],
-      "js": ["sse-detect.js"],
-      "world": "MAIN",
-      "run_at": "document_start"
-    },
     {
       "matches": [
         "https://www.qianwen.com/*",

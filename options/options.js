@@ -239,6 +239,25 @@ async function loadSettings() {
     openModeSelect.value = settings.openMode || 'tab';
   }
 
+  // Merge wait mode. Old values not represented by the new fixed options are
+  // migrated to the closest available duration instead of leaving the select blank.
+  const mergeTimeoutSelect = document.getElementById('merge-timeout-select');
+  if (mergeTimeoutSelect) {
+    const timeoutOptions = [30000, 60000, 90000, 120000, 180000, 240000, 300000];
+    if (settings.autoMergeEnabled === false) {
+      mergeTimeoutSelect.value = 'manual';
+    } else {
+      const requestedTimeout = Number(settings.mergeMaxWait) || 120000;
+      const closestTimeout = timeoutOptions.reduce((closest, candidate) => (
+        Math.abs(candidate - requestedTimeout) < Math.abs(closest - requestedTimeout)
+          ? candidate
+          : closest
+      ), 120000);
+      mergeTimeoutSelect.value = String(closestTimeout);
+    }
+    fitSelectWidth(mergeTimeoutSelect);
+  }
+
   // Enter key behavior settings
   const enterBehavior = settings.enterKeyBehavior || {
     enabled: true,
@@ -456,6 +475,18 @@ function setupEventListeners() {
     openModeSelect.addEventListener('change', async (e) => {
       await saveSetting('openMode', e.target.value);
       showStatus('success', t('msgOpenModeUpdated') || 'Open mode updated');
+    });
+  }
+
+  // Multi-Panel: Merge timeout selection
+  const mergeTimeoutSelect = document.getElementById('merge-timeout-select');
+  if (mergeTimeoutSelect) {
+    mergeTimeoutSelect.addEventListener('change', async (e) => {
+      const manualMode = e.target.value === 'manual';
+      await saveSettings(manualMode
+        ? { autoMergeEnabled: false }
+        : { mergeMaxWait: parseInt(e.target.value, 10), autoMergeEnabled: true });
+      showStatus('success', t('msgMergeTimeoutUpdated') || 'Merge timeout updated');
     });
   }
 

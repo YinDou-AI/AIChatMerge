@@ -7,21 +7,25 @@ import {
 } from '../modules/provider-defaults.js';
 
 describe('provider defaults', () => {
-  it('appends doubao to the current default provider list', () => {
+  it('defines the current default provider list', () => {
     expect(DEFAULT_PROVIDER_IDS).toEqual([
-      'chatgpt',
-      'claude',
-      'gemini',
-      'grok',
       'deepseek',
       'kimi',
-      'google',
       'doubao',
+      'qianwen',
+      'zhipu',
+      'wenxin',
+      'yuanbao',
+      'metaso',
+      'chatgpt',
+      'gemini',
+      'claude',
+      'grok',
     ]);
     expect(LEGACY_DEFAULT_PROVIDER_IDS).not.toContain('doubao');
   });
 
-  it('migrates untouched legacy defaults to include doubao', () => {
+  it('migrates untouched legacy defaults to the current provider list', () => {
     expect(
       migrateEnabledProvidersOnUpdate(LEGACY_DEFAULT_PROVIDER_IDS, LEGACY_DEFAULT_PROVIDER_IDS)
     ).toEqual({
@@ -37,12 +41,12 @@ describe('provider defaults', () => {
     });
   });
 
-  it('preserves customized provider order while appending doubao for legacy-enabled users', () => {
+  it('preserves customized provider order while appending current providers for legacy-enabled users', () => {
     expect(
       migrateEnabledProvidersOnUpdate(LEGACY_DEFAULT_PROVIDER_IDS, ['claude', 'chatgpt', 'gemini'])
     ).toEqual({
-      enabledProviders: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
-      providerOrder: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
+      enabledProviders: ['claude', 'chatgpt', 'gemini', ...DEFAULT_PROVIDER_IDS.filter((id) => !['claude', 'chatgpt', 'gemini'].includes(id))],
+      providerOrder: ['claude', 'chatgpt', 'gemini', ...DEFAULT_PROVIDER_IDS.filter((id) => !['claude', 'chatgpt', 'gemini'].includes(id))],
     });
   });
 
@@ -53,8 +57,8 @@ describe('provider defaults', () => {
         null
       )
     ).toEqual({
-      enabledProviders: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
-      providerOrder: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
+      enabledProviders: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'doubao', 'qianwen', 'zhipu', 'wenxin', 'yuanbao', 'metaso'],
+      providerOrder: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'doubao', 'qianwen', 'zhipu', 'wenxin', 'yuanbao', 'metaso'],
     });
   });
 

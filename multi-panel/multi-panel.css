@@ -91,6 +91,8 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  position: relative;
+  overflow: hidden;
 }
 
 /* ===== Main Content Area ===== */
@@ -107,7 +109,7 @@ body {
   flex: 1;
   display: grid;
   gap: 4px;
-  padding: 4px;
+  padding: 4px 4px 56px 4px;
   background: var(--border);
   overflow-x: hidden;
   overflow-y: hidden;
@@ -365,10 +367,15 @@ body {
 
 /* ===== Input Bar ===== */
 #input-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background: var(--surface);
   border-top: 1px solid var(--border);
   padding: 8px 16px;
-  flex-shrink: 0;
+  z-index: 200;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
 }
 
 .input-container {
@@ -474,15 +481,16 @@ body {
 
 #unified-input {
   width: 100%;
-  height: 36px;
-  padding: 0 12px;
+  min-height: 36px;
+  max-height: 150px;
+  padding: 7px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 16px;
   font-family: inherit;
-  line-height: 36px;
+  line-height: 24px;
   resize: none;
-  overflow-y: hidden;
+  overflow-y: auto;
   transition: border-color 0.2s;
   background: var(--surface);
   color: var(--text);

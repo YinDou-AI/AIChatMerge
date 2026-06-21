@@ -19,7 +19,9 @@ const DEFAULT_SETTINGS = {
     newlineModifiers: { shift: true, ctrl: false, alt: false, meta: false },
     sendKey: 'Enter',
     sendModifiers: { shift: false, ctrl: false, alt: false, meta: false }
-  }
+  },
+  mergeMaxWait: 120000, // 自动融合最长等待时间（毫秒），默认120秒
+  autoMergeEnabled: true
 };
 
 export async function getSettings() {

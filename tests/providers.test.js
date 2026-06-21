@@ -14,17 +14,21 @@ describe('providers module', () => {
 
   describe('PROVIDERS constant', () => {
     it('should contain all expected providers', () => {
-      expect(PROVIDERS).toHaveLength(8);
+      expect(PROVIDERS).toHaveLength(12);
       const providerIds = PROVIDERS.map((p) => p.id);
       expect(providerIds).toEqual([
-        'chatgpt',
-        'claude',
-        'gemini',
-        'grok',
         'deepseek',
         'kimi',
-        'google',
         'doubao',
+        'qianwen',
+        'zhipu',
+        'wenxin',
+        'yuanbao',
+        'metaso',
+        'chatgpt',
+        'gemini',
+        'claude',
+        'grok',
       ]);
     });
 

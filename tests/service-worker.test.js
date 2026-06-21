@@ -134,20 +134,20 @@ describe('service-worker', () => {
           ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google']
         )
       ).toEqual({
-        enabledProviders: ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
-        providerOrder: ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
+        enabledProviders: ['deepseek', 'kimi', 'doubao', 'qianwen', 'zhipu', 'wenxin', 'yuanbao', 'metaso', 'chatgpt', 'gemini', 'claude', 'grok'],
+        providerOrder: ['deepseek', 'kimi', 'doubao', 'qianwen', 'zhipu', 'wenxin', 'yuanbao', 'metaso', 'chatgpt', 'gemini', 'claude', 'grok'],
       });
     });
 
-    it('appends doubao while preserving a customized provider order for legacy-enabled users', () => {
+    it('appends current providers while preserving a customized provider order for legacy-enabled users', () => {
       expect(
         migrateEnabledProvidersOnUpdate(
           ['chatgpt', 'claude', 'gemini', 'grok', 'deepseek', 'kimi', 'google'],
           ['claude', 'chatgpt', 'gemini']
         )
       ).toEqual({
-        enabledProviders: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
-        providerOrder: ['claude', 'chatgpt', 'gemini', 'grok', 'deepseek', 'kimi', 'google', 'doubao'],
+        enabledProviders: ['claude', 'chatgpt', 'gemini', 'deepseek', 'kimi', 'doubao', 'qianwen', 'zhipu', 'wenxin', 'yuanbao', 'metaso', 'grok'],
+        providerOrder: ['claude', 'chatgpt', 'gemini', 'deepseek', 'kimi', 'doubao', 'qianwen', 'zhipu', 'wenxin', 'yuanbao', 'metaso', 'grok'],
       });
     });
   });

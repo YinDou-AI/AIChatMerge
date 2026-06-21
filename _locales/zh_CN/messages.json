@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "AIChatMerge"
+    "message": "AI融合助手"
   },
   "extensionDescription": {
     "message": "并排比较 AI 聊天机器人。在一个窗口中使用 DeepSeek、Kimi、ChatGPT、Claude。"
@@ -579,7 +579,7 @@
     "message": "AIChatMerge - 设置"
   },
   "headerSettingsTitle": {
-    "message": "设置： AIChatMerge"
+    "message": "设置"
   },
   "headerSettingsSubtitle": {
     "message": "自定义您的多 AI 比较体验"
@@ -812,5 +812,17 @@
         "content": "$1"
       }
     }
+  },
+  "labelMergeTimeout": {
+    "message": "融合等待方式"
+  },
+  "descMergeTimeout": {
+    "message": "选择自动融合的最长等待时间；选择不自动融合时，仅手动融合。"
+  },
+  "mergeTimeoutTooltip": {
+    "message": "超时触发，可在设置中调整等待时间"
+  },
+  "msgMergeTimeoutUpdated": {
+    "message": "融合等待方式已更新"
   }
 }
