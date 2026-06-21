@@ -50,8 +50,13 @@
   // jsonCheck: 可选，对 data: 行的 JSON 做字段级检测
   const PLATFORM_DONE_CONFIG = {
     deepseek: {
-      doneKeywords: ['event: close', '"FINISHED"'],
-      jsonCheck: (obj) => obj.status === 'FINISHED'
+      // `event: close` may end an intermediate DeepSeek stream. Only the
+      // explicit response status is safe to treat as the final answer.
+      doneKeywords: [],
+      jsonCheck: (obj) => obj && (
+        obj.status === 'FINISHED' ||
+        (obj.p === 'response/status' && obj.o === 'SET' && obj.v === 'FINISHED')
+      )
     },
     doubao: {
       doneKeywords: ['SSE_REPLY_END', '[DONE]'],

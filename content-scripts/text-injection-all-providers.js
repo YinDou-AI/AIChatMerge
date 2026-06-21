@@ -227,6 +227,11 @@ if ((window.__realParent__ || window.parent) !== window) {
       '[class*="send-btn"]'
     ],
     yuanbao: [
+      // Yuanbao's current composer uses an <a>, not a button.  Falling back
+      // to a synthetic Enter can submit before Quill has committed multiline
+      // content to its internal state.
+      '#searchbar-editor #yuanbao-send-btn',
+      '#yuanbao-send-btn',
       'button[aria-label="Send"]',
       'button[aria-label="发送"]',
       'button[aria-label="发送消息"]',
@@ -464,9 +469,16 @@ if ((window.__realParent__ || window.parent) !== window) {
       cancelable: true,
       clipboardData: dataTransfer
     });
-    element.dispatchEvent(pasteEvent);
+    // A Slate paste handler normally prevents the browser default and writes
+    // the editor state itself. Wenxin and Qianwen can enter an invalid state
+    // when we then unconditionally insert the same text again.
+    const pasteHandled = !element.dispatchEvent(pasteEvent);
 
-    // Also try insertText as fallback
+    if ((detectProvider() === 'qianwen' || detectProvider() === 'wenxin') && pasteHandled) {
+      return true;
+    }
+
+    // The synthetic paste was not handled, so use insertText as a fallback.
     try {
       document.execCommand('insertText', false, text);
     } catch (e) {}
@@ -1028,10 +1040,65 @@ if ((window.__realParent__ || window.parent) !== window) {
     return pressEnter(input);
   }
 
+  // Qianwen can render multiple visible "send" controls (for example in
+  // overlays or retained conversation UI). Only a button near the editor that
+  // received the injected text is safe to click.
+  function findQianwenScopedSendButton() {
+    const input = findFirstVisibleElement(PROVIDER_SELECTORS.qianwen);
+    if (!input) return null;
+
+    const selectors = SEND_BUTTON_SELECTORS.qianwen || [];
+    let container = input.parentElement;
+    for (let depth = 0;
+      container && container !== document.body && container !== document.documentElement && depth < 10;
+      depth++, container = container.parentElement) {
+      for (const selector of selectors) {
+        try {
+          const candidates = container.querySelectorAll(selector);
+          for (const candidate of candidates) {
+            if (isVisibleElement(candidate) && isElementEnabled(candidate)) {
+              return candidate;
+            }
+          }
+        } catch (_) {}
+      }
+    }
+
+    return null;
+  }
+
   // Find and click send button
   function clickSendButton(provider, providerMode = null) {
     if (provider === 'google') {
       return clickGoogleSendButton(providerMode);
+    }
+
+    if (provider === 'qianwen') {
+      const scopedSendButton = findQianwenScopedSendButton();
+      if (scopedSendButton) {
+        scopedSendButton.focus?.();
+        scopedSendButton.click();
+        return true;
+      }
+      // Never fall through to a page-wide Qianwen send selector: a different
+      // visible composer can produce Qianwen's immediate "unknown error".
+      console.log('[Text Injection] No enabled send button near the Qianwen editor - waiting for retry');
+      return false;
+    }
+
+    if (provider === 'yuanbao') {
+      const editor = document.querySelector('#searchbar-editor .ql-editor[contenteditable="true"], .ql-editor[contenteditable="true"]');
+      const sendButton = document.querySelector('#searchbar-editor #yuanbao-send-btn, #yuanbao-send-btn');
+      if (editor && sendButton && isVisibleElement(sendButton) && isElementEnabled(sendButton)) {
+        sendButton.focus?.();
+        sendButton.click();
+        return true;
+      }
+      // Do not fall through to a synthetic Enter for Yuanbao.  Its current
+      // Quill composer can receive the first paragraph before the remaining
+      // paragraphs are committed, which produces an accidental image request.
+      console.log('[Text Injection] Yuanbao send control is not ready - waiting for retry');
+      return false;
     }
 
     if (provider === 'doubao' && window.ButtonFinderUtils?.findButton) {
@@ -1076,7 +1143,10 @@ if ((window.__realParent__ || window.parent) !== window) {
             // Metaso keeps buttons from previous composer states in the DOM.
             // Clicking a hidden one reports success here but performs no send,
             // which prevents the retry loop from reaching the live button.
-            if (provider === 'metaso' && !isVisibleElement(targetElement)) {
+            // Qianwen and Metaso can retain hidden/obsolete send controls in
+            // the DOM. Clicking one may report success but target the wrong
+            // composer state, so only the currently visible control is valid.
+            if ((provider === 'qianwen' || provider === 'metaso') && !isVisibleElement(targetElement)) {
               continue;
             }
             if (isExtractMode || isElementEnabled(targetElement)) {
@@ -1286,6 +1356,58 @@ if ((window.__realParent__ || window.parent) !== window) {
     return false;
   }
 
+  function normalizeYuanbaoEditorText(value) {
+    return String(value || '')
+      .replace(/\r/g, '')
+      .split(/\n+/)
+      .map(line => line.trim())
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  // Yuanbao's current Quill composer does not reliably retain programmatic
+  // line breaks. Preserve every paragraph by turning line breaks into a
+  // readable inline separator before writing to the editor.
+  function prepareYuanbaoInputText(text) {
+    const lines = String(text || '')
+      .replace(/\r\n?/g, '\n')
+      .split('\n')
+      .map(line => line.trim())
+      .filter(Boolean);
+
+    return lines.reduce((result, line) => {
+      if (!result) return line;
+      return /[。！？；;!?]$/.test(result) ? `${result} ${line}` : `${result}；${line}`;
+    }, '');
+  }
+
+  function injectTextIntoYuanbaoEditor(element, text) {
+    try {
+      const preparedText = prepareYuanbaoInputText(text);
+      if (!preparedText) return false;
+      element.focus();
+      document.execCommand('selectAll', false, null);
+      document.execCommand('delete', false, null);
+
+      const inserted = document.execCommand('insertText', false, preparedText);
+      if (!inserted) {
+        element.textContent = preparedText;
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      return normalizeYuanbaoEditorText(element.innerText) === normalizeYuanbaoEditorText(preparedText);
+    } catch (error) {
+      console.warn('[Text Injection] Yuanbao multiline injection failed:', error);
+      return false;
+    }
+  }
+
   // Inject text into an element (textarea or contenteditable)
   function injectTextIntoElement(element, text) {
     if (!element || !text || typeof text !== 'string' || text.trim() === '') {
@@ -1299,6 +1421,10 @@ if ((window.__realParent__ || window.parent) !== window) {
       if (!isTextarea && !isContentEditable) {
         console.warn('Element is not a textarea or contenteditable:', element);
         return false;
+      }
+
+      if (detectProvider() === 'yuanbao' && element.matches('.ql-editor[contenteditable="true"], #searchbar-editor [contenteditable="true"]')) {
+        return injectTextIntoYuanbaoEditor(element, text);
       }
 
       // Slate editors need paste method
@@ -1469,7 +1595,14 @@ if ((window.__realParent__ || window.parent) !== window) {
   // If the send button is not ready (disabled or not found) on the first try,
   // retry with increasing delays so the AI's framework has time to process the
   // injected text and enable the send button.
-  function attemptAutoSubmitWithRetry(provider, providerMode, initialDelay) {
+  function hasExpectedYuanbaoText(expectedText) {
+    const editor = document.querySelector('#searchbar-editor .ql-editor[contenteditable="true"], .ql-editor[contenteditable="true"]');
+    if (!editor || typeof expectedText !== 'string') return false;
+
+    return normalizeYuanbaoEditorText(editor.innerText) === normalizeYuanbaoEditorText(prepareYuanbaoInputText(expectedText));
+  }
+
+  function attemptAutoSubmitWithRetry(provider, providerMode, initialDelay, expectedText = null) {
     const RETRY_DELAYS = provider === 'metaso'
       ? [initialDelay, 1500, 2500, 4000, 5000]
       : [initialDelay, 1000, 2000, 3500];
@@ -1481,6 +1614,11 @@ if ((window.__realParent__ || window.parent) !== window) {
 
       setTimeout(() => {
         console.log('[Text Injection] Auto-submit attempt', attempt, 'for', provider, 'delay:', delay);
+        if (provider === 'yuanbao' && !hasExpectedYuanbaoText(expectedText)) {
+          console.warn('[Text Injection] Yuanbao editor has not committed the complete text - waiting for retry');
+          if (attempt < RETRY_DELAYS.length) trySubmit();
+          return;
+        }
         const clicked = clickSendButton(provider, providerMode);
         if (clicked) {
           console.log('[Text Injection] Send button clicked for', provider, 'on attempt', attempt);
@@ -1788,8 +1926,8 @@ if ((window.__realParent__ || window.parent) !== window) {
           // Wait for UI to update, then click send button.
           // Use provider-specific delays whose composer state updates asynchronously,
           // matching the injectText() helper used by image injection.
-          const delay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin' || provider === 'metaso') ? 1500 : 500;
-          attemptAutoSubmitWithRetry(provider, providerMode, delay);
+          const delay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin' || provider === 'metaso') ? 1500 : provider === 'yuanbao' ? 900 : 500;
+          attemptAutoSubmitWithRetry(provider, providerMode, delay, text);
         }
       } else {
         console.error(`[Text Injection] Failed to inject text into ${provider}`);
@@ -1817,8 +1955,8 @@ if ((window.__realParent__ || window.parent) !== window) {
             if (success) {
               console.log('[Text Injection] Text injected on retry into', provider, 'using selector:', retrySelector);
               if (shouldAutoSubmit) {
-                const submitDelay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin' || provider === 'metaso') ? 1500 : 500;
-                attemptAutoSubmitWithRetry(provider, providerMode, submitDelay);
+                const submitDelay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin' || provider === 'metaso') ? 1500 : provider === 'yuanbao' ? 900 : 500;
+                attemptAutoSubmitWithRetry(provider, providerMode, submitDelay, text);
               }
               postInjectionResult(injectionRequestId, provider, true, true);
             }
@@ -1913,7 +2051,16 @@ if ((window.__realParent__ || window.parent) !== window) {
       '.ds-assistant-message-main-content',
       '.ds-chat-message:not([class*="user"]):not([class*="system"])',
     ],
-    kimi: ['.kimi-message-content', '.message-list [class*="message"]'],
+    // Kimi's current response container is .markdown-container. Completion
+    // monitoring must use the same primary structure as its extractor;
+    // otherwise answer growth is measured as zero and no auto-merge occurs.
+    kimi: [
+      '.markdown-container',
+      '.markdown-container .markdown',
+      '.markdown',
+      '.kimi-message-content',
+      '.message-list [class*="message"]'
+    ],
     doubao: [
       '.md-box-root',
       '.container-qX9Csx.md-box-root',
@@ -2056,7 +2203,7 @@ if ((window.__realParent__ || window.parent) !== window) {
   // Provider-specific answer selectors for copy button walking (Phase 3)
   const COPY_BUTTON_ANSWER_SELECTORS = {
     deepseek: ['.ds-assistant-message-main-content', '.ds-markdown'],
-    kimi: ['.kimi-message-content', '.markdown-body', '[class*="message-content"]'],
+    kimi: ['.markdown-container', '.markdown-container .markdown', '.markdown', '.kimi-message-content', '.markdown-body', '[class*="message-content"]'],
     doubao: ['.semi-chat-message-content', '.markdown-body', '.semi-chat-message'],
     qianwen: ['.markdown-body', '[class*="markdown-body"]'],
     zhipu: ['.markdown-body', '.content-markdown', '[class*="markdown-body"]'],
@@ -2460,12 +2607,28 @@ if ((window.__realParent__ || window.parent) !== window) {
     }
 
     // Wenxin can pause between search, reasoning and final answer segments.
-    // A longer quiet window avoids treating that pause as completion.
-    const STABLE_DELAY_MS = provider === 'wenxin' ? 30000 : provider === 'zhipu' ? 15000 : 10000;
+    // Its protocol-final SSE signal is preferred; 15 seconds is only the
+    // fallback when that signal is unavailable.
+    const STABLE_DELAY_MS = provider === 'wenxin' ? 15000 : provider === 'zhipu' ? 15000 : 10000;
     // A pre-existing answer must never be treated as the answer to the current
     // prompt.  Arm completion only after this monitoring session observes the
     // answer content change.
     let hasObservedAnswerChange = false;
+
+    function notifyCompletion(reason) {
+      console.log('[CompletionMonitor]', reason, 'Provider:', provider);
+      stopCompletionMonitor();
+
+      if (!completionAlreadyDetected && (window.__realParent__ || window.parent) !== window) {
+        completionAlreadyDetected = true;
+        postToExtensionParent({
+          type: 'COMPLETION_DETECTED',
+          provider,
+          mergeSessionId: completionMergeSessionId,
+          context: 'multi-panel-completion'
+        });
+      }
+    }
 
     const resetStableTimer = () => {
       if (!hasObservedAnswerChange) return;
@@ -2495,18 +2658,7 @@ if ((window.__realParent__ || window.parent) !== window) {
           return;
         }
 
-        console.log('[CompletionMonitor] MutationObserver fallback: answer stable for', STABLE_DELAY_MS, 'ms. Provider:', provider);
-        stopCompletionMonitor();
-
-        if (!completionAlreadyDetected && (window.__realParent__ || window.parent) !== window) {
-          completionAlreadyDetected = true;
-          postToExtensionParent({
-            type: 'COMPLETION_DETECTED',
-            provider,
-            mergeSessionId: completionMergeSessionId,
-            context: 'multi-panel-completion'
-          });
-        }
+        notifyCompletion(`MutationObserver fallback: answer stable for ${STABLE_DELAY_MS}ms.`);
       }, STABLE_DELAY_MS);
     };
 
@@ -2531,6 +2683,8 @@ if ((window.__realParent__ || window.parent) !== window) {
 
     // Initialize baseline
     prevAnswerLen = getAnswerLen();
+    let kimiSawStopButton = provider === 'kimi' && isStopButtonPresent(provider);
+    let kimiStopDisappearanceHandled = false;
 
     completionObserver = new MutationObserver(() => {
       const curLen = getAnswerLen();
@@ -2541,6 +2695,36 @@ if ((window.__realParent__ || window.parent) !== window) {
         resetStableTimer();
       }
       // else: DOM mutated but answer unchanged (UI noise) — don't reset timer
+
+      // Kimi's SSE final frame is not always observable. When its visible
+      // stop button appeared during this response and then disappears, this
+      // is a stronger completion signal than waiting the 10-second text
+      // stability fallback. Re-check after a short settle window so the last
+      // rendered segment is not lost.
+      if (provider === 'kimi') {
+        const stopButtonPresent = isStopButtonPresent(provider);
+        if (stopButtonPresent) {
+          kimiSawStopButton = true;
+        } else if (kimiSawStopButton && !kimiStopDisappearanceHandled && hasObservedAnswerChange) {
+          kimiStopDisappearanceHandled = true;
+          if (completionStableTimer) {
+            clearTimeout(completionStableTimer);
+          }
+          completionStableTimer = setTimeout(() => {
+            if (isStopButtonPresent(provider)) {
+              kimiStopDisappearanceHandled = false;
+              return;
+            }
+            const latestAnswerLen = getAnswerLen();
+            if (latestAnswerLen !== prevAnswerLen) {
+              prevAnswerLen = latestAnswerLen;
+              resetStableTimer();
+              return;
+            }
+            notifyCompletion('Kimi stop button disappeared and answer settled for 800ms.');
+          }, 800);
+        }
+      }
     });
 
     completionObserver.observe(targetNode, {
@@ -2661,8 +2845,30 @@ if ((window.__realParent__ || window.parent) !== window) {
     console.log('[CompletionMonitor] Button-state monitoring started for provider:', provider, 'phase:', completionPhase);
   }
 
-  // SSE 优先，DOM 兜底：SSE 先到就用 SSE，SSE 没到则 DOM 检测作为后备
-  const SSE_SUPPORTED_PROVIDERS = ['deepseek', 'doubao', 'qianwen', 'yuanbao', 'wenxin', 'zhipu', 'kimi', 'chatgpt', 'claude', 'gemini', 'grok', 'metaso'];
+  // SSE 优先，DOM 兜底：仅内容层的协议最终帧能结束监控。该表必须与
+  // sse-bridge.js 的策略保持一致；没有可靠内容帧的平台直接使用 DOM。
+  const SSE_COMPLETION_LAYERS = {
+    deepseek: ['content'],
+    doubao: ['content'],
+    // Qianwen SSE completion may precede its final visible summary segment.
+    // Retain SSE text accumulation, but use DOM completion confirmation.
+    qianwen: [],
+    yuanbao: ['content'],
+    wenxin: ['content'],
+    zhipu: [],
+    kimi: ['content'],
+    chatgpt: ['content'],
+    claude: ['content'],
+    gemini: [],
+    grok: [],
+    metaso: []
+  };
+  const SSE_SUPPORTED_PROVIDERS = Object.keys(SSE_COMPLETION_LAYERS)
+    .filter(provider => SSE_COMPLETION_LAYERS[provider].includes('content'));
+
+  function acceptsSseCompletion(provider, layer) {
+    return (SSE_COMPLETION_LAYERS[provider] || []).includes(layer);
+  }
 
   function startCompletionMonitor(mergeSessionId) {
     stopCompletionMonitor();
@@ -2675,11 +2881,13 @@ if ((window.__realParent__ || window.parent) !== window) {
       return;
     }
 
-    // Wenxin and Zhipu may finish a fast response before the old 3-second
-    // SSE grace period expired. Start their DOM observer now (before text is
-    // injected) so it sees the entire answer change; their SSE completion
-    // events are intentionally ignored because they can represent a sub-flow.
-    if (provider === 'wenxin' || provider === 'zhipu') {
+    // Wenxin, Zhipu and Kimi may finish a fast response before the old
+    // 3-second SSE grace period expired. Start their DOM observer now (before
+    // text is injected) so it sees the entire answer change. Kimi previously
+    // waited to observe a stop button that had already appeared and vanished,
+    // leaving it stuck until the global timeout when its SSE final frame was
+    // unavailable.
+    if (provider === 'wenxin' || provider === 'zhipu' || provider === 'kimi') {
       console.log('[CompletionMonitor] Starting DOM-first monitor for', provider);
       startMutationFallback(provider);
       return;
@@ -2746,8 +2954,8 @@ if ((window.__realParent__ || window.parent) !== window) {
     // 修复 #6：COMPLETION_DETECTED 的转发职责已统一由 sse-bridge.js 承担，
     // 此处不再重复转发，避免 parent 收到双重完成信号。
     if (event.data.type === '__sse_complete__') {
-      const sseProvider = detectProvider();
-      if (sseProvider === 'wenxin' || sseProvider === 'zhipu') {
+      const sseProvider = event.data.provider || detectProvider();
+      if (!acceptsSseCompletion(sseProvider, event.data.layer)) {
         console.log('[CompletionMonitor] Ignoring', sseProvider, 'SSE completion; waiting for DOM confirmation');
         return;
       }

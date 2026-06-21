@@ -55,6 +55,32 @@
     return 'unknown';
   }
 
+  // Completion policy is deliberately per-provider. `content` means an
+  // explicit protocol final frame was parsed; transport close events are never
+  // enough to merge because a network interruption or sub-stream can close
+  // while visible text is still arriving. An empty list uses DOM monitoring.
+  const SSE_COMPLETION_POLICY = {
+    deepseek: ['content'],
+    doubao: ['content'],
+    // Qianwen can emit event:complete / [DONE] for an intermediate stream
+    // before its final visible segment (such as the summary) is rendered.
+    // Keep SSE text for extraction, but confirm completion from the DOM.
+    qianwen: [],
+    yuanbao: ['content'],
+    wenxin: ['content'],
+    zhipu: [],
+    kimi: ['content'],
+    chatgpt: ['content'],
+    claude: ['content'],
+    gemini: [],
+    grok: [],
+    metaso: []
+  };
+
+  function acceptsSseCompletion(provider, layer) {
+    return (SSE_COMPLETION_POLICY[provider] || []).includes(layer);
+  }
+
   // ===== 监听SSE完成消息，转发到parent（multi-panel） =====
   window.addEventListener('message', (event) => {
     if (event.source !== window) return;
@@ -68,10 +94,9 @@
       return;
     }
 
-    // Wenxin emits several SSE sub-streams for one visible response. A closed
-    // sub-stream is not enough to prove that the answer has finished.
-    if (provider === 'wenxin' || provider === 'zhipu') {
-      console.log('[SSE Bridge] Ignoring', provider, 'SSE completion; waiting for DOM confirmation');
+    if (!acceptsSseCompletion(provider, event.data.layer)) {
+      console.log('[SSE Bridge] Ignoring non-final SSE completion for', provider,
+        'layer:', event.data.layer, '— waiting for DOM confirmation');
       return;
     }
 
