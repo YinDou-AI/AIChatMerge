@@ -113,6 +113,24 @@
         </div>
       </section>
 
+      <!-- Advanced provider compatibility settings -->
+      <section class="section">
+        <h2 class="section-title" data-i18n="sectionAdvancedSettings">高级设置</h2>
+
+        <details id="claude-entry-settings">
+          <summary data-i18n="claudeCustomEntryTitle">Claude 自定义页面网址（高级）</summary>
+          <div class="setting-description" style="margin: 12px 0;" data-i18n="claudeCustomEntryDescription">仅当 Claude 默认入口异常时，填写一个您已验证可正常使用的完整网址。留空时使用系统默认入口。</div>
+          <div class="setting-control" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <input id="claude-custom-entry-url" type="url" inputmode="url" autocomplete="off"
+              data-i18n-placeholder="claudeCustomEntryPlaceholder" placeholder="https://claude.ai/chat/…" style="min-width: min(100%, 420px); flex: 1;">
+            <button class="btn btn-primary" id="save-claude-entry-url" type="button" data-i18n="save">保存</button>
+            <button class="btn btn-secondary" id="reset-claude-entry-url" type="button" data-i18n="claudeRestoreDefault">恢复默认入口</button>
+          </div>
+          <p id="claude-entry-url-status" class="setting-description" style="margin-top: 10px;"></p>
+          <p class="setting-description" style="margin-top: 8px; color: #b45309;" data-i18n="claudeCustomEntryWarning">此网址可能进入已有对话；更换 Claude 账号后可能失效。请勿分享该网址。页面异常时清空此项即可恢复默认入口。</p>
+        </details>
+      </section>
+
       <!-- Keyboard Settings -->
       <section class="section">
         <h2 class="section-title" data-i18n="sectionKeyboard">键盘</h2>

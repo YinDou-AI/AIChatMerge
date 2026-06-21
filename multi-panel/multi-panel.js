@@ -15,6 +15,10 @@ import {
   normalizeGoogleProviderMode
 } from '../modules/google-mode.js';
 import { saveSetting, getSettings } from '../modules/settings.js';
+import {
+  CLAUDE_CUSTOM_ENTRY_URL_KEY,
+  getClaudeCustomEntryUrl
+} from '../modules/claude-entry-url.js';
 import { applyTheme } from '../modules/theme-manager.js';
 import {
   getAllPrompts,
@@ -356,6 +360,7 @@ let currentEditingPromptId = null;
 // 打开模式状态
 let currentOpenMode = 'tab'; // 'tab' 或 'popup'
 let isPopupWindow = false;   // 当前窗口是否为弹出窗口
+let claudeCustomEntryUrl = '';
 
 // Default panel configuration
 const DEFAULT_PROVIDERS = DEFAULT_PROVIDER_IDS;
@@ -491,6 +496,10 @@ function getTemporaryChatUrl(providerId) {
 }
 
 function getTemporaryChatNormalUrl(providerId) {
+  if (providerId === 'claude' && claudeCustomEntryUrl) {
+    return claudeCustomEntryUrl;
+  }
+
   if (Object.prototype.hasOwnProperty.call(TEMP_CHAT_NORMAL_URLS, providerId)) {
     return TEMP_CHAT_NORMAL_URLS[providerId];
   }
@@ -525,6 +534,13 @@ function getProviderFrameUrl(providerId) {
   const provider = getProviderById(providerId);
   if (!provider) {
     return '';
+  }
+
+  // A user-verified Claude page is an explicit compatibility override.  It
+  // takes precedence over normal and temporary-chat entry URLs, while the
+  // existing send/extract logic remains provider-based rather than URL-based.
+  if (providerId === 'claude' && claudeCustomEntryUrl) {
+    return claudeCustomEntryUrl;
   }
 
   if (isTemporaryChatModeEnabled && isUrlDrivenTemporaryChatProvider(providerId)) {
@@ -840,6 +856,11 @@ function registerStorageChangeListener() {
         clearTimeout(mergeTimeoutTimer);
         mergeTimeoutTimer = null;
       }
+    }
+
+    if (areaName === 'local' && changes[CLAUDE_CUSTOM_ENTRY_URL_KEY]) {
+      claudeCustomEntryUrl = await getClaudeCustomEntryUrl();
+      console.log('[Claude entry] Custom entry URL updated; it will apply when Claude is reopened.');
     }
 
     // Google provider mode change
@@ -1339,6 +1360,7 @@ async function loadSettings() {
       ? storedMergeMaxWait
       : 120000;
     AUTO_MERGE_ENABLED = settings.autoMergeEnabled !== false;
+    claudeCustomEntryUrl = await getClaudeCustomEntryUrl();
 
     const panelGrid = document.getElementById('panel-grid');
     panelGrid.className = `layout-${currentLayout}`;
@@ -3196,12 +3218,13 @@ async function showProviderSwitcher(panelId) {
  *
  * @param {HTMLElement} dropdown - The dropdown element to close
  * @param {HTMLElement} btn - The trigger button (clicks on it toggle, not close)
+ * @param {{ closeWhenIframeFocused?: boolean }} options - Per-menu iframe policy
  */
 let lastInteractionTime = 0;
 document.addEventListener('pointerdown', () => { lastInteractionTime = Date.now(); }, true);
 document.addEventListener('click', () => { lastInteractionTime = Date.now(); }, true);
 
-function setupDropdownCloseHandler(dropdown, btn) {
+function setupDropdownCloseHandler(dropdown, btn, { closeWhenIframeFocused = false } = {}) {
   function close() {
     if (dropdown.parentNode) {
       dropdown.remove();
@@ -3215,10 +3238,32 @@ function setupDropdownCloseHandler(dropdown, btn) {
     }
   }
 
-  function onBlur(e) {
+  function onPointerOver(event) {
+    // Pointer events do reach the host <iframe> element when the user moves
+    // into an AI panel, even though the subsequent click is isolated inside
+    // the cross-origin frame.
+    if (closeWhenIframeFocused && event.target instanceof HTMLIFrameElement) {
+      close();
+    }
+  }
+
+  function onBlur(event) {
+    // A click inside an AI panel iframe does not bubble to this document. It
+    // moves focus from the host window to the iframe instead, so close this
+    // particular menu after focus has settled. This is intentionally opt-in:
+    // other dropdowns retain their existing focus behavior.
+    if (closeWhenIframeFocused) {
+      setTimeout(() => {
+        if (document.activeElement?.tagName === 'IFRAME') {
+          close();
+        }
+      }, 0);
+      return;
+    }
+
     // Ignore blur if no recent user interaction (iframe auto-focus during page load)
     if (Date.now() - lastInteractionTime > 200) return;
-    const related = e.relatedTarget;
+    const related = event.relatedTarget;
     if (related && (btn.contains(related) || dropdown.contains(related))) {
       return;
     }
@@ -3227,10 +3272,12 @@ function setupDropdownCloseHandler(dropdown, btn) {
 
   function cleanup() {
     document.removeEventListener('pointerdown', onPointerDown, true);
+    document.removeEventListener('pointerover', onPointerOver, true);
     window.removeEventListener('blur', onBlur);
   }
 
   document.addEventListener('pointerdown', onPointerDown, true);
+  document.addEventListener('pointerover', onPointerOver, true);
   window.addEventListener('blur', onBlur);
 
   return cleanup;
@@ -3338,7 +3385,7 @@ function showAddPanelMenu() {
   }
 
   // 点击外部关闭
-  addPanelCleanup = setupDropdownCloseHandler(dropdown, btn);
+  addPanelCleanup = setupDropdownCloseHandler(dropdown, btn, { closeWhenIframeFocused: true });
 }
 
 // ===== Utility Functions =====

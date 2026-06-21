@@ -239,6 +239,8 @@ if ((window.__realParent__ || window.parent) !== window) {
       'button[class*="send"]'
     ],
     metaso: [
+      'button.send-arrow-button',
+      '.send-arrow-button',
       'button[data-testid*="send"]',
       'button[data-test-id*="send"]',
       '[role="button"][data-testid*="send"]',
@@ -256,10 +258,8 @@ if ((window.__realParent__ || window.parent) !== window) {
       'button[aria-label*="Search"]',
       '[role="button"][aria-label*="搜索"]',
       '[role="button"][aria-label*="Search"]',
-      'button[class*="search"]',
       'button[class*="submit"]',
       'button[class*="send"]',
-      '[role="button"][class*="search"]',
       '[role="button"][class*="submit"]',
       '[role="button"][class*="send"]'
     ]
@@ -360,7 +360,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     zhipu: 'https://chatglm.cn/',
     wenxin: 'https://yiyan.baidu.com/',
     yuanbao: 'https://yuanbao.tencent.com/chat/',
-    metaso: 'https://metaso.cn/chat/2062455376112967681'
+    metaso: 'https://metaso.cn/'
   };
 
   const TEMP_CHAT_BUTTON_SELECTORS = {
@@ -969,6 +969,159 @@ if ((window.__realParent__ || window.parent) !== window) {
     );
   }
 
+  function findMetasoSidebarContainer() {
+    const candidates = document.querySelectorAll('.left-menu, [class*="LeftMenu_menu-container"]');
+    for (const candidate of candidates) {
+      if (!isVisibleElement(candidate)) {
+        continue;
+      }
+
+      const rect = typeof candidate.getBoundingClientRect === 'function'
+        ? candidate.getBoundingClientRect()
+        : null;
+
+      if (rect && rect.width >= 40 && rect.height >= 200) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
+  function isMetasoSidebarCollapsed(container = findMetasoSidebarContainer()) {
+    if (!container) {
+      return false;
+    }
+
+    const className = typeof container.className === 'string'
+      ? container.className
+      : String(container.className || '');
+
+    if (className.includes('LeftMenu_collapse')) {
+      return true;
+    }
+
+    const rect = typeof container.getBoundingClientRect === 'function'
+      ? container.getBoundingClientRect()
+      : null;
+
+    return !!rect && rect.width > 0 && rect.width <= 80;
+  }
+
+  function findMetasoSidebarToggleButton(container = findMetasoSidebarContainer()) {
+    if (!container) {
+      return null;
+    }
+
+    const candidates = [
+      ...container.querySelectorAll('button, [role="button"], [class*="LeftMenu_sidebar-action"]'),
+      ...document.querySelectorAll('[class*="LeftMenu_sidebar-action"]')
+    ];
+
+    for (const candidate of candidates) {
+      if (!isVisibleElement(candidate) || !isElementEnabled(candidate)) {
+        continue;
+      }
+
+      const rect = typeof candidate.getBoundingClientRect === 'function'
+        ? candidate.getBoundingClientRect()
+        : null;
+
+      if (!rect) {
+        continue;
+      }
+
+      const text = getElementAccessibleText(candidate);
+      if (text.includes('删除') || text.includes('delete') || text.includes('关闭')) {
+        continue;
+      }
+
+      if (rect.top <= 80 && rect.width <= 48 && rect.height <= 48) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
+  function collapseMetasoSidebarIfNeeded() {
+    const container = findMetasoSidebarContainer();
+    if (!container) {
+      return false;
+    }
+
+    if (isMetasoSidebarCollapsed(container)) {
+      return true;
+    }
+
+    const toggleButton = findMetasoSidebarToggleButton(container);
+    if (!toggleButton) {
+      return false;
+    }
+
+    toggleButton.click();
+    return false;
+  }
+
+  function initMetasoSidebarAutoCollapse() {
+    if (detectProvider() !== 'metaso' || window.__panelizeMetasoSidebarAutoCollapseStarted) {
+      return;
+    }
+
+    window.__panelizeMetasoSidebarAutoCollapseStarted = true;
+
+    const MAX_RUNTIME_MS = 15000;
+    const startTime = Date.now();
+    let retryTimerId = null;
+    let observer = null;
+
+    const cleanup = () => {
+      if (typeof retryTimerId === 'number') {
+        clearTimeout(retryTimerId);
+        retryTimerId = null;
+      }
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+    };
+
+    const attemptCollapse = () => {
+      if (collapseMetasoSidebarIfNeeded()) {
+        cleanup();
+        return;
+      }
+
+      if (Date.now() - startTime >= MAX_RUNTIME_MS) {
+        cleanup();
+        return;
+      }
+
+      if (typeof retryTimerId !== 'number') {
+        retryTimerId = setTimeout(() => {
+          retryTimerId = null;
+          attemptCollapse();
+        }, 400);
+      }
+    };
+
+    observer = new MutationObserver(() => {
+      attemptCollapse();
+    });
+
+    const observeTarget = document.body || document.documentElement;
+    if (observeTarget) {
+      observer.observe(observeTarget, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style', 'aria-hidden']
+      });
+    }
+
+    attemptCollapse();
+  }
+
   function fillGoogleSearchInput(text) {
     const input = findGoogleInput(GOOGLE_PROVIDER_MODE_SEARCH);
     if (!input || !text || typeof text !== 'string') {
@@ -1408,6 +1561,39 @@ if ((window.__realParent__ || window.parent) !== window) {
     }
   }
 
+  // Metaso's public home page keeps its send arrow disabled until the textarea
+  // is focused and receives beforeinput.  The generic value/input sequence is
+  // enough on its conversation page but not on this public entry point.
+  function injectTextIntoMetasoTextarea(element, text) {
+    try {
+      element.focus();
+      const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+      if (nativeSetter) {
+        nativeSetter.call(element, text);
+      } else {
+        element.value = text;
+      }
+
+      element.dispatchEvent(new InputEvent('beforeinput', {
+        bubbles: true,
+        cancelable: true,
+        inputType: 'insertText',
+        data: text,
+      }));
+      element.dispatchEvent(new InputEvent('input', {
+        bubbles: true,
+        cancelable: true,
+        inputType: 'insertText',
+        data: text,
+      }));
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+      return element.value === text;
+    } catch (error) {
+      console.warn('[Text Injection] Metaso textarea injection failed:', error);
+      return false;
+    }
+  }
+
   // Inject text into an element (textarea or contenteditable)
   function injectTextIntoElement(element, text) {
     if (!element || !text || typeof text !== 'string' || text.trim() === '') {
@@ -1425,6 +1611,10 @@ if ((window.__realParent__ || window.parent) !== window) {
 
       if (detectProvider() === 'yuanbao' && element.matches('.ql-editor[contenteditable="true"], #searchbar-editor [contenteditable="true"]')) {
         return injectTextIntoYuanbaoEditor(element, text);
+      }
+
+      if (detectProvider() === 'metaso' && element.matches('textarea.search-consult-textarea')) {
+        return injectTextIntoMetasoTextarea(element, text);
       }
 
       // Slate editors need paste method
@@ -2039,8 +2229,12 @@ if ((window.__realParent__ || window.parent) !== window) {
     ],
     gemini: [
       '.model-response-text',
+      'model-response .markdown-main-panel',
+      'model-response .markdown',
+      'model-response',
       '.response-content .markdown',
       '.markdown-main-panel',
+      '[data-message-author-role="model"]',
     ],
     grok: [
       '.response-content-markdown',
@@ -2457,8 +2651,10 @@ if ((window.__realParent__ || window.parent) !== window) {
     gemini: [
       'button[aria-label="Stop"]',
       'button[aria-label*="Stop"]',
+      'button[aria-label*="停止"]',
       'button[mattooltip="Stop"]',
-      'button[mattooltip*="stop"]'
+      'button[mattooltip*="stop"]',
+      'button[mattooltip*="停止"]'
     ],
     grok: [
       'button[aria-label="Stop"]',
@@ -2887,7 +3083,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     // waited to observe a stop button that had already appeared and vanished,
     // leaving it stuck until the global timeout when its SSE final frame was
     // unavailable.
-    if (provider === 'wenxin' || provider === 'zhipu' || provider === 'kimi') {
+    if (provider === 'wenxin' || provider === 'zhipu' || provider === 'kimi' || provider === 'gemini') {
       console.log('[CompletionMonitor] Starting DOM-first monitor for', provider);
       startMutationFallback(provider);
       return;
@@ -3034,4 +3230,6 @@ if ((window.__realParent__ || window.parent) !== window) {
       }
     });
   })();
+
+  initMetasoSidebarAutoCollapse();
 })();

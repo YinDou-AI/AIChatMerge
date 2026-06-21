@@ -53,6 +53,39 @@
   "msgOpenModeUpdated": {
     "message": "Open mode updated"
   },
+  "sectionAdvancedSettings": {
+    "message": "Advanced Settings"
+  },
+  "claudeCustomEntryTitle": {
+    "message": "Claude Custom Page URL (Advanced)"
+  },
+  "claudeCustomEntryDescription": {
+    "message": "Only enter a complete URL you have verified when Claude's default entry page does not work. Leave it blank to use the default entry."
+  },
+  "claudeCustomEntryPlaceholder": {
+    "message": "https://claude.ai/chat/..."
+  },
+  "claudeRestoreDefault": {
+    "message": "Restore Default Entry"
+  },
+  "claudeCustomEntryWarning": {
+    "message": "This URL may open an existing conversation and can stop working after you change Claude accounts. Do not share it. Clear this setting to restore the default entry if the page fails."
+  },
+  "claudeEntryDefaultStatus": {
+    "message": "Using the system default entry."
+  },
+  "claudeEntryCustomStatus": {
+    "message": "Using custom entry: $1"
+  },
+  "claudeEntryUrlValid": {
+    "message": "The URL format is valid. It will apply when the Claude panel is reopened."
+  },
+  "claudeEntrySaved": {
+    "message": "Claude entry saved. Reopen the Claude panel to apply it."
+  },
+  "claudeEntryRestored": {
+    "message": "Claude default entry restored."
+  },
   "msgLayoutUpdated": {
     "message": "Layout updated"
   },

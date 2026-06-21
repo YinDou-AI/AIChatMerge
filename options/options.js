@@ -1,5 +1,10 @@
 // T050-T064: Settings Page Implementation
 import { getSettings, getSetting, saveSettings, saveSetting, resetSettings, exportSettings, importSettings } from '../modules/settings.js';
+import {
+  getClaudeCustomEntryUrl,
+  normalizeClaudeCustomEntryUrl,
+  saveClaudeCustomEntryUrl
+} from '../modules/claude-entry-url.js';
 import { applyTheme } from '../modules/theme-manager.js';
 import {
   getAllPrompts,
@@ -280,7 +285,31 @@ async function loadSettings() {
 
   // Load custom settings
   loadCustomEnterSettings(enterBehavior);
+  await loadClaudeCustomEntryUrl();
   refreshAutoSizedSelects();
+}
+
+function formatClaudeEntryUrlForDisplay(url) {
+  if (!url) return t('claudeEntryDefaultStatus');
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.length > 16
+      ? `${parsed.pathname.slice(0, 12)}…${parsed.pathname.slice(-4)}`
+      : parsed.pathname;
+    return t('claudeEntryCustomStatus', `${parsed.hostname}${path}`);
+  } catch {
+    return t('claudeEntryCustomStatus', 'Claude');
+  }
+}
+
+async function loadClaudeCustomEntryUrl() {
+  const input = document.getElementById('claude-custom-entry-url');
+  const status = document.getElementById('claude-entry-url-status');
+  if (!input || !status) return;
+
+  const value = await getClaudeCustomEntryUrl();
+  input.value = value;
+  status.textContent = formatClaudeEntryUrlForDisplay(value);
 }
 
 // T056: Load and display data statistics
@@ -487,6 +516,55 @@ function setupEventListeners() {
         ? { autoMergeEnabled: false }
         : { mergeMaxWait: parseInt(e.target.value, 10), autoMergeEnabled: true });
       showStatus('success', t('msgMergeTimeoutUpdated') || 'Merge timeout updated');
+    });
+  }
+
+  const claudeEntryInput = document.getElementById('claude-custom-entry-url');
+  const claudeEntryStatus = document.getElementById('claude-entry-url-status');
+  const saveClaudeEntryButton = document.getElementById('save-claude-entry-url');
+  const resetClaudeEntryButton = document.getElementById('reset-claude-entry-url');
+  const updateClaudeEntryValidation = () => {
+    if (!claudeEntryInput || !claudeEntryStatus || !saveClaudeEntryButton) return;
+    const normalized = normalizeClaudeCustomEntryUrl(claudeEntryInput.value);
+    saveClaudeEntryButton.disabled = !normalized.valid;
+    claudeEntryStatus.textContent = normalized.valid
+      ? (claudeEntryInput.value.trim() ? t('claudeEntryUrlValid') : t('claudeEntryDefaultStatus'))
+      : normalized.error;
+    claudeEntryStatus.style.color = normalized.valid ? '' : '#dc2626';
+  };
+
+  if (claudeEntryInput) {
+    claudeEntryInput.addEventListener('input', updateClaudeEntryValidation);
+  }
+  if (saveClaudeEntryButton) {
+    saveClaudeEntryButton.addEventListener('click', async () => {
+      const result = await saveClaudeCustomEntryUrl(claudeEntryInput?.value || '');
+      if (!result.valid) {
+        if (claudeEntryStatus) {
+          claudeEntryStatus.textContent = result.error;
+          claudeEntryStatus.style.color = '#dc2626';
+        }
+        return;
+      }
+      if (claudeEntryInput) claudeEntryInput.value = result.value;
+      if (claudeEntryStatus) {
+        claudeEntryStatus.textContent = formatClaudeEntryUrlForDisplay(result.value);
+        claudeEntryStatus.style.color = '';
+      }
+      showStatus('success', t('claudeEntrySaved'));
+    });
+  }
+  if (resetClaudeEntryButton) {
+    resetClaudeEntryButton.addEventListener('click', async () => {
+      const result = await saveClaudeCustomEntryUrl('');
+      if (result.valid) {
+        if (claudeEntryInput) claudeEntryInput.value = '';
+        if (claudeEntryStatus) {
+          claudeEntryStatus.textContent = formatClaudeEntryUrlForDisplay('');
+          claudeEntryStatus.style.color = '';
+        }
+        showStatus('success', t('claudeEntryRestored'));
+      }
     });
   }
 

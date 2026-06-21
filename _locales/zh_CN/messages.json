@@ -805,6 +805,39 @@
   "msgLayoutUpdated": {
     "message": "布局已更新"
   },
+  "sectionAdvancedSettings": {
+    "message": "高级设置"
+  },
+  "claudeCustomEntryTitle": {
+    "message": "Claude 自定义页面网址（高级）"
+  },
+  "claudeCustomEntryDescription": {
+    "message": "仅当 Claude 默认入口异常时，填写一个您已验证可正常使用的完整网址。留空时使用系统默认入口。"
+  },
+  "claudeCustomEntryPlaceholder": {
+    "message": "https://claude.ai/chat/..."
+  },
+  "claudeRestoreDefault": {
+    "message": "恢复默认入口"
+  },
+  "claudeCustomEntryWarning": {
+    "message": "此网址可能进入已有对话；更换 Claude 账号后可能失效。请勿分享该网址。页面异常时清空此项即可恢复默认入口。"
+  },
+  "claudeEntryDefaultStatus": {
+    "message": "当前使用系统默认入口。"
+  },
+  "claudeEntryCustomStatus": {
+    "message": "当前使用自定义入口：$1"
+  },
+  "claudeEntryUrlValid": {
+    "message": "网址格式有效，保存后在重新打开 Claude 面板时生效。"
+  },
+  "claudeEntrySaved": {
+    "message": "Claude 入口已保存；重新打开 Claude 面板后生效。"
+  },
+  "claudeEntryRestored": {
+    "message": "已恢复 Claude 默认入口。"
+  },
   "msgDataImportedWithCount": {
     "message": "成功导入 $COUNT$ 个提示词",
     "placeholders": {

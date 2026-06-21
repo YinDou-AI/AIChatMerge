@@ -1,5 +1,6 @@
 import { DEFAULT_GOOGLE_PROVIDER_MODE } from './google-mode.js';
 import { DEFAULT_PROVIDER_IDS } from './provider-defaults.js';
+import { CLAUDE_CUSTOM_ENTRY_URL_KEY } from './claude-entry-url.js';
 
 const DEFAULT_SETTINGS = {
   enabledProviders: DEFAULT_PROVIDER_IDS,
@@ -100,6 +101,9 @@ export async function resetSettings() {
   try {
     await chrome.storage.sync.clear();
     await chrome.storage.sync.set(DEFAULT_SETTINGS);
+    if (typeof chrome.storage.local?.remove === 'function') {
+      await chrome.storage.local.remove(CLAUDE_CUSTOM_ENTRY_URL_KEY);
+    }
   } catch (error) {
     console.warn('chrome.storage.sync unavailable, using local', error);
     try {

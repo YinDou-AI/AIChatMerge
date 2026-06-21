@@ -60,7 +60,7 @@ export const PROVIDERS = [
   {
     id: 'metaso',
     name: '秘塔AI',
-    url: 'https://metaso.cn/chat/2062455376112967681',
+    url: 'https://metaso.cn/',
     icon: '/icons/providers/metaso.png',
     iconDark: '/icons/providers/dark/metaso.png',
     enabled: true
@@ -84,7 +84,7 @@ export const PROVIDERS = [
   {
     id: 'claude',
     name: 'Claude',
-    url: 'https://claude.ai',
+    url: 'https://claude.ai/new',
     icon: '/icons/providers/claude.png',
     iconDark: '/icons/providers/dark/claude.png',
     enabled: true
