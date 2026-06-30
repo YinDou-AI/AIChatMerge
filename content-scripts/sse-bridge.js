@@ -37,21 +37,13 @@
     console.warn('[SSE Bridge] Failed to inject sse-detect.js:', e);
   }
 
-  // ===== 平台检测（从hostname推断，作为sse-detect.js的provider字段的后备） =====
+  // ===== 平台检测（使用 ProviderDetector，作为sse-detect.js的provider字段的后备） =====
   function detectCurrentProvider() {
-    const host = window.location.hostname;
-    if (host.includes('deepseek')) return 'deepseek';
-    if (host.includes('doubao')) return 'doubao';
-    if (host.includes('qianwen')) return 'qianwen';
-    if (host.includes('yuanbao') || (host.includes('tencent') && host.includes('yuanbao'))) return 'yuanbao';
-    if (host.includes('yiyan') || host.includes('wenxin')) return 'wenxin';
-    if (host.includes('chatglm')) return 'zhipu';
-    if (host.includes('kimi') || host.includes('moonshot')) return 'kimi';
-    if (host.includes('chatgpt')) return 'chatgpt';
-    if (host.includes('claude')) return 'claude';
-    if (host.includes('gemini')) return 'gemini';
-    if (host.includes('grok')) return 'grok';
-    if (host.includes('metaso')) return 'metaso';
+    if (window.ProviderDetector) {
+      return window.ProviderDetector.detectSimple() || 'unknown';
+    }
+    // 回退方案（如果 ProviderDetector 未加载）
+    console.warn('[SSE Bridge] ProviderDetector not loaded, using fallback detection');
     return 'unknown';
   }
 
@@ -69,7 +61,10 @@
     yuanbao: ['content'],
     wenxin: ['content'],
     zhipu: [],
-    kimi: ['content'],
+    // Kimi can emit finish_reason: stop at the end of an intermediate
+    // reasoning/search sub-stream. Its visible answer may continue after
+    // that frame, so only the DOM stability path may complete a Kimi panel.
+    kimi: [],
     chatgpt: ['content'],
     claude: ['content'],
     gemini: [],
@@ -95,16 +90,12 @@
     }
 
     if (!acceptsSseCompletion(provider, event.data.layer)) {
-      console.log('[SSE Bridge] Ignoring non-final SSE completion for', provider,
-        'layer:', event.data.layer, '— waiting for DOM confirmation');
       return;
     }
 
     const realParent = window.__realParent__ || window.parent;
-    console.log('[SSE Bridge] SSE completion detected for:', provider);
 
     if (realParent !== window) {
-      console.log('[SSE Bridge] Sending COMPLETION_DETECTED to parent for provider:', provider);
       try {
         realParent.postMessage({
           type: 'COMPLETION_DETECTED',
@@ -112,7 +103,6 @@
           mergeSessionId: activeMergeSessionId,
           context: 'multi-panel-completion'
         }, extensionOrigin);
-        console.log('[SSE Bridge] postMessage sent for:', provider);
       } catch (err) {
         console.error('[SSE Bridge] postMessage FAILED:', err);
       }
@@ -121,5 +111,4 @@
     }
   });
 
-  console.log('[SSE Bridge] Loaded (sse-detect.js injected by manifest)');
 })();

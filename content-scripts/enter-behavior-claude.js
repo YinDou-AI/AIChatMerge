@@ -1,30 +1,6 @@
 // Claude Enter/Shift+Enter behavior swap
 // Supports customizable key combinations via settings
-
-// Helper: Create a synthetic Enter KeyboardEvent with specified modifiers
-function createEnterEvent(modifiers = {}) {
-  const event = new KeyboardEvent('keydown', {
-    key: 'Enter',
-    code: 'Enter',
-    keyCode: 13,
-    which: 13,
-    bubbles: true,
-    cancelable: true,
-    shiftKey: modifiers.shift || false,
-    ctrlKey: modifiers.ctrl || false,
-    metaKey: modifiers.meta || false,
-    altKey: modifiers.alt || false
-  });
-
-  // Mark this as a synthetic event from our extension
-  // so handleEnterSwap ignores it
-  Object.defineProperty(event, '_synthetic_from_extension', {
-    value: true,
-    writable: false
-  });
-
-  return event;
-}
+// 依赖: enter-behavior-utils.js 中的公共 createEnterEvent 函数（默认 markSynthetic=true）
 
 // Helper: Find Claude's Send/Save button (works for both main prompt and editing)
 function findSendButton() {

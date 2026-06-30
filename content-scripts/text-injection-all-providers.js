@@ -14,7 +14,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     const FRAME_BUSTING_HOSTS = [
       'www.qianwen.com', 'qianwen.com',
       'chatglm.cn', 'www.chatglm.cn',
-      'yiyan.baidu.com', 'www.yiyan.baidu.com',
+      'chat.baidu.com', 'www.chat.baidu.com',
       'yuanbao.tencent.com'
     ];
     if (!FRAME_BUSTING_HOSTS.some(h => host === h || host.endsWith('.' + h))) return;
@@ -30,19 +30,30 @@ if ((window.__realParent__ || window.parent) !== window) {
   const GOOGLE_PROVIDER_MODE_AI = 'ai';
   const GOOGLE_PROVIDER_MODE_SEARCH = 'search';
   const MULTI_PANEL_PROVIDER_STATUS_CONTEXT = 'multi-panel-provider-status';
-  const PANELIZE_PROVIDER_BUSY = 'PANELIZE_PROVIDER_BUSY';
-  const PANELIZE_PROVIDER_IDLE = 'PANELIZE_PROVIDER_IDLE';
-  const PANELIZE_PROVIDER_USER_INTERACTION = 'PANELIZE_PROVIDER_USER_INTERACTION';
-  const PANELIZE_TEMP_CHAT_ENABLED = 'PANELIZE_TEMP_CHAT_ENABLED';
+  const ACM_PROVIDER_BUSY = 'ACM_PROVIDER_BUSY';
+  const ACM_PROVIDER_IDLE = 'ACM_PROVIDER_IDLE';
+  const ACM_PROVIDER_USER_INTERACTION = 'ACM_PROVIDER_USER_INTERACTION';
+  const ACM_TEMP_CHAT_ENABLED = 'ACM_TEMP_CHAT_ENABLED';
   const CHATGPT_STOP_BUTTON_SELECTOR = 'button[data-testid="stop-button"]';
   const CHATGPT_SEND_TRACKING_IDLE_DELAY_MS = 800;
   const CHATGPT_SEND_TRACKING_NO_BUSY_TIMEOUT_MS = 2000;
   const MULTI_PANEL_USER_INTERACTION_TRACKING_TIMEOUT_MS = 90000;
   const TEMP_CHAT_POLL_INTERVAL_MS = 200;
   const TEMP_CHAT_POLL_TIMEOUT_MS = 1200;
+  const CLAUDE_UNAVAILABLE_CONTEXT = 'claude-entry-warning';
+  const CLAUDE_UNAVAILABLE_REQUIRED_PATTERNS = [
+    /This model isn't available right now/i,
+    /You can switch to another model to continue using Claude/i
+  ];
+  const CLAUDE_UNAVAILABLE_CONTEXT_PATTERNS = [
+    /claude-3-5-haiku-latest/i
+  ];
+  const CLAUDE_UNAVAILABLE_CHECK_TIMEOUT_MS = 20000;
   let googleSearchReplaceOnNextFill = true;
   let chatgptSendTracking = null;
   let multiPanelUserInteractionTracking = null;
+  let claudeUnavailableWarningPosted = false;
+  let claudeUnavailableObserverStarted = false;
 
   // Provider-specific selectors
   const PROVIDER_SELECTORS = {
@@ -142,8 +153,6 @@ if ((window.__realParent__ || window.parent) !== window) {
     'input.gLFyf',
     'textarea.gLFyf'
   ];
-
-
 
   // Provider-specific send button selectors
   const SEND_BUTTON_SELECTORS = {
@@ -358,7 +367,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     google: 'https://www.google.com/search?udm=50',
     qianwen: 'https://www.qianwen.com/chat',
     zhipu: 'https://chatglm.cn/',
-    wenxin: 'https://yiyan.baidu.com/',
+    wenxin: 'https://chat.baidu.com/',
     yuanbao: 'https://yuanbao.tencent.com/chat/',
     metaso: 'https://metaso.cn/'
   };
@@ -405,7 +414,7 @@ if ((window.__realParent__ || window.parent) !== window) {
       return 'qianwen';
     } else if (hostname.includes('chatglm.cn')) {
       return 'zhipu';
-    } else if (hostname.includes('yiyan.baidu.com')) {
+    } else if (hostname.includes('chat.baidu.com')) {
       return 'wenxin';
     } else if (hostname.includes('yuanbao.tencent.com')) {
       return 'yuanbao';
@@ -529,6 +538,80 @@ if ((window.__realParent__ || window.parent) !== window) {
     });
   }
 
+  function getClaudeUnavailableMatch() {
+    const text = document.body?.innerText || '';
+    const hasUnavailableMessage = CLAUDE_UNAVAILABLE_REQUIRED_PATTERNS
+      .every(pattern => pattern.test(text));
+    if (!hasUnavailableMessage) return '';
+
+    return CLAUDE_UNAVAILABLE_CONTEXT_PATTERNS
+      .concat(CLAUDE_UNAVAILABLE_REQUIRED_PATTERNS)
+      .map(pattern => {
+        const match = text.match(pattern);
+        return match ? match[0] : null;
+      })
+      .find(Boolean) || '';
+  }
+
+  function maybePostClaudeUnavailableWarning() {
+    if (claudeUnavailableWarningPosted || detectProvider() !== 'claude') return true;
+    const matchedText = getClaudeUnavailableMatch();
+    if (!matchedText) return false;
+
+    claudeUnavailableWarningPosted = true;
+    postToExtensionParent({
+      type: 'CLAUDE_ENTRY_WARNING',
+      provider: 'claude',
+      reason: 'unavailable-model',
+      matchedText,
+      context: CLAUDE_UNAVAILABLE_CONTEXT
+    });
+    return true;
+  }
+
+  function startClaudeUnavailableWarningMonitor() {
+    if (claudeUnavailableObserverStarted || detectProvider() !== 'claude') return;
+    claudeUnavailableObserverStarted = true;
+
+    const startedAt = Date.now();
+    let observer = null;
+
+    const stop = () => {
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+    };
+
+    const check = () => {
+      if (maybePostClaudeUnavailableWarning() || Date.now() - startedAt > CLAUDE_UNAVAILABLE_CHECK_TIMEOUT_MS) {
+        stop();
+      }
+    };
+
+    const start = () => {
+      check();
+      if (!document.body || claudeUnavailableWarningPosted) return;
+      observer = new MutationObserver(check);
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', start, { once: true });
+      setTimeout(start, 1200);
+    } else {
+      start();
+    }
+
+    setTimeout(stop, CLAUDE_UNAVAILABLE_CHECK_TIMEOUT_MS + 1000);
+  }
+
+  startClaudeUnavailableWarningMonitor();
+
   window.addEventListener('message', (event) => {
     if (event?.data?.type === 'SET_EXTRACT_MODE' && isTrustedExtensionParent(event)) {
       isExtractMode = event.data.enabled === true;
@@ -646,7 +729,7 @@ if ((window.__realParent__ || window.parent) !== window) {
       provider,
       phase,
       context: MULTI_PANEL_PROVIDER_STATUS_CONTEXT
-    }, '*');
+    }, extensionOrigin);
   }
 
   function postTemporaryChatEnabled(provider = detectProvider()) {
@@ -655,10 +738,10 @@ if ((window.__realParent__ || window.parent) !== window) {
     }
 
     window.parent.postMessage({
-      type: PANELIZE_TEMP_CHAT_ENABLED,
+      type: ACM_TEMP_CHAT_ENABLED,
       provider,
       context: MULTI_PANEL_PROVIDER_STATUS_CONTEXT
-    }, '*');
+    }, extensionOrigin);
   }
 
   function stopMultiPanelUserInteractionTracking() {
@@ -699,7 +782,7 @@ if ((window.__realParent__ || window.parent) !== window) {
       }
 
       postMultiPanelProviderStatus(
-        PANELIZE_PROVIDER_USER_INTERACTION,
+        ACM_PROVIDER_USER_INTERACTION,
         tracking.requestId,
         'user-interaction',
         tracking.provider
@@ -758,7 +841,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     chatgptSendTracking = null;
 
     if (reportIdle) {
-      postMultiPanelProviderStatus(PANELIZE_PROVIDER_IDLE, requestId, phase, 'chatgpt');
+      postMultiPanelProviderStatus(ACM_PROVIDER_IDLE, requestId, phase, 'chatgpt');
     }
   }
 
@@ -781,7 +864,7 @@ if ((window.__realParent__ || window.parent) !== window) {
 
       if (tracking.phase !== 'busy') {
         tracking.phase = 'busy';
-        postMultiPanelProviderStatus(PANELIZE_PROVIDER_BUSY, tracking.requestId, tracking.phase, 'chatgpt');
+        postMultiPanelProviderStatus(ACM_PROVIDER_BUSY, tracking.requestId, tracking.phase, 'chatgpt');
       }
       return;
     }
@@ -1064,11 +1147,11 @@ if ((window.__realParent__ || window.parent) !== window) {
   }
 
   function initMetasoSidebarAutoCollapse() {
-    if (detectProvider() !== 'metaso' || window.__panelizeMetasoSidebarAutoCollapseStarted) {
+    if (detectProvider() !== 'metaso' || window.__aichatmergeMetasoSidebarAutoCollapseStarted) {
       return;
     }
 
-    window.__panelizeMetasoSidebarAutoCollapseStarted = true;
+    window.__aichatmergeMetasoSidebarAutoCollapseStarted = true;
 
     const MAX_RUNTIME_MS = 15000;
     const startTime = Date.now();
@@ -1174,8 +1257,7 @@ if ((window.__realParent__ || window.parent) !== window) {
         return false;
       }
 
-      console.log('[Text Injection] Navigating Google Search mode to results page');
-      resetGoogleSearchFillSession();
+            resetGoogleSearchFillSession();
       return navigateToGoogleSearchResults(query);
     }
 
@@ -1235,8 +1317,7 @@ if ((window.__realParent__ || window.parent) !== window) {
       }
       // Never fall through to a page-wide Qianwen send selector: a different
       // visible composer can produce Qianwen's immediate "unknown error".
-      console.log('[Text Injection] No enabled send button near the Qianwen editor - waiting for retry');
-      return false;
+            return false;
     }
 
     if (provider === 'yuanbao') {
@@ -1250,8 +1331,7 @@ if ((window.__realParent__ || window.parent) !== window) {
       // Do not fall through to a synthetic Enter for Yuanbao.  Its current
       // Quill composer can receive the first paragraph before the remaining
       // paragraphs are committed, which produces an accidental image request.
-      console.log('[Text Injection] Yuanbao send control is not ready - waiting for retry');
-      return false;
+            return false;
     }
 
     if (provider === 'doubao' && window.ButtonFinderUtils?.findButton) {
@@ -1264,14 +1344,12 @@ if ((window.__realParent__ || window.parent) !== window) {
 
       if (sendButton) {
         const enabled = isElementEnabled(sendButton);
-        console.log('[Text Injection] Doubao ButtonFinderUtils found send button, enabled:', enabled);
-        if (isExtractMode || enabled) {
+                if (isExtractMode || enabled) {
           sendButton.click();
           return true;
         }
       } else {
-        console.log('[Text Injection] Doubao ButtonFinderUtils: no send button found');
-      }
+              }
     }
 
     // Try send button selectors
@@ -1321,23 +1399,19 @@ if ((window.__realParent__ || window.parent) !== window) {
       // Qianwen's controlled editor can enter an error state after a synthetic
       // Enter. Metaso can ignore the simulated key while its real button is
       // still enabling, so both must wait for a real enabled button.
-      if (provider === 'qianwen' || provider === 'metaso') {
-        console.log('[Text Injection] Send button is not ready for', provider, '- waiting for retry');
-        return false;
+      if (provider === 'qianwen' || provider === 'metaso' || provider === 'gemini') {
+                return false;
       }
-      console.log('[Text Injection] Send button disabled for', provider, '- trying Enter key');
-      if (pressEnterOnProviderInput(provider)) {
+            if (pressEnterOnProviderInput(provider)) {
         return true;
       }
     }
 
     // Fallback: press Enter on provider input
-    if (provider === 'qianwen') {
-      console.log('[Text Injection] No enabled send button for', provider, '- waiting for retry');
-      return false;
+    if (provider === 'qianwen' || provider === 'gemini') {
+            return false;
     }
-    console.log('[Text Injection] Send button not found, trying Enter key for', provider);
-    if (pressEnterOnProviderInput(provider)) {
+        if (pressEnterOnProviderInput(provider)) {
       return true;
     }
 
@@ -1348,8 +1422,7 @@ if ((window.__realParent__ || window.parent) !== window) {
   // Special handler for Google to create "new search"
   function handleGoogleNewSearch(mode) {
     const normalizedMode = normalizeGoogleProviderMode(mode);
-    console.log('[Text Injection] Handling Google new search for mode:', normalizedMode);
-    resetGoogleSearchFillSession();
+        resetGoogleSearchFillSession();
     window.location.href = normalizedMode === GOOGLE_PROVIDER_MODE_SEARCH
       ? 'https://www.google.com/'
       : 'https://www.google.com/search?udm=50';
@@ -1413,8 +1486,7 @@ if ((window.__realParent__ || window.parent) !== window) {
   async function enableTemporaryChat(provider) {
     const selectors = TEMP_CHAT_BUTTON_SELECTORS[provider];
     if (!selectors || selectors.length === 0) {
-      console.log('[Temporary Chat] Provider does not support temporary chat:', provider);
-      return false;
+            return false;
     }
 
     if (isTemporaryChatAlreadyEnabled(provider)) {
@@ -1439,8 +1511,7 @@ if ((window.__realParent__ || window.parent) !== window) {
       await sleep(TEMP_CHAT_POLL_INTERVAL_MS);
     }
 
-    console.log('[Temporary Chat] Temporary chat control not found for provider:', provider);
-    return false;
+        return false;
   }
 
   // Find and click new chat button
@@ -1459,8 +1530,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     // Try to find and click button
     const button = findDeepFirstVisibleElement(selectors) || findFirstVisibleElement(selectors);
     if (button) {
-      console.log('[Text Injection] Clicking new chat button via visible selector match');
-      button.click();
+            button.click();
       return true;
     }
 
@@ -1484,8 +1554,7 @@ if ((window.__realParent__ || window.parent) !== window) {
           ariaLabel.includes('新建会话') ||
           ariaLabel.includes('新建对话') ||
           (href === '/' && elem.closest('nav, aside'))) {
-          console.log('[Text Injection] Found new chat button by text search');
-          elem.click();
+                    elem.click();
           return true;
         }
       }
@@ -1496,8 +1565,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     // Ultimate fallback: navigate to new chat URL
     const fallbackUrl = NEW_CHAT_URLS[provider];
     if (fallbackUrl) {
-      console.log('[Text Injection] Using fallback URL for new chat:', fallbackUrl);
-      if (fallbackUrl.startsWith('http')) {
+            if (fallbackUrl.startsWith('http')) {
         window.location.href = fallbackUrl;
       } else {
         window.location.href = window.location.origin + fallbackUrl;
@@ -1561,6 +1629,99 @@ if ((window.__realParent__ || window.parent) !== window) {
     }
   }
 
+  function normalizeInjectedText(value) {
+    return String(value || '')
+      .replace(/\r\n?/g, '\n')
+      .split('\n')
+      .map(line => line.trim())
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  function hasExpectedMultilineText(actualText, expectedText) {
+    const actual = normalizeInjectedText(actualText);
+    const expected = normalizeInjectedText(expectedText);
+    if (!expected) return false;
+    if (actual === expected || actual.includes(expected)) return true;
+
+    const expectedLines = expected.split('\n').filter(Boolean);
+    let cursor = 0;
+    return expectedLines.every(line => {
+      const index = actual.indexOf(line, cursor);
+      if (index < 0) return false;
+      cursor = index + line.length;
+      return true;
+    });
+  }
+
+  function getGeminiEditorText() {
+    const editor = document.querySelector('.ql-editor');
+    return editor ? (editor.innerText || editor.textContent || '') : '';
+  }
+
+  function hasExpectedGeminiText(expectedText) {
+    if (typeof expectedText !== 'string') return false;
+    return hasExpectedMultilineText(getGeminiEditorText(), expectedText);
+  }
+
+  function injectTextIntoGeminiEditor(element, text) {
+    try {
+      element.focus();
+
+      try {
+        document.execCommand('selectAll', false, null);
+        document.execCommand('delete', false, null);
+      } catch (e) {
+        element.innerHTML = '';
+      }
+
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData('text/plain', text);
+      const pasteEvent = new ClipboardEvent('paste', {
+        bubbles: true,
+        cancelable: true,
+        clipboardData: dataTransfer
+      });
+      element.dispatchEvent(pasteEvent);
+
+      if (!hasExpectedMultilineText(element.innerText || element.textContent || '', text)) {
+        element.innerHTML = '';
+        const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+        const nonEmptyLines = lines.length ? lines : [''];
+        nonEmptyLines.forEach(line => {
+          const paragraph = document.createElement('p');
+          paragraph.textContent = line || '\u00a0';
+          element.appendChild(paragraph);
+        });
+      }
+
+      element.dispatchEvent(new InputEvent('beforeinput', {
+        bubbles: true,
+        cancelable: true,
+        inputType: 'insertText',
+        data: text
+      }));
+      element.dispatchEvent(new InputEvent('input', {
+        bubbles: true,
+        cancelable: true,
+        inputType: 'insertText',
+        data: text
+      }));
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      return true;
+    } catch (error) {
+      console.warn('[Text Injection] Gemini multiline injection failed:', error);
+      return false;
+    }
+  }
+
   // Metaso's public home page keeps its send arrow disabled until the textarea
   // is focused and receives beforeinput.  The generic value/input sequence is
   // enough on its conversation page but not on this public entry point.
@@ -1611,6 +1772,10 @@ if ((window.__realParent__ || window.parent) !== window) {
 
       if (detectProvider() === 'yuanbao' && element.matches('.ql-editor[contenteditable="true"], #searchbar-editor [contenteditable="true"]')) {
         return injectTextIntoYuanbaoEditor(element, text);
+      }
+
+      if (detectProvider() === 'gemini' && element.matches('.ql-editor')) {
+        return injectTextIntoGeminiEditor(element, text);
       }
 
       if (detectProvider() === 'metaso' && element.matches('textarea.search-consult-textarea')) {
@@ -1758,7 +1923,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     // Try to find in current root element
     const element = root.querySelector(selector);
     if (element) return element;
-    
+
     // Recursively search all shadow DOM
     const allElements = root.querySelectorAll('*');
     for (const el of allElements) {
@@ -1803,16 +1968,19 @@ if ((window.__realParent__ || window.parent) !== window) {
       attempt++;
 
       setTimeout(() => {
-        console.log('[Text Injection] Auto-submit attempt', attempt, 'for', provider, 'delay:', delay);
         if (provider === 'yuanbao' && !hasExpectedYuanbaoText(expectedText)) {
           console.warn('[Text Injection] Yuanbao editor has not committed the complete text - waiting for retry');
           if (attempt < RETRY_DELAYS.length) trySubmit();
           return;
         }
+        if (provider === 'gemini' && !hasExpectedGeminiText(expectedText)) {
+          console.warn('[Text Injection] Gemini editor has not committed the complete text - waiting for retry');
+          if (attempt < RETRY_DELAYS.length) trySubmit();
+          return;
+        }
         const clicked = clickSendButton(provider, providerMode);
         if (clicked) {
-          console.log('[Text Injection] Send button clicked for', provider, 'on attempt', attempt);
-        } else if (attempt < RETRY_DELAYS.length) {
+                  } else if (attempt < RETRY_DELAYS.length) {
           console.warn('[Text Injection] Send button not ready for', provider, 'on attempt', attempt, '— will retry');
           trySubmit();
         } else {
@@ -1841,7 +2009,7 @@ if ((window.__realParent__ || window.parent) !== window) {
           panelId: event.data.panelId,
           requestId: event.data.requestId,
           context: 'multi-panel-health'
-        }, '*');
+        }, extensionOrigin);
       }
       return;
     }
@@ -1860,8 +2028,7 @@ if ((window.__realParent__ || window.parent) !== window) {
 
         if (provider === 'google') {
           clearGoogleInput(providerMode);
-          console.log('[Text Injection] Input cleared for', provider, 'mode:', providerMode);
-          return;
+                    return;
         }
 
         const selectors = PROVIDER_SELECTORS[provider];
@@ -1874,8 +2041,7 @@ if ((window.__realParent__ || window.parent) !== window) {
             } else {
               clearRichTextInput(provider, element);
             }
-            console.log('[Text Injection] Input cleared for', provider);
-            break;
+                        break;
           }
         }
       }
@@ -1897,8 +2063,7 @@ if ((window.__realParent__ || window.parent) !== window) {
         if (provider === 'chatgpt' && event.data.requestId) {
           startChatgptSendTracking(event.data.requestId);
         }
-        console.log('[Text Injection] Triggering send for', provider);
-        clickSendButton(provider, providerMode);
+                clickSendButton(provider, providerMode);
       }
       return;
     }
@@ -1913,21 +2078,10 @@ if ((window.__realParent__ || window.parent) !== window) {
       const providerMode = provider === 'google'
         ? normalizeGoogleProviderMode(event.data.providerMode)
         : null;
-      console.log('[Text Injection] NEW_CHAT message received, provider:', provider);
-      console.log('[Text Injection] Current URL:', window.location.href);
-      if (provider) {
-        console.log('[Text Injection] Creating new chat for', provider);
-        clickNewChatButton(provider, providerMode);
+                  if (provider) {
+                clickNewChatButton(provider, providerMode);
       } else {
         console.warn('[Text Injection] Provider not detected for NEW_CHAT');
-      }
-      return;
-    }
-
-    if (event.data.type === 'ENABLE_TEMP_CHAT' && event.data.context === 'multi-panel') {
-      const provider = detectProvider();
-      if (provider) {
-        void enableTemporaryChat(provider);
       }
       return;
     }
@@ -1943,20 +2097,16 @@ if ((window.__realParent__ || window.parent) !== window) {
       let answerText;
       if (sseText.length > domText.length && sseText.length > 50) {
         answerText = sseText;
-        console.log('[TextInjection] Using SSE text for', provider, 'sse:', sseText.length, 'dom:', domText.length);
-      } else if (domText.length > 0) {
+              } else if (domText.length > 0) {
         answerText = domText;
-        console.log('[TextInjection] Using DOM text for', provider, 'sse:', sseText.length, 'dom:', domText.length);
-      } else {
+              } else {
         answerText = sseText || domText;
-        console.log('[TextInjection] Using fallback text for', provider, 'sse:', sseText.length, 'dom:', domText.length);
-      }
+              }
       // 清理引用标记等噪声
       if (answerText) {
         answerText = cleanCopyText(answerText);
       }
-      console.log('[TextInjection] EXTRACT_ANSWER received. provider:', provider, 'answer length:', answerText ? answerText.length : 0);
-      if ((window.__realParent__ || window.parent) !== window) {
+            if ((window.__realParent__ || window.parent) !== window) {
         postToExtensionParent({
           type: 'EXTRACTED_ANSWER',
           provider: provider,
@@ -1972,8 +2122,8 @@ if ((window.__realParent__ || window.parent) !== window) {
     // Handle EXTRACT_DEBUG messages (diagnostic: return phase-by-phase results)
     if (event.data.type === 'EXTRACT_DEBUG' && event.data.context === 'multi-panel') {
       const provider = detectProvider();
-      const utils = window.__panelize_extractor_utils;
-      const extractors = window.__panelize_extractors || {};
+      const utils = window.__aichatmerge_extractor_utils;
+      const extractors = window.__aichatmerge_extractors || {};
       const debug = { provider, phases: [] };
 
       // Phase 1
@@ -1998,7 +2148,7 @@ if ((window.__realParent__ || window.parent) !== window) {
       debug.phases.push({ phase: 4, name: 'generic-markdown', hit: !!d4, len: d4 ? d4.length : 0 });
 
       if ((window.__realParent__ || window.parent) !== window) {
-        window.parent.postMessage({ type: 'EXTRACT_DEBUG_RESULT', provider, debug, context: 'multi-panel-debug' }, '*');
+        window.parent.postMessage({ type: 'EXTRACT_DEBUG_RESULT', provider, debug, context: 'multi-panel-debug' }, extensionOrigin);
       }
       return;
     }
@@ -2032,11 +2182,10 @@ if ((window.__realParent__ || window.parent) !== window) {
     const provider = detectProvider();
     const mergeRequestId = event.data.mergeRequestId;
     const injectionRequestId = event.data.injectionRequestId;
-    console.log('[Text Injection] INJECT_TEXT received. provider:', provider, 'context:', context, 'autoSubmit:', autoSubmit, 'textLength:', text.length, 'mergeRequestId:', mergeRequestId);
-    if (!provider) {
+        if (!provider) {
       console.warn('Unknown provider, cannot inject text');
       if (mergeRequestId && window.parent !== window) {
-        window.parent.postMessage({ type: 'INJECT_TEXT_RECEIVED', mergeRequestId, inputFound: false, injectSuccess: false, provider: null, error: 'unknown-provider' }, '*');
+        window.parent.postMessage({ type: 'INJECT_TEXT_RECEIVED', mergeRequestId, inputFound: false, injectSuccess: false, provider: null, error: 'unknown-provider' }, extensionOrigin);
       }
       postInjectionResult(injectionRequestId, null, false, false, 'unknown-provider');
       return;
@@ -2063,8 +2212,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     if (provider === 'google') {
       const success = handleGoogleTextInjection(text, shouldAutoSubmit, providerMode);
       if (success) {
-        console.log('[Text Injection] Text injected into Google using mode:', providerMode);
-        postInjectionResult(injectionRequestId, provider, true, true);
+                postInjectionResult(injectionRequestId, provider, true, true);
         return;
       }
 
@@ -2096,27 +2244,24 @@ if ((window.__realParent__ || window.parent) !== window) {
       element = findTextInputElement(selector);
       if (element) {
         matchedSelector = selector;
-        console.log('[Text Injection] Found input element with selector:', selector, 'for provider:', provider, 'tagName:', element.tagName, 'isContentEditable:', element.isContentEditable);
-        break;
+                break;
       }
     }
 
     if (element) {
       const success = injectTextIntoElement(element, text);
-      console.log('[Text Injection] injectTextIntoElement result:', success, 'for provider:', provider, 'element value length:', element.value?.length);
-      if (mergeRequestId && window.parent !== window) {
-        window.parent.postMessage({ type: 'INJECT_TEXT_RECEIVED', mergeRequestId, inputFound: true, injectSuccess: success, provider }, '*');
+            if (mergeRequestId && window.parent !== window) {
+        window.parent.postMessage({ type: 'INJECT_TEXT_RECEIVED', mergeRequestId, inputFound: true, injectSuccess: success, provider }, extensionOrigin);
       }
       postInjectionResult(injectionRequestId, provider, true, success, success ? null : 'injection-failed');
       if (success) {
-        console.log('[Text Injection] Text injected into', provider, 'using selector:', matchedSelector);
 
         // Auto-submit if requested (only from multi-panel context)
         if (shouldAutoSubmit) {
           // Wait for UI to update, then click send button.
           // Use provider-specific delays whose composer state updates asynchronously,
           // matching the injectText() helper used by image injection.
-          const delay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin' || provider === 'metaso') ? 1500 : provider === 'yuanbao' ? 900 : 500;
+          const delay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin' || provider === 'metaso') ? 1500 : provider === 'gemini' ? 1200 : provider === 'yuanbao' ? 900 : 500;
           attemptAutoSubmitWithRetry(provider, providerMode, delay, text);
         }
       } else {
@@ -2136,15 +2281,13 @@ if ((window.__realParent__ || window.parent) !== window) {
             retryElement = findTextInputElement(selector);
             if (retryElement) {
               retrySelector = selector;
-              console.log(`[Text Injection] Found input element on retry ${index + 1} with selector:`, selector);
-              break;
+                            break;
             }
           }
           if (retryElement) {
             const success = injectTextIntoElement(retryElement, text);
             if (success) {
-              console.log('[Text Injection] Text injected on retry into', provider, 'using selector:', retrySelector);
-              if (shouldAutoSubmit) {
+                            if (shouldAutoSubmit) {
                 const submitDelay = (provider === 'deepseek' || provider === 'kimi' || provider === 'doubao') ? 800 : (provider === 'qianwen' || provider === 'wenxin' || provider === 'metaso') ? 1500 : provider === 'yuanbao' ? 900 : 500;
                 attemptAutoSubmitWithRetry(provider, providerMode, submitDelay, text);
               }
@@ -2155,7 +2298,7 @@ if ((window.__realParent__ || window.parent) !== window) {
             console.error('[Text Injection] Available textareas:', document.querySelectorAll('textarea'));
             console.error('[Text Injection] Available contenteditable:', document.querySelectorAll('[contenteditable="true"]'));
             if (mergeRequestId && window.parent !== window) {
-              window.parent.postMessage({ type: 'INJECT_TEXT_RECEIVED', mergeRequestId, inputFound: false, injectSuccess: false, provider, error: 'editor-not-found-after-retry' }, '*');
+              window.parent.postMessage({ type: 'INJECT_TEXT_RECEIVED', mergeRequestId, inputFound: false, injectSuccess: false, provider, error: 'editor-not-found-after-retry' }, extensionOrigin);
             }
             postInjectionResult(injectionRequestId, provider, false, false, 'editor-not-found-after-retry');
           }
@@ -2166,12 +2309,90 @@ if ((window.__realParent__ || window.parent) !== window) {
 
   // ===== Answer Extraction =====
 
-
   function extractText(el) {
     if (!el) return '';
     const clone = el.cloneNode(true);
     clone.querySelectorAll('script, style, noscript, svg').forEach(e => e.remove());
-    return (clone.textContent || '').replace(/\s+/g, ' ').trim();
+    return normalizeExtractedText(extractReadableText(clone));
+  }
+
+  function normalizeExtractedText(text) {
+    return (text || '')
+      .replace(/\r\n?/g, '\n')
+      .replace(/[ \t\f\v]+/g, ' ')
+      .replace(/[ \t]*\n[ \t]*/g, '\n')
+      .replace(/\n{2,}/g, '\n')
+      .trim();
+  }
+
+  function appendTextPart(parts, text) {
+    const normalized = (text || '').replace(/\s+/g, ' ').trim();
+    if (normalized) parts.push(normalized);
+  }
+
+  function appendLineBreak(parts, forceBlankLine = false) {
+    if (parts.length === 0) return;
+    const last = parts[parts.length - 1];
+    if (last === '\n\n') return;
+    if (forceBlankLine) {
+      if (last === '\n') parts[parts.length - 1] = '\n\n';
+      else parts.push('\n\n');
+      return;
+    }
+    if (last !== '\n') parts.push('\n');
+  }
+
+  function extractReadableText(node) {
+    const parts = [];
+    const blockTags = new Set([
+      'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'DIV', 'DL', 'DT', 'DD',
+      'FIGCAPTION', 'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5',
+      'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'OL', 'P', 'PRE', 'SECTION',
+      'TABLE', 'TBODY', 'TD', 'TFOOT', 'TH', 'THEAD', 'TR', 'UL'
+    ]);
+
+    function walk(current) {
+      if (!current) return;
+
+      if (current.nodeType === Node.TEXT_NODE) {
+        appendTextPart(parts, current.nodeValue);
+        return;
+      }
+
+      if (current.nodeType !== Node.ELEMENT_NODE) return;
+
+      const tag = current.tagName;
+      if (tag === 'BR') {
+        appendLineBreak(parts);
+        return;
+      }
+
+      if (tag === 'PRE' || tag === 'CODE') {
+        const raw = current.textContent || '';
+        if (raw.trim()) parts.push(raw);
+        appendLineBreak(parts, tag === 'PRE');
+        return;
+      }
+
+      const isBlock = blockTags.has(tag);
+      if (isBlock) appendLineBreak(parts);
+
+      if (tag === 'LI') {
+        const textBefore = parts.join('').trimEnd();
+        if (!/(\n|^)[-*]\s*$/.test(textBefore)) {
+          parts.push('- ');
+        }
+      }
+
+      for (const child of current.childNodes) {
+        walk(child);
+      }
+
+      if (isBlock) appendLineBreak(parts, tag !== 'LI');
+    }
+
+    walk(node);
+    return parts.join('');
   }
 
   // Clean known noise patterns from extracted answer text
@@ -2191,7 +2412,7 @@ if ((window.__realParent__ || window.parent) !== window) {
       /View.*sources?\s*/gi,
       /Ask follow-up\s*/gi,
       /[ \t]+$/gm,
-      /\n{3,}/g,
+      /\n{2,}/g,
     ];
     let cleaned = text;
     for (const p of patterns) {
@@ -2213,7 +2434,7 @@ if ((window.__realParent__ || window.parent) !== window) {
       // 项目符号 → 加换行
       .replace(/([•·\-])\s+/g, '\n$1 ')
       // 清理多余空行
-      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\n{2,}/g, '\n')
       .trim();
   }
 
@@ -2263,7 +2484,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     ],
     qianwen: ['.qk-markdown-complete', '#qk-markdown-react', '.qk-markdown'],
     zhipu: ['.markdown-body.md-body', '.markdown-body', '.content-markdown'],
-    wenxin: ['.custom-html.md-stream-desktop', '.md-stream-desktop', '.markdown-body'],
+    wenxin: ['.cosd-markdown-content', '.ai-entry-block.ai-markdown', '.custom-html.md-stream-desktop', '.md-stream-desktop', '.markdown-body'],
     metaso: ['[class*="result-responsive-layer"] .markdown-body'],
     google: ['.markdown-body'],
   };
@@ -2401,7 +2622,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     doubao: ['.semi-chat-message-content', '.markdown-body', '.semi-chat-message'],
     qianwen: ['.markdown-body', '[class*="markdown-body"]'],
     zhipu: ['.markdown-body', '.content-markdown', '[class*="markdown-body"]'],
-    wenxin: ['.markdown-body'],
+    wenxin: ['.cosd-markdown-content', '.ai-entry-block.ai-markdown', '.markdown-body'],
     metaso: ['.markdown-body'],
     chatgpt: ['.markdown-body'],
     claude: ['.markdown-body'],
@@ -2488,7 +2709,7 @@ if ((window.__realParent__ || window.parent) !== window) {
   }
 
   // Expose shared utils for per-provider extractor files
-  window.__panelize_extractor_utils = {
+  window.__aichatmerge_extractor_utils = {
     isVisibleElement,
     extractText,
     cleanCopyText,
@@ -2501,45 +2722,37 @@ if ((window.__realParent__ || window.parent) !== window) {
 
   function extractLatestAnswer() {
     const provider = detectProvider();
-    const utils = window.__panelize_extractor_utils;
-    const extractors = window.__panelize_extractors || {};
+    const utils = window.__aichatmerge_extractor_utils;
+    const extractors = window.__aichatmerge_extractors || {};
 
     // Phase 1: Try provider-specific extractor first (most precise)
     if (extractors[provider]) {
       try {
         const result = extractors[provider](utils);
         if (result) {
-          console.log('[Extract] Phase 1 (provider extractor) hit for', provider, 'len:', result.length);
-          return result;
+                    return result;
         }
-        console.log('[Extract] Phase 1 (provider extractor) returned empty for', provider);
-      } catch (e) {
+              } catch (e) {
         console.warn('[Extract] Phase 1 error for', provider, e);
       }
     } else {
-      console.log('[Extract] Phase 1 skipped — no extractor registered for', provider);
-    }
+          }
 
     // Phase 2: Try direct answer selectors
     const directResult = extractByDirectSelector(provider);
     if (directResult) {
-      console.log('[Extract] Phase 2 (direct selector) hit for', provider, 'len:', directResult.length);
-      return directResult;
+            return directResult;
     }
-    console.log('[Extract] Phase 2 miss for', provider);
 
     // Phase 3: Try copy button approach
     const copyBtnResult = extractByCopyButton(provider);
     if (copyBtnResult) {
-      console.log('[Extract] Phase 3 (copy button) hit for', provider, 'len:', copyBtnResult.length);
-      return copyBtnResult;
+            return copyBtnResult;
     }
-    console.log('[Extract] Phase 3 miss for', provider);
 
     // Phase 4: Generic markdown body
     const genericResult = extractGenericMarkdownAnswer();
-    console.log('[Extract] Phase 4 (generic) for', provider, 'len:', genericResult ? genericResult.length : 0);
-    return genericResult;
+        return genericResult;
   }
 
   // ===== Selector Health Check =====
@@ -2589,10 +2802,10 @@ if ((window.__realParent__ || window.parent) !== window) {
     }
 
     // Check provider-specific extractor
-    const extractors = window.__panelize_extractors || {};
+    const extractors = window.__aichatmerge_extractors || {};
     if (extractors[provider]) {
       try {
-        const text = extractors[provider](window.__panelize_extractor_utils);
+        const text = extractors[provider](window.__aichatmerge_extractor_utils);
         results.extract.push({ extractor: provider, returned: text.length > 0, length: text.length });
       } catch (e) {
         results.extract.push({ extractor: provider, error: e.message });
@@ -2623,12 +2836,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     };
 
     console.group(`[Health Check] ${provider}`);
-    console.log('Input selectors:', results.input);
-    console.log('Send selectors:', results.send);
-    console.log('Extract selectors:', results.extract);
-    console.log('New chat selectors:', results.newChat);
-    console.log('Summary:', results.summary);
-    console.groupEnd();
+                        console.groupEnd();
 
     return results;
   }
@@ -2812,8 +3020,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     let hasObservedAnswerChange = false;
 
     function notifyCompletion(reason) {
-      console.log('[CompletionMonitor]', reason, 'Provider:', provider);
-      stopCompletionMonitor();
+            stopCompletionMonitor();
 
       if (!completionAlreadyDetected && (window.__realParent__ || window.parent) !== window) {
         completionAlreadyDetected = true;
@@ -2929,9 +3136,7 @@ if ((window.__realParent__ || window.parent) !== window) {
       characterData: true
     });
 
-    console.log('[CompletionMonitor] MutationObserver fallback armed for provider:', provider,
-      'waiting for answer content to change before starting the stability timer');
-  }
+      }
 
   /**
    * Primary method: Button-state monitoring.
@@ -2954,8 +3159,7 @@ if ((window.__realParent__ || window.parent) !== window) {
 
     const stopSelectors = STOP_BUTTON_SELECTORS[provider];
     if (!stopSelectors || stopSelectors.length === 0) {
-      console.log('[CompletionMonitor] No stop button selectors for', provider, '— using MutationObserver fallback');
-      startMutationFallback(provider);
+            startMutationFallback(provider);
       return;
     }
 
@@ -2965,8 +3169,7 @@ if ((window.__realParent__ || window.parent) !== window) {
 
       if (completionPhase === 'button-watch-appear' && stopPresent) {
         // Stop button appeared — AI is now generating. Switch to watching for disappearance.
-        console.log('[CompletionMonitor] Stop button detected — AI is generating. Watching for completion...');
-        completionPhase = 'button-watch-disappear';
+                completionPhase = 'button-watch-disappear';
         // Clear the appear-timeout since we found the button
         if (completionButtonTimeout) {
           clearTimeout(completionButtonTimeout);
@@ -2988,8 +3191,7 @@ if ((window.__realParent__ || window.parent) !== window) {
             return;
           }
 
-          console.log('[CompletionMonitor] Stop button disappeared — generation complete. Provider:', provider);
-          stopCompletionMonitor();
+                    stopCompletionMonitor();
 
           if (!completionAlreadyDetected && (window.__realParent__ || window.parent) !== window) {
             completionAlreadyDetected = true;
@@ -3033,13 +3235,11 @@ if ((window.__realParent__ || window.parent) !== window) {
           return; // Phase already changed — button was found
         }
 
-        console.log('[CompletionMonitor] No stop button appeared within', BUTTON_APPEAR_TIMEOUT_MS, 'ms — falling back to MutationObserver');
-        startMutationFallback(provider);
+                startMutationFallback(provider);
       }, BUTTON_APPEAR_TIMEOUT_MS);
     }
 
-    console.log('[CompletionMonitor] Button-state monitoring started for provider:', provider, 'phase:', completionPhase);
-  }
+      }
 
   // SSE 优先，DOM 兜底：仅内容层的协议最终帧能结束监控。该表必须与
   // sse-bridge.js 的策略保持一致；没有可靠内容帧的平台直接使用 DOM。
@@ -3052,7 +3252,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     yuanbao: ['content'],
     wenxin: ['content'],
     zhipu: [],
-    kimi: ['content'],
+    kimi: [],
     chatgpt: ['content'],
     claude: ['content'],
     gemini: [],
@@ -3084,19 +3284,16 @@ if ((window.__realParent__ || window.parent) !== window) {
     // leaving it stuck until the global timeout when its SSE final frame was
     // unavailable.
     if (provider === 'wenxin' || provider === 'zhipu' || provider === 'kimi' || provider === 'gemini') {
-      console.log('[CompletionMonitor] Starting DOM-first monitor for', provider);
-      startMutationFallback(provider);
+            startMutationFallback(provider);
       return;
     }
 
     if (SSE_SUPPORTED_PROVIDERS.includes(provider)) {
       // 延迟启动 DOM 检测：给 SSE 检测 3 秒时间
       // 如果 SSE 在 3 秒内完成，completionAlreadyDetected 会被设为 true，DOM 检测不会重复触发
-      console.log('[CompletionMonitor] Delaying DOM monitor for', provider, '(waiting 3s for SSE)');
-      completionMonitorDelayTimer = setTimeout(() => {
+            completionMonitorDelayTimer = setTimeout(() => {
         if (!completionAlreadyDetected) {
-          console.log('[CompletionMonitor] SSE not detected after 3s, falling back to DOM for', provider);
-          startButtonStateMonitor(provider);
+                    startButtonStateMonitor(provider);
         }
       }, 3000);
       return;
@@ -3152,11 +3349,9 @@ if ((window.__realParent__ || window.parent) !== window) {
     if (event.data.type === '__sse_complete__') {
       const sseProvider = event.data.provider || detectProvider();
       if (!acceptsSseCompletion(sseProvider, event.data.layer)) {
-        console.log('[CompletionMonitor] Ignoring', sseProvider, 'SSE completion; waiting for DOM confirmation');
-        return;
+                return;
       }
-      console.log('[CompletionMonitor] SSE completion received, stopping DOM monitor');
-      stopCompletionMonitor();
+            stopCompletionMonitor();
       return;
     }
 
@@ -3187,7 +3382,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     function applyDarkMode(isDark) {
       if (isDark && !styleEl) {
         styleEl = document.createElement('style');
-        styleEl.id = 'panelize-dark-mode';
+        styleEl.id = 'aichatmerge-dark-mode';
         styleEl.textContent = DARK_CSS;
         document.documentElement.appendChild(styleEl);
       } else if (!isDark && styleEl) {

@@ -1,7 +1,46 @@
 // Shared utilities for Enter key behavior modification
 // Supports customizable key combinations for newline and send actions
+//
+// 包含公共的 createEnterEvent 函数，供所有 enter-behavior-*.js 使用。
+// 消除各 Provider 脚本中重复的 createEnterEvent 实现。
 
 let enterKeyConfig = null;
+
+/**
+ * 创建合成的 Enter KeyboardEvent
+ *
+ * @param {Object} [modifiers] - 修饰键配置
+ * @param {boolean} [modifiers.shift] - Shift 键
+ * @param {boolean} [modifiers.ctrl] - Ctrl 键
+ * @param {boolean} [modifiers.meta] - Meta 键
+ * @param {boolean} [modifiers.alt] - Alt 键
+ * @param {Object} [options] - 额外选项
+ * @param {boolean} [options.markSynthetic=true] - 是否标记为合成事件
+ * @returns {KeyboardEvent} 合成的键盘事件
+ *
+ * @example
+ * const enterEvent = createEnterEvent({ shift: true });
+ * element.dispatchEvent(enterEvent);
+ */
+function createEnterEvent(modifiers = {}, options = {}) {
+  const { markSynthetic = true } = options;
+  const event = new KeyboardEvent('keydown', {
+    key: 'Enter',
+    code: 'Enter',
+    keyCode: 13,
+    which: 13,
+    bubbles: true,
+    cancelable: true,
+    shiftKey: modifiers.shift || false,
+    ctrlKey: modifiers.ctrl || false,
+    metaKey: modifiers.meta || false,
+    altKey: modifiers.alt || false
+  });
+  if (markSynthetic) {
+    Object.defineProperty(event, '_synthetic_from_extension', { value: true, writable: false });
+  }
+  return event;
+}
 const DEFAULT_ENTER_KEY_BEHAVIOR = {
   enabled: true,
   preset: 'default',

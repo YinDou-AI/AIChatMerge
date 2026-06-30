@@ -141,6 +141,13 @@ header p {
   line-height: 1.4;
 }
 
+#claude-entry-settings summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
 
 .switch {
   position: relative;
@@ -248,6 +255,10 @@ select {
 select:focus {
   outline: none;
   border-color: var(--accent);
+}
+
+#merge-mode-select {
+  min-width: 180px;
 }
 
 /* Buttons */

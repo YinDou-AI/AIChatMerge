@@ -1,6 +1,6 @@
 # Privacy Policy for AIChatMerge
 
-**Last Updated: February 3, 2026**
+**Last Updated: June 30, 2026**
 
 ## Overview
 
@@ -73,9 +73,9 @@ All data collected by AIChatMerge is used solely for providing extension functio
 
 ### AI Provider Websites
 
-AIChatMerge loads AI provider websites (DeepSeek, Kimi, ChatGPT, and Claude) inside embedded panels. These providers operate under their own privacy policies.
+AIChatMerge loads AI provider websites (DeepSeek, Kimi, ChatGPT, Claude, and others) inside embedded panels. These providers operate under their own privacy policies.
 
-When you interact with these AI providers through AIChatMerge, you are subject to their respective privacy policies. AIChatMerge does not intercept or store the content of your conversations with these services.
+When you interact with these AI providers through AIChatMerge, you are subject to their respective privacy policies. AIChatMerge injects your prompts into provider text fields and extracts AI responses to display them in its interface, but it does not store the content of your conversations.
 
 ### Cookie Access
 
@@ -83,7 +83,7 @@ AIChatMerge does not access cookie data directly and does not use the cookies AP
 
 ### Update Checks
 
-AIChatMerge can check for updates by requesting version information from GitHub (api.github.com and raw.githubusercontent.com). These requests are made only to GitHub and do not include your prompts, settings, or any content you send to AI providers.
+AIChatMerge does not perform automatic update checks and does not contact the project repository in the background. You can manually check for updates from the official release page once it is published.
 
 ### UI Assets
 
@@ -158,11 +158,11 @@ AIChatMerge requests the following Chrome extension permissions:
 | `contextMenus` | Add "Send to AIChatMerge" option when right-clicking |
 | `declarativeNetRequest` | Allow AI provider websites to load in embedded panels (bypass X-Frame-Options) |
 | `declarativeNetRequestWithHostAccess` | Apply header modifications for specific AI provider domains |
-| Host permissions | Access AI provider websites, and check for updates on GitHub |
+| Host permissions | Access the AI provider websites selected for embedded panels |
 
 **None of these permissions are used to collect, transmit, or share your data with external parties.**
 
-AIChatMerge also exposes a small set of bundled, non-user resources (such as default prompt libraries and UI assets) as web-accessible so content scripts can load them. These resources contain no personal data.
+AIChatMerge exposes only the bundled, non-user extension resources required by embedded AI panels, such as the multi-panel page assets and stream-detection script. These resources contain no personal data.
 
 ---
 
@@ -170,7 +170,7 @@ AIChatMerge also exposes a small set of bundled, non-user resources (such as def
 
 AIChatMerge is fully open source. You can review the complete source code at:
 
-**GitHub Repository:** https://github.com/Manho/AIChatMerge
+**GitHub Repository:** https://github.com/YinDou-AI/AIChatMerge
 
 This allows you to:
 - Verify our privacy claims
@@ -184,8 +184,8 @@ This allows you to:
 
 If you have questions or concerns about this privacy policy or how AIChatMerge handles data:
 
-- **GitHub Issues:** https://github.com/Manho/AIChatMerge/issues
-- **Project Maintainer:** [Xiaolai](https://github.com/xiaolai)
+- **GitHub Issues:** https://github.com/YinDou-AI/AIChatMerge/issues
+- **Project Maintainer:** YinDou-AI
 
 ---
 
@@ -214,7 +214,6 @@ If you are a California resident:
 - Use local browser storage to remember your preferences
 - Temporarily process selected text or page content on-device when you use the context menu
 - Load AI provider websites inside embedded panels
-- Check for updates on GitHub
 
 ❌ **What we don't do:**
 - Send your prompts or settings to AIChatMerge servers
@@ -227,4 +226,4 @@ If you are a California resident:
 
 ---
 
-*This privacy policy is effective as of February 3, 2026 and applies to AIChatMerge version 1.0.0 and later.*
+*This privacy policy is effective as of June 30, 2026 and applies to AIChatMerge version 1.0.0 and later.*

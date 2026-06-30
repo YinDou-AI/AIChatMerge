@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "1.0",
+  "version": "1.0.0",
   "description": "Compare AI assistants side by side in one window. Send one prompt and review responses faster.",
   "default_locale": "en",
   "permissions": [
     "storage",
     "contextMenus",
+    "downloads",
     "activeTab",
     "scripting",
     "declarativeNetRequest",
@@ -21,11 +22,9 @@
     "*://www.qianwen.com/*",
     "*://qianwen.com/*",
     "*://chatglm.cn/*",
-    "*://yiyan.baidu.com/*",
+    "*://chat.baidu.com/*",
     "*://yuanbao.tencent.com/*",
     "*://metaso.cn/*",
-    "*://api.github.com/*",
-    "*://raw.githubusercontent.com/*",
     "*://chatgpt.com/*",
     "*://gemini.google.com/*",
     "*://claude.ai/*",
@@ -51,7 +50,7 @@
         "default": "Ctrl+Shift+E",
         "mac": "Command+Shift+E"
       },
-      "description": "Open AIChatMerge"
+      "description": "__MSG_commandOpenAIChatMerge__"
     },
     "open-prompt-library": {
       "suggested_key": {
@@ -74,7 +73,10 @@
         "https://qianwen.com/*"
       ],
       "js": [
+        "content-scripts/provider-detector.js",
         "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-qianwen.js",
         "content-scripts/answer-extractor-qianwen.js",
@@ -89,7 +91,10 @@
         "https://chatglm.cn/*"
       ],
       "js": [
+        "content-scripts/provider-detector.js",
         "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-zhipu.js",
         "content-scripts/answer-extractor-zhipu.js",
@@ -101,10 +106,13 @@
     },
     {
       "matches": [
-        "https://yiyan.baidu.com/*"
+        "https://chat.baidu.com/*"
       ],
       "js": [
+        "content-scripts/provider-detector.js",
         "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-wenxin.js",
         "content-scripts/answer-extractor-wenxin.js",
@@ -119,8 +127,10 @@
         "https://yuanbao.tencent.com/*"
       ],
       "js": [
+        "content-scripts/provider-detector.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-yuanbao.js",
         "content-scripts/answer-extractor-yuanbao.js",
@@ -135,7 +145,10 @@
         "https://metaso.cn/*"
       ],
       "js": [
+        "content-scripts/provider-detector.js",
         "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-metaso.js",
         "content-scripts/answer-extractor-metaso.js",
@@ -150,8 +163,10 @@
         "https://chat.deepseek.com/*"
       ],
       "js": [
+        "content-scripts/provider-detector.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-deepseek.js",
         "content-scripts/answer-extractor-deepseek.js",
@@ -167,8 +182,10 @@
         "https://kimi.com/*"
       ],
       "js": [
+        "content-scripts/provider-detector.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-kimi.js",
         "content-scripts/answer-extractor-kimi.js",
@@ -184,8 +201,10 @@
         "https://doubao.com/*"
       ],
       "js": [
+        "content-scripts/provider-detector.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-doubao.js",
         "content-scripts/answer-extractor-doubao.js",
@@ -198,8 +217,10 @@
     {
       "matches": ["https://chatgpt.com/*"],
       "js": [
+        "content-scripts/provider-detector.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-chatgpt.js",
         "content-scripts/answer-extractor-chatgpt.js",
@@ -212,8 +233,10 @@
     {
       "matches": ["https://gemini.google.com/*"],
       "js": [
+        "content-scripts/provider-detector.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-gemini.js",
         "content-scripts/answer-extractor-gemini.js",
@@ -226,8 +249,10 @@
     {
       "matches": ["https://claude.ai/*"],
       "js": [
+        "content-scripts/provider-detector.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
         "content-scripts/enter-behavior-utils.js",
         "content-scripts/enter-behavior-claude.js",
         "content-scripts/answer-extractor-claude.js",
@@ -240,10 +265,11 @@
     {
       "matches": ["https://grok.com/*"],
       "js": [
+        "content-scripts/provider-detector.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
         "content-scripts/enter-behavior-utils.js",
-        "content-scripts/enter-behavior-grok.js",
         "content-scripts/answer-extractor-grok.js",
         "content-scripts/text-injection-all-providers.js",
         "content-scripts/focus-toggle.js"
@@ -264,30 +290,27 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "data/prompt-libraries/default-prompts.json",
-        "data/prompt-libraries/default-prompts-zh_CN.json",
-        "data/prompt-libraries/custom-prompt-template.json",
-        "data/prompt-libraries/guide.en.html",
-        "data/prompt-libraries/guide.zh_CN.html",
-        "data/prompt-libraries/guide.zh_TW.html",
-        "data/prompt-libraries/guide.ko.html",
-        "data/prompt-libraries/guide.ja.html",
-        "data/prompt-libraries/guide.es.html",
-        "data/prompt-libraries/guide.fr.html",
-        "data/prompt-libraries/guide.de.html",
-        "data/prompt-libraries/guide.it.html",
-        "data/prompt-libraries/guide.ru.html",
-        "data/version-info.json",
-        "_locales/en/messages.json",
-        "_locales/zh_CN/messages.json",
-        "_locales/zh_TW/messages.json",
-        "multi-panel/multi-panel.html",
-        "multi-panel/multi-panel.js",
-        "multi-panel/multi-panel.css",
+        "aichatmerge-panel/multi-panel.html",
+        "aichatmerge-panel/multi-panel.js",
+        "aichatmerge-panel/multi-panel.css",
         "sse-detect.js"
       ],
       "matches": [
-        "<all_urls>"
+        "*://chat.deepseek.com/*",
+        "*://www.kimi.com/*",
+        "*://kimi.com/*",
+        "*://www.doubao.com/*",
+        "*://doubao.com/*",
+        "*://www.qianwen.com/*",
+        "*://qianwen.com/*",
+        "*://chatglm.cn/*",
+        "*://chat.baidu.com/*",
+        "*://yuanbao.tencent.com/*",
+        "*://metaso.cn/*",
+        "*://chatgpt.com/*",
+        "*://gemini.google.com/*",
+        "*://claude.ai/*",
+        "*://grok.com/*"
       ]
     }
   ],

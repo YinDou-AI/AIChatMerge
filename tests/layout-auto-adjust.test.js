@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
+// WHY COPIED: multi-panel.js is a large ES module (~3270 lines) with heavy DOM
+// and Chrome API dependencies.  getAutoAdjustedLayout and getAutoShrunkLayout
+// are not exported from multi-panel.js, and extracting them would require
+// refactoring the source file.  Until multi-panel.js is refactored to export
+// these pure functions, we replicate them here so their logic is still covered
+// by tests.  If the source functions change, these copies must be updated.
+
 // 模拟 LAYOUT_PANEL_COUNTS 常量
 const LAYOUT_PANEL_COUNTS = {
   '1x1': 1,
@@ -20,7 +27,7 @@ const LAYOUT_PANEL_COUNTS = {
   '4x2': 8
 };
 
-// 被测试的函数（从 multi-panel.js 复制）
+// Copied from aichatmerge-panel/multi-panel.js (not exported there)
 function getAutoAdjustedLayout(currentLayout, newPanelCount) {
   // 只处理 1xN 布局
   const match = currentLayout.match(/^1x(\d)$/);
@@ -48,7 +55,7 @@ function getAutoAdjustedLayout(currentLayout, newPanelCount) {
   return null; // 已达上限，无法自动调整
 }
 
-// New auto-shrink function (from multi-panel.js)
+// Copied from aichatmerge-panel/multi-panel.js (not exported there)
 function getAutoShrunkLayout(currentLayout, newPanelCount) {
   if (currentLayout === '4x2' && newPanelCount === 7) {
     return '1x7';

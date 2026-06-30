@@ -70,7 +70,7 @@
       ]
     },
     "condition": {
-      "urlFilter": "https://yiyan.baidu.com/*",
+      "urlFilter": "https://chat.baidu.com/*",
       "resourceTypes": ["sub_frame"]
     }
   },

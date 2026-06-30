@@ -47,6 +47,60 @@ function findProviderInput() {
            document.querySelector('textarea.ds-scroll-area');
   }
 
+  // Kimi
+  if (host.includes('kimi.com')) {
+    return document.querySelector('.chat-input-editor') ||
+           document.querySelector('div[contenteditable="true"].chat-input-editor') ||
+           document.querySelector('div[contenteditable="true"]');
+  }
+
+  // Doubao
+  if (host.includes('doubao.com')) {
+    return document.querySelector('#input-engine-container .semi-input-textarea-wrapper textarea') ||
+           document.querySelector('.semi-input-textarea-wrapper textarea') ||
+           document.querySelector('[data-slate-editor="true"][contenteditable="true"]') ||
+           document.querySelector('.flow-chat-editor [contenteditable="true"]');
+  }
+
+  // Qianwen
+  if (host.includes('qianwen.com')) {
+    return document.querySelector('div[data-slate-editor="true"]') ||
+           document.querySelector('div[contenteditable="true"][data-slate-editor]') ||
+           document.querySelector('textarea[placeholder*="输入"]') ||
+           document.querySelector('textarea[placeholder*="提问"]');
+  }
+
+  // Zhipu (ChatGLM)
+  if (host.includes('chatglm.cn')) {
+    return document.querySelector('textarea.scroll-display-none') ||
+           document.querySelector('textarea[placeholder*="输入"]') ||
+           document.querySelector('textarea[placeholder*="提问"]') ||
+           document.querySelector('.chat-input textarea');
+  }
+
+  // Wenxin (Baidu)
+  if (host.includes('chat.baidu.com')) {
+    return document.querySelector('div[data-slate-editor="true"]') ||
+           document.querySelector('div[contenteditable="true"][data-slate-editor]') ||
+           document.querySelector('textarea[placeholder*="输入"]') ||
+           document.querySelector('textarea[placeholder*="提问"]');
+  }
+
+  // Yuanbao (Tencent)
+  if (host.includes('yuanbao.tencent.com')) {
+    return document.querySelector('.ql-editor[contenteditable="true"]') ||
+           document.querySelector('.ql-editor') ||
+           document.querySelector('textarea[placeholder*="输入"]') ||
+           document.querySelector('textarea[placeholder*="提问"]');
+  }
+
+  // Metaso
+  if (host.includes('metaso.cn')) {
+    return document.querySelector('textarea.search-consult-textarea') ||
+           document.querySelector('textarea[placeholder*="搜索"]') ||
+           document.querySelector('textarea[placeholder*="提问"]');
+  }
+
   // Generic fallback: find any visible textarea or contenteditable
   const textarea = document.querySelector('textarea:not([hidden])');
   if (textarea && textarea.offsetParent !== null) return textarea;

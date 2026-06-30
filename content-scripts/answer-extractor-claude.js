@@ -2,8 +2,8 @@
 // Claude renders responses using test IDs, custom font classes, and turn-based structure
 (function() {
   'use strict';
-  window.__panelize_extractors = window.__panelize_extractors || {};
-  window.__panelize_extractors.claude = function(utils) {
+  window.__aichatmerge_extractors = window.__aichatmerge_extractors || {};
+  window.__aichatmerge_extractors.claude = function(utils) {
     // 优先使用Claude专用选择器提取回答
     const claudeSelectors = [
       '[data-testid="assistant-message"]',
@@ -21,7 +21,7 @@
         for (let i = elements.length - 1; i >= 0; i--) {
           const el = elements[i];
           if (!utils.isVisibleElement || utils.isVisibleElement(el)) {
-            const text = (el.textContent || '').trim();
+            const text = utils.extractText ? utils.extractText(el) : (el.textContent || '').trim();
             if (text.length > 10) {
               return text;
             }

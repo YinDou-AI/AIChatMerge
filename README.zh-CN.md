@@ -2,12 +2,11 @@
 
 <p align="center">
   <a href="README.md"><strong>English</strong></a> |
-  <a href="README.zh-CN.md"><strong>简体中文</strong></a> |
-  <a href="README.ja.md"><strong>日本語</strong></a>
+  <a href="README.zh-CN.md"><strong>简体中文</strong></a>
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/aichatmerge-marquee.png" alt="AIChatMerge - All Your AI Assistants. One Window." width="700">
+  <img src="assets/screenshots/PixPin_2026-06-30_14-00-42.jpg" alt="AIChatMerge - All Your AI Assistants. One Window." width="700">
 </p>
 
 <p align="center">
@@ -15,9 +14,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.2.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
-  <img src="https://img.shields.io/badge/languages-10-brightgreen.svg" alt="Languages">
+  <img src="https://img.shields.io/badge/languages-2-brightgreen.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Chrome-114+-4285F4.svg" alt="Chrome">
   <img src="https://img.shields.io/badge/Edge-114+-0078D7.svg" alt="Edge">
 </p>
@@ -31,7 +30,7 @@
 **AIChatMerge 让你在一个窗口里，一次发送，直接横向对比多个 AI 的答案。**
 
 <p align="center">
-  <img src="assets/screenshots/main-panel.png" alt="AIChatMerge 主界面" width="800">
+  <img src="assets/screenshots/PixPin_2026-06-30_14-13-19.jpg" alt="AIChatMerge 主界面" width="800">
 </p>
 
 ---
@@ -40,14 +39,14 @@
 
 ### 一次提问，同时对比
 
-在统一输入框中输入一次内容，就能同时发送到 DeepSeek、Kimi、ChatGPT、Claude。
+在统一输入框中输入一次内容，就能同时发送到已选择的多个 AI 平台。
 
 ### 灵活布局
 
 支持 15 种布局。快速双模型对比可用 1×2，四模型深入分析可用 1×4。
 
 <p align="center">
-  <img src="assets/screenshots/select-layout.png" alt="布局选择" width="600">
+  <img src="assets/screenshots/PixPin_2026-06-30_12-31-44.jpg" alt="讨论模式" width="600">
 </p>
 
 ### 零配置
@@ -71,29 +70,29 @@
 
 - DeepSeek
 - Kimi
+- 豆包
+- 千问
+- 智谱清言
+- 文心一言
+- 元宝
+- 秘塔 AI
 - ChatGPT
+- Gemini
 - Claude
+- Grok
 
 <p align="center">
-  <img src="assets/screenshots/settings.png" alt="设置与平台管理" width="700">
+  <img src="assets/screenshots/PixPin_2026-06-30_11-53-50.jpg" alt="融合结果" width="700">
 </p>
 
 ---
 
 ## 安装
 
-### Chrome Web Store（推荐）
-
-1. 打开 [Chrome Web Store 页面](https://chromewebstore.google.com/detail/panelize/iokalaafkmjffolodkkgbbccmofbglii)
-2. 点击 **Add to Chrome**
-3. 安装完成后按 `Cmd/Ctrl + Shift + E` 打开 AIChatMerge
-
-> **Edge 也可用：** 可直接从 Chrome Web Store 安装。
-
 <details>
-<summary><strong>手动安装（开发者）</strong></summary>
+<summary><strong>手动安装</strong></summary>
 
-1. 下载本仓库源码
+1. 从正式 GitHub 仓库下载源码
 2. 打开 `chrome://extensions/`（或 `edge://extensions/`）
 3. 开启“开发者模式”
 4. 点击“加载已解压的扩展程序”，选择项目目录
@@ -131,7 +130,7 @@
 → 到 `chrome://extensions/shortcuts` 检查冲突。
 
 **需要帮助？**
-→ [提交 Issue](https://github.com/Manho/AIChatMerge/issues)
+→ 到正式 GitHub 仓库提交 Issue
 
 ---
 
@@ -149,3 +148,13 @@
 ## License
 
 MIT License，详见 [LICENSE](LICENSE)。
+
+### 第三方许可证
+
+本项目包含以下第三方库：
+
+| 库 | 许可证 | 来源 |
+|---|--------|------|
+| [Readability.js](https://github.com/mozilla/readability) | Apache License 2.0 | Mozilla / Arc90 Inc |
+
+Readability.js 用于 `libs/Readability.js`，从网页中提取正文内容。基于 Apache License 2.0 授权。

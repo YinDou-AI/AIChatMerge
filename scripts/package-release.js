@@ -2,15 +2,63 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import {
   assertPackageEntries,
-  ensureCommandExists,
-  normalizeZipEntries,
   PACKAGE_EXCLUDED_PREFIXES,
   PACKAGE_INCLUDE_PATHS,
   resolveCliOptions
 } from './release-utils.js';
+
+function commandExists(commandName) {
+  const lookupCommand = process.platform === 'win32' ? 'where' : 'which';
+  const result = spawnSync(lookupCommand, [commandName], { stdio: 'ignore' });
+  return result.status === 0;
+}
+
+async function collectPackageEntries(rootDir, currentDir = rootDir) {
+  const dirents = await fs.readdir(currentDir, { withFileTypes: true });
+  const entries = [];
+
+  for (const dirent of dirents) {
+    const fullPath = path.join(currentDir, dirent.name);
+    const relativePath = path.relative(rootDir, fullPath).split(path.sep).join('/');
+
+    if (dirent.isDirectory()) {
+      entries.push(...await collectPackageEntries(rootDir, fullPath));
+    } else {
+      entries.push(relativePath);
+    }
+  }
+
+  return entries.sort();
+}
+
+function createZipArchive(stagingDir, outputPath) {
+  if (commandExists('zip')) {
+    execFileSync('zip', ['-r', outputPath, '.', '-x', '*.DS_Store'], {
+      cwd: stagingDir,
+      stdio: 'inherit'
+    });
+    return;
+  }
+
+  if (process.platform === 'win32' && commandExists('tar')) {
+    execFileSync('tar', [
+      '-a',
+      '-cf',
+      outputPath,
+      '-C',
+      stagingDir,
+      '.'
+    ], {
+      stdio: 'inherit'
+    });
+    return;
+  }
+
+  throw new Error('Required command not found: zip');
+}
 
 async function main() {
   const repoRoot = process.cwd();
@@ -25,12 +73,9 @@ async function main() {
     );
   }
 
-  ensureCommandExists('zip');
-  ensureCommandExists('unzip');
-
   const outputDir = path.join(repoRoot, 'dist', `release-${version}`);
-  const releaseZipPath = path.join(outputDir, `panelize-${version}-release.zip`);
-  const cwsZipPath = path.join(outputDir, `panelize-${version}-cws.zip`);
+  const releaseZipPath = path.join(outputDir, `aichatmerge-${version}-release.zip`);
+  const cwsZipPath = path.join(outputDir, `aichatmerge-${version}-cws.zip`);
   const stagingDir = path.join(outputDir, 'staging');
 
   await fs.rm(outputDir, { recursive: true, force: true });
@@ -49,27 +94,12 @@ async function main() {
     });
   }
 
-  execFileSync('zip', ['-r', releaseZipPath, '.', '-x', '*.DS_Store'], {
-    cwd: stagingDir,
-    stdio: 'inherit'
-  });
+  const packageEntries = await collectPackageEntries(stagingDir);
+  const packagedManifest = JSON.parse(await fs.readFile(path.join(stagingDir, 'manifest.json'), 'utf8'));
+  assertPackageEntries(packageEntries, packagedManifest);
 
+  createZipArchive(stagingDir, releaseZipPath);
   await fs.copyFile(releaseZipPath, cwsZipPath);
-
-  const zipEntries = normalizeZipEntries(
-    execFileSync('unzip', ['-Z1', releaseZipPath], {
-      cwd: repoRoot,
-      encoding: 'utf8'
-    })
-  );
-  const packagedManifest = JSON.parse(
-    execFileSync('unzip', ['-p', releaseZipPath, 'manifest.json'], {
-      cwd: repoRoot,
-      encoding: 'utf8'
-    })
-  );
-
-  assertPackageEntries(zipEntries, packagedManifest);
   await fs.rm(stagingDir, { recursive: true, force: true });
 
   console.log(`[package-release] Created ${releaseZipPath}`);

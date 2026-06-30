@@ -2,6 +2,10 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, beforeAll, beforeEach, expect, it, vi } from 'vitest';
 
+// text-injection-all-providers.js is a self-contained IIFE (no ES module
+// exports) designed to run inside a Chrome extension iframe.  window.eval()
+// is the only way to load its side-effect-based code into the happy-dom
+// test environment.
 const contentScriptSource = readFileSync(
   resolve(process.cwd(), 'content-scripts/text-injection-all-providers.js'),
   'utf8'

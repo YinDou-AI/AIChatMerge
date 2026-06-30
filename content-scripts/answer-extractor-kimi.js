@@ -2,8 +2,8 @@
 // Kimi uses .markdown-container > .markdown as primary structure
 (function() {
   'use strict';
-  window.__panelize_extractors = window.__panelize_extractors || {};
-  window.__panelize_extractors.kimi = function(utils) {
+  window.__aichatmerge_extractors = window.__aichatmerge_extractors || {};
+  window.__aichatmerge_extractors.kimi = function(utils) {
     // Primary: .markdown-container (iterate last-to-first for most recent answer)
     const containers = document.querySelectorAll('.markdown-container');
     for (let i = containers.length - 1; i >= 0; i--) {

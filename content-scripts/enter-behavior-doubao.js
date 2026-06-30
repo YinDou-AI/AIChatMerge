@@ -1,24 +1,6 @@
 // Doubao Enter/Shift+Enter behavior swap
 // Supports customizable key combinations via settings
-// Depends on globals from enter-behavior-utils.js:
-// - enterKeyConfig
-// - matchesModifiers()
-// - applyEnterSwapSetting()
-
-function createEnterEvent(modifiers = {}) {
-  return new KeyboardEvent('keydown', {
-    key: 'Enter',
-    code: 'Enter',
-    keyCode: 13,
-    which: 13,
-    bubbles: true,
-    cancelable: true,
-    shiftKey: modifiers.shift || false,
-    ctrlKey: modifiers.ctrl || false,
-    metaKey: modifiers.meta || false,
-    altKey: modifiers.alt || false
-  });
-}
+// 依赖: enter-behavior-utils.js 中的公共 createEnterEvent 函数
 
 const SEND_BUTTON_SELECTORS = [
   { type: 'css', value: '#flow-end-msg-send' },

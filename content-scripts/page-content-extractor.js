@@ -8,10 +8,10 @@
 (function() {
   'use strict';
 
-  if (window.__panelizePageExtractorLoaded) {
+  if (window.__aichatmergePageExtractorLoaded) {
     return;
   }
-  window.__panelizePageExtractorLoaded = true;
+  window.__aichatmergePageExtractorLoaded = true;
 
   /**
    * Extract page content using Readability.js

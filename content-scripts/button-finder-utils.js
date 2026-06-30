@@ -123,9 +123,7 @@
         if (element) {
           // Log which selector succeeded (helpful for debugging)
           if (typeof selector === 'string') {
-            console.debug(`[Button Finder] Found via selector[${i}]:`, selector);
           } else {
-            console.debug(`[Button Finder] Found via selector[${i}]:`, selector.type);
           }
           return element;
         }

@@ -2,8 +2,8 @@
 // containers and the stable <model-response> custom element several times.
 (function() {
   'use strict';
-  window.__panelize_extractors = window.__panelize_extractors || {};
-  window.__panelize_extractors.gemini = function(utils) {
+  window.__aichatmerge_extractors = window.__aichatmerge_extractors || {};
+  window.__aichatmerge_extractors.gemini = function(utils) {
     const selectors = [
       'model-response .markdown-main-panel',
       'model-response .markdown',

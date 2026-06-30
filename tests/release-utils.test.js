@@ -70,18 +70,18 @@ describe('release utils', () => {
         { js: ['content-scripts/a.js', 'content-scripts/b.js'] }
       ],
       web_accessible_resources: [
-        { resources: ['data/version-info.json', 'multi-panel/multi-panel.html'] }
+        { resources: ['data/version-info.json', 'aichatmerge-panel/multi-panel.html'] }
       ]
     };
 
-    expect(readManifestReferencedPaths(manifest)).toEqual([
+    expect(readManifestReferencedPaths(manifest).sort()).toEqual([
       'background/service-worker.js',
       'content-scripts/a.js',
       'content-scripts/b.js',
       'data/version-info.json',
-      'multi-panel/multi-panel.html',
+      'aichatmerge-panel/multi-panel.html',
       'options/options.html'
-    ]);
+    ].sort());
   });
 
   it('normalizes zip entry output', () => {

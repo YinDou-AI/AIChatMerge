@@ -1,8 +1,8 @@
 // 秘塔AI (Metaso) answer extractor
 (function() {
   'use strict';
-  window.__panelize_extractors = window.__panelize_extractors || {};
-  window.__panelize_extractors.metaso = function(utils) {
+  window.__aichatmerge_extractors = window.__aichatmerge_extractors || {};
+  window.__aichatmerge_extractors.metaso = function(utils) {
     // Primary: result-responsive-layer (CSS Modules hashed, unique to Metaso)
     const containers = document.querySelectorAll('[class*="result-responsive-layer"]');
     let lastVisible = null;

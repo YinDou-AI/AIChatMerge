@@ -2,8 +2,8 @@
 // ChatGPT renders responses in .markdown-body containers
 (function() {
   'use strict';
-  window.__panelize_extractors = window.__panelize_extractors || {};
-  window.__panelize_extractors.chatgpt = function(utils) {
+  window.__aichatmerge_extractors = window.__aichatmerge_extractors || {};
+  window.__aichatmerge_extractors.chatgpt = function(utils) {
     return utils.extractGenericMarkdownAnswer();
   };
 })();

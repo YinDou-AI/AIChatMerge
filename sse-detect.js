@@ -9,6 +9,8 @@
   window.__sse_detect_hooked__ = true;
 
   // ===== 平台检测（从hostname推断provider） =====
+  // 注意: 此函数在 MAIN world 运行，无法访问 content script 中的 ProviderDetector。
+  // 配置与 content-scripts/provider-detector.js 保持同步。
   function detectProvider() {
     const host = location.hostname;
     if (host.includes('deepseek')) return 'deepseek';
@@ -546,7 +548,6 @@
     // 条件1: Content-Type 包含 text/event-stream（最可靠）
     const contentType = response.headers.get('content-type') || '';
     if (contentType.includes('text/event-stream')) {
-      console.log('[SSE Detect] Content-Type match:', contentType);
       return true;
     }
 
@@ -554,14 +555,12 @@
     const url = typeof requestInfo === 'string' ? requestInfo
       : requestInfo?.url || '';
     if (isCompletionUrl(url)) {
-      console.log('[SSE Detect] URL pattern match:', url);
       return true;
     }
 
     // 条件3: Accept header 包含 text/event-stream
     const accept = requestInfo?.headers?.get?.('accept') || '';
     if (accept.includes('text/event-stream')) {
-      console.log('[SSE Detect] Accept header match:', accept);
       return true;
     }
 
@@ -590,15 +589,12 @@
 
   function scheduleDeferredTransportComplete(url, provider) {
     if (deferredTransportTimer) clearTimeout(deferredTransportTimer);
-    console.log('[SSE Detect] Scheduling deferred transport completion (multi-stream):', url);
     deferredTransportTimer = setTimeout(function () {
       deferredTransportTimer = null;
       // 确认窗口结束：若期间有新的 SSE 流开始，__sse_fetch_active__ 会是 true，跳过本次完成
       if (window.__sse_fetch_active__) {
-        console.log('[SSE Detect] Deferred transport cancelled (new SSE stream active):', url);
         return;
       }
-      console.log('[SSE Detect] Deferred transport confirmed (no new stream within', DEFERRED_TRANSPORT_MS, 'ms):', url);
       emitComplete(url, 'transport-deferred');
     }, DEFERRED_TRANSPORT_MS);
   }
@@ -608,14 +604,12 @@
     if (deferredTransportTimer) {
       clearTimeout(deferredTransportTimer);
       deferredTransportTimer = null;
-      console.log('[SSE Detect] Deferred transport cancelled by new SSE stream start');
     }
   }
 
   // ===== 发送完成信号（带provider标识） =====
   function emitComplete(url, layer) {
     const provider = detectProvider();
-    console.log('[SSE Detect] Emitting completion for provider:', provider, 'layer:', layer, 'url:', url);
     window.postMessage({
       type: '__sse_complete__',
       provider: provider,
@@ -680,7 +674,6 @@
         const provider = detectProvider();
         const config = PLATFORM_DONE_CONFIG[provider];
         const textConfig = PLATFORM_TEXT_CONFIG[provider];
-        console.log('[SSE Detect] Detected SSE response:', url, 'provider:', provider);
 
         // 标记 fetch hook 正在处理，让 TextDecoder/ReadableStream 兜底 hook 跳过
         window.__sse_fetch_active__ = true;
@@ -728,7 +721,6 @@
                 // 完成检测
                 if (!detected && config && parseSSELine(buffer, config)) {
                   detected = true;
-                  console.log('[SSE Detect] Buffer flush completion detected (Layer 1):', url);
                   emitComplete(url, 'content');
                 }
                 // 文本提取
@@ -751,7 +743,6 @@
                   scheduleDeferredTransportComplete(url, provider);
                 } else {
                   detected = true;
-                  console.log('[SSE Detect] Stream ended (Layer 2 - transport):', url);
                   emitComplete(url, 'transport');
                 }
               }
@@ -783,7 +774,6 @@
                 if (!detected && config && (config.doneKeywords.length > 0 || config.jsonCheck)) {
                   if (parseSSELine(line, config)) {
                     detected = true;
-                    console.log('[SSE Detect] Content-layer completion detected (Layer 1):', url, 'line:', line.trim());
                     emitComplete(url, 'content');
                     break;
                   }
@@ -821,10 +811,8 @@
   if (OriginalEventSource) {
     window.EventSource = function (url, config) {
       const es = new OriginalEventSource(url, config);
-      console.log('[SSE Detect] EventSource created:', url);
 
       es.addEventListener('open', () => {
-        console.log('[SSE Detect] EventSource opened:', url);
       });
 
       es.addEventListener('error', () => {
@@ -833,10 +821,8 @@
           // 修复 #2 + #8：多子流平台改为延迟确认，与 fetch/XHR/ReadableStream 保持一致。
           const provider = detectProvider();
           if (isMultiStreamProvider(provider)) {
-            console.log('[SSE Detect] EventSource closed, deferring (multi-stream provider):', url);
             scheduleDeferredTransportComplete(url, provider);
           } else {
-            console.log('[SSE Detect] EventSource closed (stream ended):', url);
             emitComplete(url);
           }
         }
@@ -881,8 +867,6 @@
     var detected = false;
     var xhr = this;
 
-    console.log('[SSE Detect] XHR hook matched:', ab.url, 'provider:', provider);
-
     // 重置 parseLine 闭包状态
     if (textConfig && typeof textConfig.parseLine.reset === 'function') {
       textConfig.parseLine.reset();
@@ -901,7 +885,6 @@
         if (!detected && config) {
           if (parseSSELine(t, config)) {
             detected = true;
-            console.log('[SSE Detect] XHR completion detected (Layer 1):', ab.url);
             emitComplete(ab.url, 'content');
           }
         }
@@ -918,7 +901,6 @@
             // 防止协议变更导致中间子流误报 done:true。
             if (result && result.done && !detected && !isMultiStreamProvider(provider)) {
               detected = true;
-              console.log('[SSE Detect] XHR parseLine done:', ab.url);
               emitComplete(ab.url, 'content');
             }
           } catch (e) { /* ignore */ }
@@ -954,7 +936,6 @@
             scheduleDeferredTransportComplete(ab.url, provider);
           } else {
             detected = true;
-            console.log('[SSE Detect] XHR stream ended (Layer 2 - transport):', ab.url);
             emitComplete(ab.url, 'transport');
           }
         }
@@ -986,7 +967,6 @@
       if (shouldTrackSSE(result)) {
         st.tracked = true;
         st.provider = provider;
-        console.log('[SSE Detect] TextDecoder hook detected SSE stream for:', provider);
         if (textConfig && typeof textConfig.parseLine.reset === 'function') {
           textConfig.parseLine.reset();
         }
@@ -1010,7 +990,6 @@
         if (parseSSELine(t, config)) {
           detected = true;
           st.detected = true;
-          console.log('[SSE Detect] TextDecoder completion detected (Layer 1)');
           emitComplete('', 'content');
         }
       }
@@ -1025,7 +1004,6 @@
           if (res && res.done && !detected && !isMultiStreamProvider(provider)) {
             detected = true;
             st.detected = true;
-            console.log('[SSE Detect] TextDecoder parseLine done');
             emitComplete('', 'content');
           }
         } catch (e) { /* ignore */ }
@@ -1055,7 +1033,6 @@
               if (config) {
                 if (parseSSELine(st.buf.trim(), config)) {
                   st.detected = true;
-                  console.log('[SSE Detect] ReadableStream buffer flush completion');
                   emitComplete('', 'content');
                 }
               }
@@ -1073,7 +1050,6 @@
                 scheduleDeferredTransportComplete('', provider);
               } else {
                 st.detected = true;
-                console.log('[SSE Detect] ReadableStream stream ended (Layer 2)');
                 emitComplete('', 'transport');
               }
             }
@@ -1093,7 +1069,6 @@
         if (!st.tracked) {
           if (shouldTrackSSE(text)) {
             st.tracked = true;
-            console.log('[SSE Detect] ReadableStream hook detected SSE stream for:', provider);
             if (textConfig && typeof textConfig.parseLine.reset === 'function') {
               textConfig.parseLine.reset();
             }
@@ -1115,7 +1090,6 @@
           if (!st.detected && config) {
             if (parseSSELine(t, config)) {
               st.detected = true;
-              console.log('[SSE Detect] ReadableStream completion detected (Layer 1)');
               emitComplete('', 'content');
             }
           }
@@ -1129,7 +1103,6 @@
               // 修复 #4：多子流平台禁用 parseLine.done 触发完成（同 XHR/TextDecoder）
               if (res2 && res2.done && !st.detected && !isMultiStreamProvider(provider)) {
                 st.detected = true;
-                console.log('[SSE Detect] ReadableStream parseLine done');
                 emitComplete('', 'content');
               }
             } catch (e) { /* ignore */ }
@@ -1141,5 +1114,4 @@
     return reader;
   };
 
-  console.log('[SSE Detect] 4-layer hook installed (fetch + XHR + TextDecoder + ReadableStream)');
 })();

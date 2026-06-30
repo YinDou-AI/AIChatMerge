@@ -4,10 +4,20 @@ import { migrateEnabledProvidersOnUpdate } from '../modules/provider-defaults.js
 /**
  * Tests for background/service-worker.js
  *
- * These tests cover critical background script functionality:
- * - Context menu creation and updates
- * - Message handling (save conversation, check duplicates, version check)
- * - Keyboard shortcut handling
+ * LIMITATIONS:
+ * - service-worker.js is a side-effect-only module (no exports). Its functions
+ *   (loadShortcutSetting, createContextMenus, dispatchToMultiPanel, etc.) are
+ *   tightly coupled to chrome.* API globals and module-level mutable state, so
+ *   they cannot be imported for direct unit testing.
+ * - Several tests below validate Chrome API wiring or mock behavior rather than
+ *   the service-worker's own logic.  These are explicitly marked with
+ *   "(MOCK WIRING)" so it is clear they verify the test harness, not the source.
+ * - The migrateEnabledProvidersOnUpdate tests are the only ones that exercise
+ *   real business logic imported from modules/provider-defaults.js.
+ *
+ * To improve coverage, consider refactoring service-worker.js to export its
+ * core logic functions (createContextMenus, dispatchToMultiPanel, etc.) as
+ * named exports that accept explicit chrome-api parameters.
  */
 
 describe('service-worker', () => {
@@ -48,6 +58,11 @@ describe('service-worker', () => {
   });
 
   describe('Context Menu Creation', () => {
+    // MOCK WIRING: These tests verify that the mock Chrome API surface is
+    // correctly set up, not that createContextMenus() in service-worker.js
+    // works correctly.  createContextMenus cannot be unit-tested because it
+    // is a non-exported function that reads module-level state and calls
+    // chrome.contextMenus.create / removeAll imperatively.
     it('should create context menus with enabled providers', async () => {
       const { chrome } = global;
 
@@ -77,19 +92,16 @@ describe('service-worker', () => {
   });
 
   describe('Message Handling', () => {
+    // MOCK WIRING: Verifies the mock has an onMessage listener slot.
+    // Does NOT verify that service-worker.js actually registers a listener.
     it('should register message listener', () => {
       const { chrome } = global;
       expect(chrome.runtime.onMessage.addListener).toBeDefined();
     });
 
-    // it('should handle fetchLatestCommit message', async () => {
-    //   const message = {
-    //     action: 'fetchLatestCommit'
-    //   };
-    //
-    //   expect(message.action).toBe('fetchLatestCommit');
-    // });
-
+    // MOCK WIRING: This test validates a plain object literal, not any logic
+    // from service-worker.js.  It is kept as a structural reminder that the
+    // message protocol expects an `action` field.
     it('should validate message payload structure', () => {
       const validMessage = {
         action: 'fetchLatestCommit'
@@ -101,6 +113,9 @@ describe('service-worker', () => {
 
 
   describe('Settings Management', () => {
+    // MOCK WIRING: Verifies that the mock storage.sync.get returns data.
+    // Does NOT test loadShortcutSetting() from service-worker.js, which reads
+    // module-level state and could not be imported.
     it('should load keyboard shortcut setting', async () => {
       const { chrome } = global;
 
@@ -113,6 +128,8 @@ describe('service-worker', () => {
       expect(result.keyboardShortcutEnabled).toBe(true);
     });
 
+    // MOCK WIRING: Verifies default-fallback behavior of the mock, not of
+    // loadShortcutSetting() / loadOpenModeSetting() in service-worker.js.
     it('should handle missing settings with defaults', async () => {
       const { chrome } = global;
 
@@ -127,6 +144,7 @@ describe('service-worker', () => {
       expect(result.enabledProviders).toEqual(['chatgpt', 'claude']);
     });
 
+    // REAL TEST: exercises actual business logic from modules/provider-defaults.js
     it('migrates untouched legacy provider settings during updates', () => {
       expect(
         migrateEnabledProvidersOnUpdate(
@@ -139,6 +157,7 @@ describe('service-worker', () => {
       });
     });
 
+    // REAL TEST: exercises actual business logic from modules/provider-defaults.js
     it('appends current providers while preserving a customized provider order for legacy-enabled users', () => {
       expect(
         migrateEnabledProvidersOnUpdate(
@@ -153,6 +172,10 @@ describe('service-worker', () => {
   });
 
   describe('Error Handling', () => {
+    // MOCK WIRING: Verifies that the mock rejects as configured.
+    // service-worker.js's loadShortcutSetting has its own try/catch around
+    // chrome.storage.sync.get, but we cannot exercise that path without
+    // importing the function (which has no export).
     it('should handle storage errors gracefully', async () => {
       const { chrome } = global;
 
@@ -167,39 +190,6 @@ describe('service-worker', () => {
       chrome.contextMenus.removeAll = vi.fn(() => Promise.reject(new Error('Context menu error')));
 
       await expect(chrome.contextMenus.removeAll()).rejects.toThrow();
-    });
-  });
-
-  describe('GitHub API Version Check', () => {
-    it('should fetch latest commit information', async () => {
-      global.fetch = vi.fn(() => Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({
-          sha: 'abc123def456',
-          commit: {
-            committer: { date: '2025-10-19T00:00:00Z' },
-            message: 'Update feature'
-          }
-        })
-      }));
-
-      const response = await fetch('https://api.github.com/repos/Manho/Panelize/commits/main');
-      const data = await response.json();
-
-      expect(data.sha).toBe('abc123def456');
-      expect(data.commit.message).toBe('Update feature');
-    });
-
-    it('should handle GitHub API errors', async () => {
-      global.fetch = vi.fn(() => Promise.resolve({
-        ok: false,
-        status: 404
-      }));
-
-      const response = await fetch('https://api.github.com/repos/Manho/Panelize/commits/main');
-
-      expect(response.ok).toBe(false);
-      expect(response.status).toBe(404);
     });
   });
 

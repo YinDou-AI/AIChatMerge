@@ -1,5 +1,5 @@
 // T050-T064: Settings Page Implementation
-import { getSettings, getSetting, saveSettings, saveSetting, resetSettings, exportSettings, importSettings } from '../modules/settings.js';
+import { getSettings, saveSettings, saveSetting, resetSettings, exportSettings, importSettings, DEFAULT_SOURCE_URL_PLACEMENT, DEFAULT_MARKDOWN_EXPORT_PATH } from '../modules/settings.js';
 import {
   getClaudeCustomEntryUrl,
   normalizeClaudeCustomEntryUrl,
@@ -13,12 +13,16 @@ import {
   clearAllPrompts,
   importDefaultLibrary
 } from '../modules/prompt-manager.js';
-// 版本更新功能已禁用 - version-checker 导入
-// import {
-//   loadVersionInfo,
-//   checkForUpdates
-// } from '../modules/version-checker.js';
-import { t, translatePage, getCurrentLanguage, initializeLanguage } from '../modules/i18n.js';
+import { t, translatePage, initializeLanguage } from '../modules/i18n.js';
+import {
+  getCurrentBrowserLanguage,
+  isEdgeBrowser,
+  getExtensionResourceUrl,
+  getPromptGuidePath,
+  getDefaultLibraryPath,
+  validatePromptStructure,
+  getPromptStructureExample
+} from './options-helpers.js';
 
 
 function fitSelectWidth(select) {
@@ -76,27 +80,6 @@ function refreshAutoSizedSelects(root = document) {
   });
 }
 
-// Helper function to get browser's current language in our supported format
-function getCurrentBrowserLanguage() {
-  const browserLang = getCurrentLanguage();
-  // Map browser language codes to our supported locales
-  if (browserLang.startsWith('zh')) {
-    if (browserLang.includes('TW') || browserLang.includes('HK') || browserLang.includes('Hant')) {
-      return 'zh_TW';
-    }
-    return 'zh_CN';
-  }
-  return 'en';
-}
-
-function isEdgeBrowser() {
-  const uaData = navigator.userAgentData;
-  if (uaData && Array.isArray(uaData.brands)) {
-    return uaData.brands.some(brand => /Edge/i.test(brand.brand));
-  }
-  return navigator.userAgent.includes('Edg/');
-}
-
 function openShortcutSettings(browserOverride) {
   const isEdge = browserOverride === 'edge' || (browserOverride !== 'chrome' && isEdgeBrowser());
   const url = isEdge ? 'edge://extensions/shortcuts' : 'chrome://extensions/shortcuts';
@@ -107,30 +90,6 @@ function openShortcutSettings(browserOverride) {
     // Fallback to window.open if chrome.tabs unavailable
     window.open(url, '_blank');
   }
-}
-
-function getExtensionResourceUrl(path) {
-  if (chrome?.runtime?.getURL) {
-    return chrome.runtime.getURL(path);
-  }
-  return new URL(path, `${window.location.origin}/`).href;
-}
-
-function getPromptGuidePath(locale) {
-  const guidePaths = {
-    en: 'data/prompt-libraries/guide.en.html',
-    zh_CN: 'data/prompt-libraries/guide.zh_CN.html',
-    zh_TW: 'data/prompt-libraries/guide.zh_TW.html',
-    ko: 'data/prompt-libraries/guide.ko.html',
-    ja: 'data/prompt-libraries/guide.ja.html',
-    es: 'data/prompt-libraries/guide.es.html',
-    fr: 'data/prompt-libraries/guide.fr.html',
-    de: 'data/prompt-libraries/guide.de.html',
-    it: 'data/prompt-libraries/guide.it.html',
-    ru: 'data/prompt-libraries/guide.ru.html'
-  };
-
-  return guidePaths[locale] || guidePaths.en;
 }
 
 function setupShortcutHelpers() {
@@ -146,47 +105,6 @@ function setupShortcutHelpers() {
     edgeButton.addEventListener('click', () => openShortcutSettings('edge'));
   }
 }
-
-// 版本更新功能已禁用 - Helper to detect if extension is installed from Chrome Web Store
-// async function isWebStoreInstall() {
-//   try {
-//     const info = await chrome.management.getSelf();
-//     // installType: 'normal' = Chrome Web Store, 'development' = loaded unpacked
-//     return info.installType === 'normal';
-//   } catch (error) {
-//     console.error('Error detecting install type:', error);
-//     // Default to false (show update checking) if detection fails
-//     return false;
-//   }
-// }
-
-// 版本更新功能已禁用 - Hide update checking UI for web store installations
-// async function hideUpdateCheckingIfNeeded() {
-//   const isFromStore = await isWebStoreInstall();
-//
-//   if (isFromStore) {
-//     // Hide "Check for Updates" button
-//     const checkUpdatesBtn = document.getElementById('check-updates-btn');
-//     if (checkUpdatesBtn) {
-//       checkUpdatesBtn.style.display = 'none';
-//     }
-//
-//     // Hide update status message area
-//     const updateStatus = document.getElementById('update-status');
-//     if (updateStatus) {
-//       updateStatus.style.display = 'none';
-//     }
-//
-//     // Hide "Download Latest Version" link
-//     const downloadLink = document.getElementById('download-latest-link');
-//     if (downloadLink) {
-//       const downloadContainer = downloadLink.closest('.version-download');
-//       if (downloadContainer) {
-//         downloadContainer.style.display = 'none';
-//       }
-//     }
-//   }
-// }
 
 function updateShortcutHelperVisibility(isEnabled) {
   const edgeHelper = document.getElementById('edge-shortcut-helper');
@@ -207,8 +125,6 @@ async function init() {
   translatePage();  // Translate all static text
   await loadSettings();
   await loadDataStats();
-  // await loadVersionDisplay();  // 版本更新功能已禁用 - T073: Load and display version info
-  // await hideUpdateCheckingIfNeeded();  // 版本更新功能已禁用 - Hide update checking for web store installations
   setupEventListeners();
   setupShortcutHelpers();
   refreshAutoSizedSelects();
@@ -223,7 +139,7 @@ async function loadSettings() {
 
   // Language
   const currentLanguage = settings.language || getCurrentBrowserLanguage();
-  document.getElementById('language-select').value = currentLanguage;
+  document.getElementById('language-select').value = currentLanguage.startsWith('zh') ? 'zh_CN' : 'en';
 
   const keyboardShortcutEnabled = settings.keyboardShortcutEnabled !== false;
   const shortcutToggle = document.getElementById('keyboard-shortcut-toggle');
@@ -235,7 +151,7 @@ async function loadSettings() {
   // Source URL placement setting
   const sourceUrlPlacementSelect = document.getElementById('source-url-placement-select');
   if (sourceUrlPlacementSelect) {
-    sourceUrlPlacementSelect.value = settings.sourceUrlPlacement || 'none';
+    sourceUrlPlacementSelect.value = settings.sourceUrlPlacement || DEFAULT_SOURCE_URL_PLACEMENT;
   }
 
   // Open mode setting
@@ -249,17 +165,13 @@ async function loadSettings() {
   const mergeTimeoutSelect = document.getElementById('merge-timeout-select');
   if (mergeTimeoutSelect) {
     const timeoutOptions = [30000, 60000, 90000, 120000, 180000, 240000, 300000];
-    if (settings.autoMergeEnabled === false) {
-      mergeTimeoutSelect.value = 'manual';
-    } else {
-      const requestedTimeout = Number(settings.mergeMaxWait) || 120000;
-      const closestTimeout = timeoutOptions.reduce((closest, candidate) => (
-        Math.abs(candidate - requestedTimeout) < Math.abs(closest - requestedTimeout)
-          ? candidate
-          : closest
-      ), 120000);
-      mergeTimeoutSelect.value = String(closestTimeout);
-    }
+    const requestedTimeout = Number(settings.mergeMaxWait) || 120000;
+    const closestTimeout = timeoutOptions.reduce((closest, candidate) => (
+      Math.abs(candidate - requestedTimeout) < Math.abs(closest - requestedTimeout)
+        ? candidate
+        : closest
+    ), 120000);
+    mergeTimeoutSelect.value = String(closestTimeout);
     fitSelectWidth(mergeTimeoutSelect);
   }
 
@@ -286,6 +198,33 @@ async function loadSettings() {
   // Load custom settings
   loadCustomEnterSettings(enterBehavior);
   await loadClaudeCustomEntryUrl();
+
+  // Discussion mode settings
+  const mergeModeSelect = document.getElementById('merge-mode-select');
+  const discussRoundsSelect = document.getElementById('discuss-rounds-select');
+  const discussRoundsSetting = document.getElementById('discuss-rounds-setting');
+
+  if (mergeModeSelect) {
+    mergeModeSelect.value = settings.autoMergeEnabled === false ? 'manual' : (settings.mergeMode || 'merge');
+    if (discussRoundsSetting) {
+      discussRoundsSetting.style.display = mergeModeSelect.value === 'merge+discuss' ? 'flex' : 'none';
+    }
+  }
+
+  if (discussRoundsSelect) {
+    discussRoundsSelect.value = settings.discussRounds || 3;
+  }
+
+  // Markdown 导出设置
+  const markdownExportPath = document.getElementById('markdown-export-path');
+  const markdownExportMode = document.getElementById('markdown-export-mode');
+  if (markdownExportPath) {
+    markdownExportPath.value = settings.markdownExportPath || settings.obsidianVaultPath || DEFAULT_MARKDOWN_EXPORT_PATH;
+  }
+  if (markdownExportMode) {
+    markdownExportMode.value = settings.markdownExportMode || settings.obsidianExportMode || 'auto';
+  }
+
   refreshAutoSizedSelects();
 }
 
@@ -328,18 +267,6 @@ async function loadDataStats() {
     document.getElementById('stat-prompts').textContent = '0';
     document.getElementById('stat-storage').textContent = '0 KB';
   }
-}
-
-// Get the appropriate default library path based on language
-function getDefaultLibraryPath(language) {
-  // Only Simplified Chinese uses translated prompts
-  // All other languages fall back to English
-  if (language === 'zh_CN') {
-    return 'data/prompt-libraries/default-prompts-zh_CN.json';
-  }
-  
-  // Default to English for all other languages (including zh_TW)
-  return 'data/prompt-libraries/default-prompts.json';
 }
 
 // Get user's preferred language for default library
@@ -492,12 +419,6 @@ function setupEventListeners() {
     }
   });
 
-  // 版本更新功能已禁用 - T073: Version check button
-  // const checkUpdatesBtn = document.getElementById('check-updates-btn');
-  // if (checkUpdatesBtn) {
-  //   checkUpdatesBtn.addEventListener('click', performVersionCheck);
-  // }
-
   // Multi-Panel: Open mode selection
   const openModeSelect = document.getElementById('open-mode-select');
   if (openModeSelect) {
@@ -511,11 +432,35 @@ function setupEventListeners() {
   const mergeTimeoutSelect = document.getElementById('merge-timeout-select');
   if (mergeTimeoutSelect) {
     mergeTimeoutSelect.addEventListener('change', async (e) => {
-      const manualMode = e.target.value === 'manual';
-      await saveSettings(manualMode
-        ? { autoMergeEnabled: false }
-        : { mergeMaxWait: parseInt(e.target.value, 10), autoMergeEnabled: true });
+      await saveSetting('mergeMaxWait', parseInt(e.target.value, 10));
       showStatus('success', t('msgMergeTimeoutUpdated') || 'Merge timeout updated');
+    });
+  }
+
+  // Merge mode (discussion settings)
+  const mergeModeSelect = document.getElementById('merge-mode-select');
+  if (mergeModeSelect) {
+    mergeModeSelect.addEventListener('change', async (e) => {
+      const newMode = e.target.value;
+      const manualMode = newMode === 'manual';
+      await saveSettings({
+        mergeMode: manualMode ? 'merge' : newMode,
+        autoMergeEnabled: !manualMode
+      });
+      const discussRoundsSetting = document.getElementById('discuss-rounds-setting');
+      if (discussRoundsSetting) {
+        discussRoundsSetting.style.display = newMode === 'merge+discuss' ? 'flex' : 'none';
+      }
+      showStatus('success', t('msgMergeModeUpdated') || 'Merge mode updated');
+    });
+  }
+
+  const discussRoundsSelect = document.getElementById('discuss-rounds-select');
+  if (discussRoundsSelect) {
+    discussRoundsSelect.addEventListener('change', async (e) => {
+      const newRounds = parseInt(e.target.value, 10);
+      await saveSetting('discussRounds', newRounds);
+      showStatus('success', t('msgDiscussRoundsUpdated') || 'Discuss rounds updated');
     });
   }
 
@@ -567,6 +512,20 @@ function setupEventListeners() {
       }
     });
   }
+
+  // Markdown 导出设置 - 保存（sync 存储）
+  const markdownFields = [
+    { id: 'markdown-export-path', key: 'markdownExportPath' },
+    { id: 'markdown-export-mode', key: 'markdownExportMode' }
+  ];
+  markdownFields.forEach(({ id, key }) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', async (e) => {
+        await saveSetting(key, e.target.value);
+      });
+    }
+  });
 
 }
 
@@ -730,76 +689,7 @@ function showToast(type, messageKey, params = []) {
   }, 3000);
 }
 
-// Validate prompt structure against expected format
-function validatePromptStructure(prompt) {
-  const errors = [];
 
-  // Required fields
-  if (!prompt.title || typeof prompt.title !== 'string') {
-    errors.push('Missing or invalid "title" (string)');
-  }
-  if (!prompt.content || typeof prompt.content !== 'string') {
-    errors.push('Missing or invalid "content" (string)');
-  }
-  if (!prompt.category || typeof prompt.category !== 'string') {
-    errors.push('Missing or invalid "category" (string)');
-  }
-
-  // Tags should be array
-  if (!Array.isArray(prompt.tags)) {
-    errors.push('"tags" must be an array of strings');
-  }
-
-  // Variables should be array (can be empty)
-  if (!Array.isArray(prompt.variables)) {
-    errors.push('"variables" must be an array');
-  }
-
-  // Optional but typed fields
-  if (prompt.isFavorite !== undefined && typeof prompt.isFavorite !== 'boolean') {
-    errors.push('"isFavorite" should be boolean');
-  }
-  if (prompt.useCount !== undefined && typeof prompt.useCount !== 'number') {
-    errors.push('"useCount" should be number');
-  }
-  if (prompt.lastUsed !== undefined && prompt.lastUsed !== null && typeof prompt.lastUsed !== 'number') {
-    errors.push('"lastUsed" should be number or null');
-  }
-
-  return errors;
-}
-
-// Generate example prompt structure
-function getPromptStructureExample() {
-  return `Expected JSON structure (array of prompt objects):
-
-[
-  {
-    "title": "Short descriptive title",
-    "content": "Full prompt text. Use {variables} for placeholders.",
-    "category": "Category name",
-    "tags": ["tag1", "tag2"],
-    "variables": ["variable1", "variable2"],
-    "isFavorite": false,
-    "useCount": 0,
-    "lastUsed": null
-  }
-]
-
-Required fields:
-- title (string)
-- content (string)
-- category (string)
-- tags (array of strings)
-- variables (array of strings)
-
-Optional fields:
-- isFavorite (boolean, default: false)
-- useCount (number, default: 0)
-- lastUsed (number or null, default: null)
-
-${t('msgPromptGuideTip')}`;
-}
 
 // Import Custom Prompt Library
 async function importCustomLibraryHandler(file) {
@@ -835,8 +725,8 @@ async function importCustomLibraryHandler(file) {
     });
 
     if (validationErrors.length > 0) {
-      const errorMsg = t('msgValidationErrors', validationErrors.length.toString()) + `:\n\n${validationErrors.slice(0, 5).join('\n')}${validationErrors.length > 5 ? '\n...' : ''}\n\n${getPromptStructureExample()}`;
-      showStatus('error', t('msgValidationErrors', validationErrors.length.toString()));
+      const errorMsg = t('errValidationErrors', validationErrors.length.toString()) + `:\n\n${validationErrors.slice(0, 5).join('\n')}${validationErrors.length > 5 ? '\n...' : ''}\n\n${getPromptStructureExample()}`;
+      showStatus('error', t('errValidationErrors', validationErrors.length.toString()));
       alert(errorMsg);
       return;
     }
@@ -1005,70 +895,8 @@ async function saveCustomEnterSettings() {
     presetSelect.value = 'custom';
   }
 
-  showStatus('success', t('msgCustomMappingSaved'));
+  showStatus('success', t('msgCustomKeyMappingSaved'));
 }
-
-// 版本更新功能已禁用 - T073: Version Check Functions
-// async function loadVersionDisplay() {
-//   const versionInfo = await loadVersionInfo();
-//   if (!versionInfo) {
-//     document.getElementById('version').textContent = t('msgVersionUnknown');
-//     document.getElementById('commit-hash').textContent = '';
-//     return;
-//   }
-//
-//   document.getElementById('version').textContent = t('labelVersion', versionInfo.version);
-//   // Hide commit-hash element since we no longer use it
-//   const commitHashEl = document.getElementById('commit-hash');
-//   if (commitHashEl) {
-//     commitHashEl.style.display = 'none';
-//   }
-//
-//   // Automatically check for updates on page load
-//   await performVersionCheck();
-// }
-
-// 版本更新功能已禁用 - performVersionCheck
-// async function performVersionCheck() {
-//   const button = document.getElementById('check-updates-btn');
-//   const statusDiv = document.getElementById('update-status');
-//
-//   try {
-//     button.disabled = true;
-//     button.textContent = t('msgChecking');
-//     statusDiv.style.display = 'none';
-//
-//     const result = await checkForUpdates();
-//
-//     if (result.error) {
-//       statusDiv.textContent = result.error;
-//       statusDiv.className = 'update-status update-error';
-//       statusDiv.style.display = 'block';
-//       showStatus('error', result.error);
-//     } else if (result.updateAvailable) {
-//       const latest = result.latestVersion;
-//       const current = result.currentVersion;
-//       statusDiv.innerHTML = t('msgUpdateStatusAvailable', [latest, current]);
-//       statusDiv.className = 'update-status update-available';
-//       statusDiv.style.display = 'block';
-//       showStatus('success', t('msgUpdateAvailable'));
-//     } else {
-//       statusDiv.textContent = t('msgLatestVersion');
-//       statusDiv.className = 'update-status update-current';
-//       statusDiv.style.display = 'block';
-//       showStatus('success', t('msgUpToDate'));
-//     }
-//   } catch (error) {
-//     statusDiv.textContent = t('msgCheckUpdatesFailed');
-//     statusDiv.className = 'update-status update-error';
-//     statusDiv.style.display = 'block';
-//     showStatus('error', t('msgCheckUpdatesFailed'));
-//     console.error('Version check error:', error);
-//   } finally {
-//     button.disabled = false;
-//     button.textContent = t('btnCheckUpdates');
-//   }
-// }
 
 // Initialize on load
 init();

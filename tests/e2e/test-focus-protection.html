@@ -49,9 +49,9 @@
     const SEND_FOCUS_NO_BUSY_TIMEOUT_MS = 2000;
     const SEND_FOCUS_HARD_TIMEOUT_MS = 90000;
     const MULTI_PANEL_PROVIDER_STATUS_CONTEXT = 'multi-panel-provider-status';
-    const PANELIZE_PROVIDER_BUSY = 'PANELIZE_PROVIDER_BUSY';
-    const PANELIZE_PROVIDER_IDLE = 'PANELIZE_PROVIDER_IDLE';
-    const PANELIZE_PROVIDER_USER_INTERACTION = 'PANELIZE_PROVIDER_USER_INTERACTION';
+    const ACM_PROVIDER_BUSY = 'ACM_PROVIDER_BUSY';
+    const ACM_PROVIDER_IDLE = 'ACM_PROVIDER_IDLE';
+    const ACM_PROVIDER_USER_INTERACTION = 'ACM_PROVIDER_USER_INTERACTION';
 
     function focusUnifiedInput(options = {}) {
       const force = Boolean(options.force);
@@ -278,11 +278,11 @@
         const delay = Number(entry.delay) || 0;
         const type = entry.type;
         setTimeout(() => {
-          if (activeSendFocusRequestId !== requestId || !panel.iframe.contentWindow.reportPanelizeStatus) {
+          if (activeSendFocusRequestId !== requestId || !panel.iframe.contentWindow.reportAichatmergeStatus) {
             return;
           }
 
-          panel.iframe.contentWindow.reportPanelizeStatus({
+          panel.iframe.contentWindow.reportAichatmergeStatus({
             type,
             requestId,
             provider: panel.providerId,
@@ -361,11 +361,11 @@
         return;
       }
 
-      if (data.type === PANELIZE_PROVIDER_BUSY) {
+      if (data.type === ACM_PROVIDER_BUSY) {
         handleSendFocusProviderBusy(panel.id, data.requestId);
-      } else if (data.type === PANELIZE_PROVIDER_IDLE) {
+      } else if (data.type === ACM_PROVIDER_IDLE) {
         handleSendFocusProviderIdle(panel.id, data.requestId);
-      } else if (data.type === PANELIZE_PROVIDER_USER_INTERACTION && data.requestId === activeSendFocusRequestId) {
+      } else if (data.type === ACM_PROVIDER_USER_INTERACTION && data.requestId === activeSendFocusRequestId) {
         cancelUnifiedInputFocusRestoreAfterSend();
       }
     });
@@ -433,7 +433,7 @@
         loadingIframeCount++;
         const iframe = document.createElement('iframe');
         iframe.srcdoc = `<html><body><input id="ai-input" type="text"><script>
-          window.reportPanelizeStatus = function(payload) {
+          window.reportAichatmergeStatus = function(payload) {
             window.parent.postMessage(payload, '*');
           };
         <\/script></body></html>`;

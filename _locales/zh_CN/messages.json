@@ -8,6 +8,9 @@
   "commandOpenSidebar": {
     "message": "打开 AIChatMerge"
   },
+  "commandOpenAIChatMerge": {
+    "message": "打开 AIChatMerge"
+  },
   "commandOpenPromptLibrary": {
     "message": "打开提示词库"
   },
@@ -116,9 +119,6 @@
   "btnConfigureEdge": {
     "message": "在 Edge 中配置"
   },
-  "sectionContentSending": {
-    "message": "内容发送"
-  },
   "labelSourceUrlPlacement": {
     "message": "来源网址位置"
   },
@@ -139,6 +139,9 @@
   },
   "descEnterBehavior1": {
     "message": "自定义在 AI 提供商输入字段中输入时回车键和修饰键的工作方式。"
+  },
+  "descEnterBehavior2": {
+    "message": "<strong>适用于：</strong>支持的 AI 提供商。"
   },
   "labelEnableEnterCustomization": {
     "message": "启用回车键自定义"
@@ -353,10 +356,13 @@
     "message": "已导入"
   },
   "msgCustomPromptsImported": {
-    "message": "成功导入 $IMPORTED$ 个自定义提示词",
+    "message": "成功导入 $IMPORTED$ 个自定义提示词，跳过 $SKIPPED$ 个已存在提示词",
     "placeholders": {
       "imported": {
         "content": "$1"
+      },
+      "skipped": {
+        "content": "$2"
       }
     }
   },
@@ -711,7 +717,15 @@
     "message": "未知数量"
   },
   "msgDefaultPromptsImported": {
-    "message": "已导入默认提示词"
+    "message": "已导入 $IMPORTED$ 个默认提示词，跳过 $SKIPPED$ 个已存在提示词",
+    "placeholders": {
+      "imported": {
+        "content": "$1"
+      },
+      "skipped": {
+        "content": "$2"
+      }
+    }
   },
   "msgConversationsImported": {
     "message": "已导入对话"
@@ -775,6 +789,18 @@
   "sectionMultiPanel": {
     "message": "多面板"
   },
+  "descMultiPanel": {
+    "message": "在一个窗口中并排比较多个 AI 聊天机器人的回答"
+  },
+  "labelOpenMultiPanel": {
+    "message": "打开多面板视图"
+  },
+  "descOpenMultiPanel": {
+    "message": "在新标签页中打开多面板比较界面（Cmd/Ctrl+Shift+M）"
+  },
+  "btnOpenMultiPanel": {
+    "message": "打开多面板"
+  },
   "labelOpenMode": {
     "message": "打开模式"
   },
@@ -805,6 +831,12 @@
   "msgLayoutUpdated": {
     "message": "布局已更新"
   },
+  "labelDefaultLayout": {
+    "message": "默认布局"
+  },
+  "descDefaultLayout": {
+    "message": "选择默认的面板排列方式"
+  },
   "sectionAdvancedSettings": {
     "message": "高级设置"
   },
@@ -812,7 +844,7 @@
     "message": "Claude 自定义页面网址（高级）"
   },
   "claudeCustomEntryDescription": {
-    "message": "仅当 Claude 默认入口异常时，填写一个您已验证可正常使用的完整网址。留空时使用系统默认入口。"
+    "message": "Claude 默认入口异常时使用。可填已验证的完整页面网址，例如带 /chat/... 的网址。留空则使用默认入口"
   },
   "claudeCustomEntryPlaceholder": {
     "message": "https://claude.ai/chat/..."
@@ -821,22 +853,22 @@
     "message": "恢复默认入口"
   },
   "claudeCustomEntryWarning": {
-    "message": "此网址可能进入已有对话；更换 Claude 账号后可能失效。请勿分享该网址。页面异常时清空此项即可恢复默认入口。"
+    "message": "可能进入已有对话，更换账号后可能失效，不建议分享。页面异常时清空即可恢复默认入口"
   },
   "claudeEntryDefaultStatus": {
-    "message": "当前使用系统默认入口。"
+    "message": "当前使用系统默认入口"
   },
   "claudeEntryCustomStatus": {
     "message": "当前使用自定义入口：$1"
   },
   "claudeEntryUrlValid": {
-    "message": "网址格式有效，保存后在重新打开 Claude 面板时生效。"
+    "message": "网址格式有效，保存后重新打开 Claude 面板生效"
   },
   "claudeEntrySaved": {
-    "message": "Claude 入口已保存；重新打开 Claude 面板后生效。"
+    "message": "Claude 入口已保存，重新打开 Claude 面板后生效"
   },
   "claudeEntryRestored": {
-    "message": "已恢复 Claude 默认入口。"
+    "message": "已恢复 Claude 默认入口"
   },
   "msgDataImportedWithCount": {
     "message": "成功导入 $COUNT$ 个提示词",
@@ -847,15 +879,86 @@
     }
   },
   "labelMergeTimeout": {
-    "message": "融合等待方式"
+    "message": "融合等待时间"
   },
   "descMergeTimeout": {
-    "message": "选择自动融合的最长等待时间；选择不自动融合时，仅手动融合。"
+    "message": "选择自动融合的最长等待时间。"
   },
   "mergeTimeoutTooltip": {
     "message": "超时触发，可在设置中调整等待时间"
   },
   "msgMergeTimeoutUpdated": {
     "message": "融合等待方式已更新"
+  },
+  "labelMergeMode": {
+    "message": "融合模式"
+  },
+  "descMergeMode": {
+    "message": "选择融合后是否进行多轮讨论"
+  },
+  "optionMergeOnly": {
+    "message": "仅融合"
+  },
+  "optionMergeAndDiscuss": {
+    "message": "融合后讨论"
+  },
+  "optionManualMerge": {
+    "message": "不自动融合"
+  },
+  "labelDiscussRounds": {
+    "message": "讨论轮次"
+  },
+  "descDiscussRounds": {
+    "message": "设置AI讨论的轮次，轮次越多讨论越充分"
+  },
+  "stopDiscussion": {
+    "message": "停止讨论"
+  },
+  "discussionProgress": {
+    "message": "讨论中 (第$1/$2轮)",
+    "placeholders": {
+      "current": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "msgDiscussionStopped": {
+    "message": "讨论已停止"
+  },
+  "obsidianExport": {
+    "message": "导出 Markdown"
+  },
+  "obsidianExportSuccess": {
+    "message": "已导出到 $1"
+  },
+  "obsidianExportFailed": {
+    "message": "导出失败: $1"
+  },
+  "sectionObsidianExport": {
+    "message": "Markdown 导出"
+  },
+  "btnToggleVisibility": {
+    "message": "显示/隐藏"
+  },
+  "labelObsidianStoragePath": {
+    "message": "导出文件夹"
+  },
+  "placeholderObsidianStoragePath": {
+    "message": "AIChatMerge/raw"
+  },
+  "labelObsidianExportMode": {
+    "message": "导出模式"
+  },
+  "obsidianExportAuto": {
+    "message": "自动导出"
+  },
+  "obsidianExportManual": {
+    "message": "仅手动"
+  },
+  "save": {
+    "message": "Save"
   }
 }

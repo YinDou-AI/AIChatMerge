@@ -1,7 +1,7 @@
 // 千问 (Qianwen) answer extractor
 (function() {
   'use strict';
-  window.__panelize_extractors = window.__panelize_extractors || {};
+  window.__aichatmerge_extractors = window.__aichatmerge_extractors || {};
 
   // Remove non-answer UI (source cards and follow-up question suggestions)
   // before extracting text.  Keep the surrounding paragraph: Qianwen may put
@@ -61,7 +61,7 @@
     return bestText;
   }
 
-  window.__panelize_extractors.qianwen = function(utils) {
+  window.__aichatmerge_extractors.qianwen = function(utils) {
     // Primary: extract the full latest response container. This preserves
     // independent trailing sections such as "总结".
     const qkRoots = document.querySelectorAll('.qk-markdown-complete');

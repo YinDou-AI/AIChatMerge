@@ -1,10 +1,13 @@
 {
   "name": "aichatmerge",
-  "version": "1.1.1",
+  "version": "1.0.0",
   "description": "Compare AI chatbots side-by-side",
+  "author": "zhoukailang",
+  "license": "MIT",
+  "homepage": "https://github.com/YinDou-AI/AIChatMerge",
   "repository": {
     "type": "git",
-    "url": "https://gitee.com/zhoukailang/AIChatMerge"
+    "url": "https://github.com/YinDou-AI/AIChatMerge"
   },
   "private": true,
   "type": "module",

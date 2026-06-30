@@ -2,6 +2,10 @@ import { DEFAULT_GOOGLE_PROVIDER_MODE } from './google-mode.js';
 import { DEFAULT_PROVIDER_IDS } from './provider-defaults.js';
 import { CLAUDE_CUSTOM_ENTRY_URL_KEY } from './claude-entry-url.js';
 
+export const DEFAULT_SOURCE_URL_PLACEMENT = 'none';
+export const DEFAULT_MARKDOWN_EXPORT_PATH = 'AIChatMerge/raw';
+export const DEFAULT_OBSIDIAN_VAULT_PATH = DEFAULT_MARKDOWN_EXPORT_PATH;
+
 const DEFAULT_SETTINGS = {
   enabledProviders: DEFAULT_PROVIDER_IDS,
   googleProviderMode: DEFAULT_GOOGLE_PROVIDER_MODE,
@@ -22,7 +26,13 @@ const DEFAULT_SETTINGS = {
     sendModifiers: { shift: false, ctrl: false, alt: false, meta: false }
   },
   mergeMaxWait: 120000, // 自动融合最长等待时间（毫秒），默认120秒
-  autoMergeEnabled: true
+  autoMergeEnabled: true,
+  sourceUrlPlacement: DEFAULT_SOURCE_URL_PLACEMENT,
+  mergeMode: 'merge',        // 'merge'（仅融合）或 'merge+discuss'（融合后讨论）
+  discussRounds: 3,          // 讨论轮次（仅讨论模式生效）
+  // Markdown 导出设置
+  markdownExportPath: DEFAULT_MARKDOWN_EXPORT_PATH,
+  markdownExportMode: 'auto'
 };
 
 export async function getSettings() {
@@ -102,7 +112,7 @@ export async function resetSettings() {
     await chrome.storage.sync.clear();
     await chrome.storage.sync.set(DEFAULT_SETTINGS);
     if (typeof chrome.storage.local?.remove === 'function') {
-      await chrome.storage.local.remove(CLAUDE_CUSTOM_ENTRY_URL_KEY);
+      await chrome.storage.local.remove([CLAUDE_CUSTOM_ENTRY_URL_KEY, 'obsidianApiKey']);
     }
   } catch (error) {
     console.warn('chrome.storage.sync unavailable, using local', error);

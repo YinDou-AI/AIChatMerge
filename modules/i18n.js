@@ -7,7 +7,7 @@ let currentLocale = null;
 
 /**
  * Load translations from a specific locale
- * @param {string} locale - Locale code (e.g., 'en', 'zh_CN', 'zh_TW')
+ * @param {string} locale - Supported locale code (en or zh_CN)
  * @returns {Promise<Object>} Translation messages object
  */
 async function loadTranslations(locale) {
@@ -45,6 +45,11 @@ export async function initializeLanguage(preferredLocale = null) {
     locale = getBrowserLocale();
   }
 
+  // The public UI is maintained in Simplified Chinese and English only.
+  // Existing users with a saved Chinese locale retain Chinese; all other
+  // historical locale values fall back to English.
+  locale = String(locale).toLowerCase().startsWith('zh') ? 'zh_CN' : 'en';
+
   // Load the translations
   translationCache = await loadTranslations(locale);
   currentLocale = locale;
@@ -71,9 +76,6 @@ function getBrowserLocale() {
 
   // Map browser language codes to our supported locales
   if (browserLang.startsWith('zh')) {
-    if (browserLang.includes('TW') || browserLang.includes('HK') || browserLang.includes('Hant')) {
-      return 'zh_TW';
-    }
     return 'zh_CN';
   }
   return 'en';
@@ -169,7 +171,7 @@ export function translatePage(root = document) {
 
 /**
  * Get current UI language
- * @returns {string} Language code (e.g., 'en', 'zh_CN', 'zh_TW')
+ * @returns {string} Supported language code (en or zh_CN)
  */
 export function getCurrentLanguage() {
   try {

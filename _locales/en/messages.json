@@ -8,6 +8,9 @@
   "commandOpenSidebar": {
     "message": "Open AIChatMerge"
   },
+  "commandOpenAIChatMerge": {
+    "message": "Open AIChatMerge"
+  },
   "commandOpenPromptLibrary": {
     "message": "Open Prompt Library"
   },
@@ -60,7 +63,7 @@
     "message": "Claude Custom Page URL (Advanced)"
   },
   "claudeCustomEntryDescription": {
-    "message": "Only enter a complete URL you have verified when Claude's default entry page does not work. Leave it blank to use the default entry."
+    "message": "Use this when Claude's default entry fails. Enter a verified full page URL, such as a /chat/... URL. Leave blank to use the default entry"
   },
   "claudeCustomEntryPlaceholder": {
     "message": "https://claude.ai/chat/..."
@@ -69,22 +72,22 @@
     "message": "Restore Default Entry"
   },
   "claudeCustomEntryWarning": {
-    "message": "This URL may open an existing conversation and can stop working after you change Claude accounts. Do not share it. Clear this setting to restore the default entry if the page fails."
+    "message": "May open an existing conversation, may stop working after account changes, and should not be shared. Clear it to restore the default entry"
   },
   "claudeEntryDefaultStatus": {
-    "message": "Using the system default entry."
+    "message": "Using the system default entry"
   },
   "claudeEntryCustomStatus": {
     "message": "Using custom entry: $1"
   },
   "claudeEntryUrlValid": {
-    "message": "The URL format is valid. It will apply when the Claude panel is reopened."
+    "message": "URL format is valid. Reopen the Claude panel to apply it"
   },
   "claudeEntrySaved": {
-    "message": "Claude entry saved. Reopen the Claude panel to apply it."
+    "message": "Claude entry saved, reopen the Claude panel to apply it"
   },
   "claudeEntryRestored": {
-    "message": "Claude default entry restored."
+    "message": "Claude default entry restored"
   },
   "msgLayoutUpdated": {
     "message": "Layout updated"
@@ -200,9 +203,6 @@
   "btnConfigureEdge": {
     "message": "Configure in Edge"
   },
-  "sectionContentSending": {
-    "message": "Content Sending"
-  },
   "labelSourceUrlPlacement": {
     "message": "Source URL Placement"
   },
@@ -225,7 +225,7 @@
     "message": "Customize how Enter and modifier keys work when typing in AI provider input fields."
   },
   "descEnterBehavior2": {
-    "message": "<strong>Applies to:</strong> DeepSeek, Kimi, ChatGPT, and Claude."
+    "message": "<strong>Applies to:</strong> supported AI providers."
   },
   "labelEnableEnterCustomization": {
     "message": "Enable Enter Key Customization"
@@ -448,10 +448,13 @@
     "message": "Already Imported"
   },
   "msgCustomPromptsImported": {
-    "message": "Successfully imported $IMPORTED$ custom prompts",
+    "message": "Successfully imported $IMPORTED$ custom prompts; skipped $SKIPPED$ existing prompts",
     "placeholders": {
       "imported": {
         "content": "$1"
+      },
+      "skipped": {
+        "content": "$2"
       }
     }
   },
@@ -806,7 +809,15 @@
     "message": "Unknown count"
   },
   "msgDefaultPromptsImported": {
-    "message": "Default prompts imported"
+    "message": "Imported $IMPORTED$ default prompts; skipped $SKIPPED$ existing prompts",
+    "placeholders": {
+      "imported": {
+        "content": "$1"
+      },
+      "skipped": {
+        "content": "$2"
+      }
+    }
   },
   "msgConversationsImported": {
     "message": "Conversations imported"
@@ -868,15 +879,86 @@
     }
   },
   "labelMergeTimeout": {
-    "message": "Merge Wait Mode"
+    "message": "Merge Wait Time"
   },
   "descMergeTimeout": {
-    "message": "Choose the maximum automatic merge wait time, or use manual merge only."
+    "message": "Choose the maximum automatic merge wait time."
   },
   "mergeTimeoutTooltip": {
     "message": "Timeout triggered. Adjust wait time in settings."
   },
   "msgMergeTimeoutUpdated": {
     "message": "Merge wait mode updated"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "labelMergeMode": {
+    "message": "Merge Mode"
+  },
+  "descMergeMode": {
+    "message": "Choose whether to discuss after merging"
+  },
+  "optionMergeOnly": {
+    "message": "Merge Only"
+  },
+  "optionMergeAndDiscuss": {
+    "message": "Merge & Discuss"
+  },
+  "optionManualMerge": {
+    "message": "Manual Merge"
+  },
+  "labelDiscussRounds": {
+    "message": "Discussion Rounds"
+  },
+  "descDiscussRounds": {
+    "message": "Set the number of discussion rounds, more rounds = more thorough discussion"
+  },
+  "stopDiscussion": {
+    "message": "Stop Discussion"
+  },
+  "discussionProgress": {
+    "message": "Discussing (Round $1/$2)",
+    "placeholders": {
+      "current": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "msgDiscussionStopped": {
+    "message": "Discussion stopped"
+  },
+  "obsidianExport": {
+    "message": "Export Markdown"
+  },
+  "obsidianExportSuccess": {
+    "message": "Exported to $1"
+  },
+  "obsidianExportFailed": {
+    "message": "Export failed: $1"
+  },
+  "sectionObsidianExport": {
+    "message": "Markdown Export"
+  },
+  "btnToggleVisibility": {
+    "message": "Show/Hide"
+  },
+  "labelObsidianStoragePath": {
+    "message": "Export Folder"
+  },
+  "placeholderObsidianStoragePath": {
+    "message": "AIChatMerge/raw"
+  },
+  "labelObsidianExportMode": {
+    "message": "Export Mode"
+  },
+  "obsidianExportAuto": {
+    "message": "Auto Export"
+  },
+  "obsidianExportManual": {
+    "message": "Manual Only"
   }
 }

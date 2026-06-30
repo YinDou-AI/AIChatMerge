@@ -1,8 +1,8 @@
 // 元宝 (Yuanbao) answer extractor
 (function() {
   'use strict';
-  window.__panelize_extractors = window.__panelize_extractors || {};
-  window.__panelize_extractors.yuanbao = function(utils) {
+  window.__aichatmerge_extractors = window.__aichatmerge_extractors || {};
+  window.__aichatmerge_extractors.yuanbao = function(utils) {
     // Primary: hyc-common-markdown-style
     const hycRoots = document.querySelectorAll('.hyc-common-markdown-style');
     for (let i = hycRoots.length - 1; i >= 0; i--) {

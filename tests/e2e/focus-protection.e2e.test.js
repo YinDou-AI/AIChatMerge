@@ -211,8 +211,8 @@ test.describe('Focus Protection E2E', () => {
     await page.evaluate(() => {
       window.setSendFocusStealDelays([100, 1000, 4000, 9000, 12500]);
       window.setSendProviderStatusTimeline([
-        { delay: 100, type: 'PANELIZE_PROVIDER_BUSY' },
-        { delay: 13000, type: 'PANELIZE_PROVIDER_IDLE' }
+        { delay: 100, type: 'ACM_PROVIDER_BUSY' },
+        { delay: 13000, type: 'ACM_PROVIDER_IDLE' }
       ]);
     });
 
@@ -280,7 +280,7 @@ test.describe('Focus Protection E2E', () => {
     await page.evaluate(() => {
       window.setSendFocusStealDelays([100, 1000, 4000]);
       window.setSendProviderStatusTimeline([
-        { delay: 300, type: 'PANELIZE_PROVIDER_USER_INTERACTION' }
+        { delay: 300, type: 'ACM_PROVIDER_USER_INTERACTION' }
       ]);
     });
 

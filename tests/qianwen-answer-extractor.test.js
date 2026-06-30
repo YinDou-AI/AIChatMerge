@@ -2,6 +2,10 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+// answer-extractor-qianwen.js is a self-contained IIFE that registers its
+// extractor function on window.__aichatmerge_extractors.  It has no ES module
+// exports because it must run as a plain script in a Chrome content script
+// context.  window.eval() is the correct approach to load it in tests.
 const extractorSource = readFileSync(
   resolve(process.cwd(), 'content-scripts/answer-extractor-qianwen.js'),
   'utf8'
@@ -17,7 +21,7 @@ const utils = {
 describe('Qianwen answer extractor', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
-    window.__panelize_extractors = {};
+    window.__aichatmerge_extractors = {};
     window.eval(extractorSource);
   });
 
@@ -33,7 +37,7 @@ describe('Qianwen answer extractor', () => {
       </div>
     `;
 
-    const answer = window.__panelize_extractors.qianwen(utils);
+    const answer = window.__aichatmerge_extractors.qianwen(utils);
     expect(answer).toContain('正文内容');
     expect(answer).toContain('总结：完整结论');
   });
@@ -46,7 +50,7 @@ describe('Qianwen answer extractor', () => {
       </div>
     `;
 
-    const answer = window.__panelize_extractors.qianwen(utils);
+    const answer = window.__aichatmerge_extractors.qianwen(utils);
     expect(answer).toContain('本轮正文');
     expect(answer).toContain('总结：本轮结论');
     expect(answer).not.toContain('上一轮回答');
@@ -65,7 +69,7 @@ describe('Qianwen answer extractor', () => {
       </article>
     `;
 
-    const answer = window.__panelize_extractors.qianwen(utils);
+    const answer = window.__aichatmerge_extractors.qianwen(utils);
     expect(answer).toContain('观点 5：保持通风并定期更换猫砂。');
     expect(answer).not.toContain('6篇来源');
   });
@@ -87,7 +91,7 @@ describe('Qianwen answer extractor', () => {
       </div>
     `;
 
-    const answer = window.__panelize_extractors.qianwen(utils);
+    const answer = window.__aichatmerge_extractors.qianwen(utils);
     expect(answer).toContain('只要坚持“勤清理、深洗盆、强吸附、调饮食”这套组合拳');
     expect(answer).not.toContain('猫砂盆深度清洁的具体步骤是什么？');
     expect(answer).not.toContain('纳米矿晶除味效果比小苏打好吗？');

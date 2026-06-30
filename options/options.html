@@ -59,14 +59,6 @@
             <select id="language-select">
               <option value="en" data-i18n="langEnglish">English</option>
               <option value="zh_CN" data-i18n="langSimplifiedChinese">简体中文 (Simplified Chinese)</option>
-              <option value="zh_TW" data-i18n="langTraditionalChinese" style="display:none">繁體中文 (Traditional Chinese)</option>
-              <option value="ko" data-i18n="langKorean" style="display:none">한국어 (Korean)</option>
-              <option value="ja" data-i18n="langJapanese" style="display:none">日本語 (Japanese)</option>
-              <option value="es" data-i18n="langSpanish" style="display:none">Español (Spanish)</option>
-              <option value="fr" data-i18n="langFrench" style="display:none">Français (French)</option>
-              <option value="de" data-i18n="langGerman" style="display:none">Deutsch (German)</option>
-              <option value="it" data-i18n="langItalian" style="display:none">Italiano (Italian)</option>
-              <option value="ru" data-i18n="langRussian" style="display:none">Русский (Russian)</option>
             </select>
           </div>
         </div>
@@ -95,7 +87,7 @@
           <div class="setting-info">
             <div class="setting-label" data-i18n="labelMergeTimeout">融合等待方式</div>
             <div class="setting-description" data-i18n="descMergeTimeout">
-              选择自动融合的最长等待时间；选择不自动融合时，仅手动融合。
+              选择自动融合的最长等待时间。
             </div>
           </div>
           <div class="setting-control">
@@ -107,7 +99,64 @@
               <option value="180000">180 秒</option>
               <option value="240000">240 秒</option>
               <option value="300000">300 秒</option>
-              <option value="manual">不自动融合</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelMergeMode">融合模式</div>
+            <div class="setting-description" data-i18n="descMergeMode">
+              选择融合后是否进行多轮讨论
+            </div>
+          </div>
+          <div class="setting-control">
+            <select id="merge-mode-select" class="setting-select">
+              <option value="merge" data-i18n="optionMergeOnly">仅融合</option>
+              <option value="merge+discuss" data-i18n="optionMergeAndDiscuss">融合后讨论</option>
+              <option value="manual" data-i18n="optionManualMerge">不自动融合</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-item" id="discuss-rounds-setting" style="display: none;">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelDiscussRounds">讨论轮次</div>
+            <div class="setting-description" data-i18n="descDiscussRounds">
+              设置AI讨论的轮次，轮次越多讨论越充分
+            </div>
+          </div>
+          <div class="setting-control">
+            <select id="discuss-rounds-select" class="setting-select">
+              <option value="1">1 轮</option>
+              <option value="2">2 轮</option>
+              <option value="3" selected>3 轮</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Markdown Export Settings -->
+      <section class="section">
+        <h2 class="section-title" data-i18n="sectionObsidianExport">Markdown 导出</h2>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelObsidianStoragePath">导出文件夹</div>
+          </div>
+          <div class="setting-control">
+            <input type="text" id="markdown-export-path" data-i18n-placeholder="placeholderObsidianStoragePath" placeholder="AIChatMerge/raw">
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelObsidianExportMode">导出模式</div>
+          </div>
+          <div class="setting-control">
+            <select id="markdown-export-mode">
+              <option value="auto" data-i18n="obsidianExportAuto">自动导出</option>
+              <option value="manual" data-i18n="obsidianExportManual">仅手动</option>
             </select>
           </div>
         </div>
@@ -119,7 +168,7 @@
 
         <details id="claude-entry-settings">
           <summary data-i18n="claudeCustomEntryTitle">Claude 自定义页面网址（高级）</summary>
-          <div class="setting-description" style="margin: 12px 0;" data-i18n="claudeCustomEntryDescription">仅当 Claude 默认入口异常时，填写一个您已验证可正常使用的完整网址。留空时使用系统默认入口。</div>
+          <div class="setting-description" style="margin: 12px 0;" data-i18n="claudeCustomEntryDescription">Claude 默认入口异常时使用。可填已验证的完整页面网址，例如带 /chat/... 的网址。留空则使用默认入口</div>
           <div class="setting-control" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <input id="claude-custom-entry-url" type="url" inputmode="url" autocomplete="off"
               data-i18n-placeholder="claudeCustomEntryPlaceholder" placeholder="https://claude.ai/chat/…" style="min-width: min(100%, 420px); flex: 1;">
@@ -127,8 +176,24 @@
             <button class="btn btn-secondary" id="reset-claude-entry-url" type="button" data-i18n="claudeRestoreDefault">恢复默认入口</button>
           </div>
           <p id="claude-entry-url-status" class="setting-description" style="margin-top: 10px;"></p>
-          <p class="setting-description" style="margin-top: 8px; color: #b45309;" data-i18n="claudeCustomEntryWarning">此网址可能进入已有对话；更换 Claude 账号后可能失效。请勿分享该网址。页面异常时清空此项即可恢复默认入口。</p>
+          <p class="setting-description" style="margin-top: 8px; color: #b45309;" data-i18n="claudeCustomEntryWarning">可能进入已有对话，更换账号后可能失效，不建议分享。页面异常时清空即可恢复默认入口</p>
         </details>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelSourceUrlPlacement">来源 URL 位置</div>
+            <div class="setting-description" data-i18n="descSourceUrlPlacement">
+              选择发送选中文本或页面内容到 AI 提供商时，来源 URL 的放置位置
+            </div>
+          </div>
+          <div class="setting-control">
+            <select id="source-url-placement-select">
+              <option value="none" data-i18n="urlPlacementNone">不包含 URL</option>
+              <option value="end" data-i18n="urlPlacementEnd">放在末尾（内容之后）</option>
+              <option value="beginning" data-i18n="urlPlacementBeginning">放在开头（内容之前）</option>
+            </select>
+          </div>
+        </div>
       </section>
 
       <!-- Keyboard Settings -->
@@ -285,28 +350,6 @@
         </div>
       </section>
 
-      <!-- Content Sending Settings -->
-      <section class="section">
-        <h2 class="section-title" data-i18n="sectionContentSending">内容发送</h2>
-
-        <div class="setting-item">
-          <div class="setting-info">
-            <div class="setting-label" data-i18n="labelSourceUrlPlacement">来源 URL 位置</div>
-            <div class="setting-description" data-i18n="descSourceUrlPlacement">
-              选择发送选中文本或页面内容到 AI 提供商时，来源 URL 的放置位置
-            </div>
-          </div>
-          <div class="setting-control">
-            <select id="source-url-placement-select">
-              <option value="none" data-i18n="urlPlacementNone">不包含 URL</option>
-              <option value="end" data-i18n="urlPlacementEnd">放在末尾（内容之后）</option>
-              <option value="beginning" data-i18n="urlPlacementBeginning">放在开头（内容之前）</option>
-            </select>
-          </div>
-        </div>
-
-      </section>
-
       <!-- T056-T064: Data Management -->
       <section class="section">
         <h2 class="section-title" data-i18n="sectionDataManagement">数据管理</h2>
@@ -397,7 +440,7 @@
 
           <!-- 版本更新功能已禁用 - 下载最新版本链接
           <div class="version-download">
-            <a href="https://github.com/Manho/AIChatMerge/archive/refs/heads/main.zip"
+            <a href="#"
                id="download-latest-link"
                target="_blank"
                rel="noopener noreferrer"

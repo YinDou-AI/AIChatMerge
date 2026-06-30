@@ -1,8 +1,8 @@
 // Doubao (豆包) answer extractor
 (function() {
   'use strict';
-  window.__panelize_extractors = window.__panelize_extractors || {};
-  window.__panelize_extractors.doubao = function(utils) {
+  window.__aichatmerge_extractors = window.__aichatmerge_extractors || {};
+  window.__aichatmerge_extractors.doubao = function(utils) {
     // Primary: md-box-root
     const mdRoots = document.querySelectorAll('.md-box-root');
     for (let i = mdRoots.length - 1; i >= 0; i--) {

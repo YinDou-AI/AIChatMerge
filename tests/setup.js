@@ -1,14 +1,25 @@
 // Test setup file for Vitest
 // Mock Chrome extension APIs
+// Note: vi.fn() is available via vitest globals (configured in vitest.config.js)
 
 global.chrome = {
   runtime: {
+    id: 'test-extension-id',
     getURL: vi.fn((path = '') => `chrome-extension://test-extension/${path}`),
+    getManifest: vi.fn(() => ({ version: '2.0.0', manifest_version: 3 })),
     sendMessage: vi.fn((message, callback) => {
-      if (callback) callback({ success: true });
-      return Promise.resolve({ success: true });
+      const response = { success: true };
+      if (callback) callback(response);
+      return Promise.resolve(response);
     }),
     onMessage: {
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+    },
+    onInstalled: {
+      addListener: vi.fn(),
+    },
+    onStartup: {
       addListener: vi.fn(),
     },
     lastError: null,
@@ -23,9 +34,17 @@ global.chrome = {
       get: vi.fn((keys) => Promise.resolve(typeof keys === 'object' ? keys : {})),
       set: vi.fn(() => Promise.resolve()),
       clear: vi.fn(() => Promise.resolve()),
+      remove: vi.fn(() => Promise.resolve()),
+    },
+    session: {
+      get: vi.fn((keys) => Promise.resolve(typeof keys === 'object' ? keys : {})),
+      set: vi.fn(() => Promise.resolve()),
+      remove: vi.fn(() => Promise.resolve()),
+      clear: vi.fn(() => Promise.resolve()),
     },
     onChanged: {
       addListener: vi.fn(),
+      removeListener: vi.fn(),
     },
   },
   contextMenus: {
@@ -42,6 +61,18 @@ global.chrome = {
   },
   tabs: {
     create: vi.fn(() => Promise.resolve({ id: 1 })),
+    update: vi.fn(() => Promise.resolve({ id: 1 })),
+    query: vi.fn(() => Promise.resolve([{ id: 1 }])),
+    sendMessage: vi.fn(() => Promise.resolve({ success: true })),
+  },
+  windows: {
+    create: vi.fn(() => Promise.resolve({ id: 1 })),
+    onRemoved: {
+      addListener: vi.fn(),
+    },
+  },
+  management: {
+    getSelf: vi.fn(() => Promise.resolve({ installType: 'development', version: '2.0.0' })),
   },
 };
 

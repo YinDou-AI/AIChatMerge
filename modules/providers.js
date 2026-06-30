@@ -44,7 +44,7 @@ export const PROVIDERS = [
   {
     id: 'wenxin',
     name: '文心一言',
-    url: 'https://yiyan.baidu.com/',
+    url: 'https://chat.baidu.com/',
     icon: '/icons/providers/wenxin.png',
     iconDark: '/icons/providers/dark/wenxin.png',
     enabled: true

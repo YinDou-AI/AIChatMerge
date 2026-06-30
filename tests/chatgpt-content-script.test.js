@@ -2,6 +2,12 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+// text-injection-all-providers.js is a self-contained IIFE designed to run
+// inside an iframe injected by the Chrome extension.  It intentionally has
+// no ES module exports so it can operate without a bundler in the extension
+// context.  We use window.eval() to load the script into the happy-dom test
+// environment, which is the only way to exercise its side effects (message
+// listener registration, DOM manipulation) in a test.
 const contentScriptSource = readFileSync(
   resolve(process.cwd(), 'content-scripts/text-injection-all-providers.js'),
   'utf8'
@@ -74,7 +80,7 @@ describe('chatgpt content script provider status', () => {
 
     await wait(150);
 
-    expect(getProviderStatusCalls(postMessageSpy, 'PANELIZE_PROVIDER_BUSY')).toHaveLength(0);
+    expect(getProviderStatusCalls(postMessageSpy, 'ACM_PROVIDER_BUSY')).toHaveLength(0);
   });
 
   it('reports busy when the ChatGPT stop button appears', async () => {
@@ -91,7 +97,7 @@ describe('chatgpt content script provider status', () => {
     composer.insertAdjacentHTML('beforeend', '<button type="button" data-testid="stop-button" aria-label="Stop streaming">Stop</button>');
     await wait(50);
 
-    const busyCalls = getProviderStatusCalls(postMessageSpy, 'PANELIZE_PROVIDER_BUSY');
+    const busyCalls = getProviderStatusCalls(postMessageSpy, 'ACM_PROVIDER_BUSY');
     expect(busyCalls).toHaveLength(1);
     expect(busyCalls[0]).toMatchObject({
       requestId: 'req-busy',
@@ -117,9 +123,9 @@ describe('chatgpt content script provider status', () => {
     );
     await wait(50);
     getStopButton()?.remove();
-    await wait(850);
+    await wait(1000);
 
-    const idleCalls = getProviderStatusCalls(postMessageSpy, 'PANELIZE_PROVIDER_IDLE');
+    const idleCalls = getProviderStatusCalls(postMessageSpy, 'ACM_PROVIDER_IDLE');
     expect(idleCalls).toHaveLength(1);
     expect(idleCalls[0]).toMatchObject({
       requestId: 'req-idle',
@@ -146,12 +152,12 @@ describe('chatgpt content script provider status', () => {
     composer.insertAdjacentHTML('beforeend', '<button type="button" data-testid="stop-button" aria-label="Stop streaming">Stop</button>');
     await wait(650);
 
-    expect(getProviderStatusCalls(postMessageSpy, 'PANELIZE_PROVIDER_IDLE')).toHaveLength(0);
+    expect(getProviderStatusCalls(postMessageSpy, 'ACM_PROVIDER_IDLE')).toHaveLength(0);
 
     getStopButton()?.remove();
-    await wait(850);
+    await wait(1000);
 
-    expect(getProviderStatusCalls(postMessageSpy, 'PANELIZE_PROVIDER_IDLE')).toHaveLength(1);
+    expect(getProviderStatusCalls(postMessageSpy, 'ACM_PROVIDER_IDLE')).toHaveLength(1);
   });
 
   it('stops tracking when busy is never observed within 2 seconds', async () => {
@@ -168,8 +174,8 @@ describe('chatgpt content script provider status', () => {
     composer.insertAdjacentHTML('beforeend', '<button type="button" data-testid="stop-button" aria-label="Stop streaming">Stop</button>');
     await wait(100);
 
-    expect(getProviderStatusCalls(postMessageSpy, 'PANELIZE_PROVIDER_BUSY')).toHaveLength(0);
-    expect(getProviderStatusCalls(postMessageSpy, 'PANELIZE_PROVIDER_IDLE')).toHaveLength(0);
+    expect(getProviderStatusCalls(postMessageSpy, 'ACM_PROVIDER_BUSY')).toHaveLength(0);
+    expect(getProviderStatusCalls(postMessageSpy, 'ACM_PROVIDER_IDLE')).toHaveLength(0);
   });
 
   it('reports user interaction for non-chatgpt providers during send tracking', async () => {
@@ -193,7 +199,7 @@ describe('chatgpt content script provider status', () => {
 
     pointerdownHandler({ isTrusted: true });
 
-    const interactionCalls = getProviderStatusCalls(postMessageSpy, 'PANELIZE_PROVIDER_USER_INTERACTION');
+    const interactionCalls = getProviderStatusCalls(postMessageSpy, 'ACM_PROVIDER_USER_INTERACTION');
     expect(interactionCalls).toHaveLength(1);
     expect(interactionCalls[0]).toMatchObject({
       requestId: 'req-gemini-user-interaction',

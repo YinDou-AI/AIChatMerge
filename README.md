@@ -2,12 +2,11 @@
 
 <p align="center">
   <a href="README.md"><strong>English</strong></a> |
-  <a href="README.zh-CN.md"><strong>简体中文</strong></a> |
-  <a href="README.ja.md"><strong>日本語</strong></a>
+  <a href="README.zh-CN.md"><strong>简体中文</strong></a>
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/aichatmerge-marquee.png" alt="AIChatMerge - All Your AI Assistants. One Window." width="700">
+  <img src="assets/screenshots/PixPin_2026-06-30_14-00-42.jpg" alt="AIChatMerge - All Your AI Assistants. One Window." width="700">
 </p>
 
 <p align="center">
@@ -15,9 +14,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.2.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
-  <img src="https://img.shields.io/badge/languages-10-brightgreen.svg" alt="Languages">
+  <img src="https://img.shields.io/badge/languages-2-brightgreen.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Chrome-114+-4285F4.svg" alt="Chrome">
   <img src="https://img.shields.io/badge/Edge-114+-0078D7.svg" alt="Edge">
 </p>
@@ -31,7 +30,7 @@ Ever found yourself copying the same prompt across multiple AI tabs just to comp
 **One window. One prompt. Multiple AI responses—instantly.**
 
 <p align="center">
-  <img src="assets/screenshots/main-panel.png" alt="AIChatMerge Main Interface" width="800">
+  <img src="assets/screenshots/PixPin_2026-06-30_14-13-19.jpg" alt="AIChatMerge Main Interface" width="800">
 </p>
 
 ---
@@ -40,14 +39,14 @@ Ever found yourself copying the same prompt across multiple AI tabs just to comp
 
 ### 🎯 Ask Once, Compare All
 
-Type your question once and send it to DeepSeek, Kimi, ChatGPT, and Claude simultaneously. See which AI gives you the best answer—no tab switching required.
+Type your question once and send it to your selected providers simultaneously. See which AI gives you the best answer—no tab switching required.
 
 ### 📐 Flexible Layouts
 
 Choose from 15 different layouts to fit your workflow. Need a quick 2-way comparison? Use 1×2. Deep research across 4 models? Try 1×4. The choice is yours.
 
 <p align="center">
-  <img src="assets/screenshots/select-layout.png" alt="Layout Selection" width="600">
+  <img src="assets/screenshots/PixPin_2026-06-30_12-31-44.jpg" alt="Discussion Mode" width="600">
 </p>
 
 ### ⚡ Zero Setup
@@ -73,31 +72,35 @@ Save your best prompts and reuse them across all providers. Supports variables l
   <tr>
     <td align="center"><strong>DeepSeek</strong></td>
     <td align="center"><strong>Kimi</strong></td>
+    <td align="center"><strong>Doubao</strong></td>
+    <td align="center"><strong>Qianwen</strong></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Zhipu Qingyan</strong></td>
+    <td align="center"><strong>Wenxin Yiyan</strong></td>
+    <td align="center"><strong>Yuanbao</strong></td>
+    <td align="center"><strong>Metaso AI</strong></td>
+  </tr>
+  <tr>
     <td align="center"><strong>ChatGPT</strong></td>
+    <td align="center"><strong>Gemini</strong></td>
     <td align="center"><strong>Claude</strong></td>
+    <td align="center"><strong>Grok</strong></td>
   </tr>
 </table>
 
 <p align="center">
-  <img src="assets/screenshots/settings.png" alt="Settings & Providers" width="700">
+  <img src="assets/screenshots/PixPin_2026-06-30_11-53-50.jpg" alt="Merge Result" width="700">
 </p>
 
 ---
 
 ## Installation
 
-### Chrome Web Store (Recommended)
-
-1. Visit the [Chrome Web Store](https://chromewebstore.google.com/detail/panelize/iokalaafkmjffolodkkgbbccmofbglii) page
-2. Click **"Add to Chrome"**
-3. Done! Press `Cmd/Ctrl + Shift + E` to open AIChatMerge
-
-> **Works on Edge too:** Install directly from the Chrome Web Store.
-
 <details>
-<summary><strong>Manual Installation (for developers)</strong></summary>
+<summary><strong>Manual Installation</strong></summary>
 
-1. Download the source code from this repository
+1. Download the source code from the official GitHub repository
 2. Go to `chrome://extensions/` (or `edge://extensions/`)
 3. Enable "Developer mode"
 4. Click "Load unpacked" and select the extracted folder
@@ -137,14 +140,15 @@ Customize shortcuts at `chrome://extensions/shortcuts`
 → Check for conflicts at `chrome://extensions/shortcuts`
 
 **Need more help?**
-→ [Open an issue](https://github.com/Manho/AIChatMerge/issues)
+→ Open an issue in the official GitHub repository
 
 ---
 
 ## Contributing
 
 Found a bug? Have an idea? Contributions are welcome:
-- 🐛 Report bugs via [GitHub Issues](https://github.com/Manho/AIChatMerge/issues)
+
+- 🐛 Report bugs via GitHub Issues
 - 💡 Suggest features
 - 🌍 Help translate to more languages
 - 🔧 Submit pull requests
@@ -155,11 +159,21 @@ Found a bug? Have an idea? Contributions are welcome:
 
 MIT License — see [LICENSE](LICENSE) for details.
 
+### Third-Party Licenses
+
+This project includes the following third-party libraries:
+
+| Library | License | Source |
+|---------|---------|--------|
+| [Readability.js](https://github.com/mozilla/readability) | Apache License 2.0 | Mozilla / Arc90 Inc |
+
+Readability.js is used in `libs/Readability.js` for extracting main content from web pages. Licensed under the Apache License, Version 2.0.
+
 ---
 
 <p align="center">
   <strong>Open source & privacy-focused</strong><br>
-  Available in 10 languages
+  Available in Chinese and English
 </p>
 
 <p align="center">

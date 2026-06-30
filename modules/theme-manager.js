@@ -16,7 +16,7 @@ export async function applyTheme() {
   }
 
   document.documentElement.setAttribute('data-theme', theme);
-  document.dispatchEvent(new CustomEvent('panelize:themechange', {
+  document.dispatchEvent(new CustomEvent('aichatmerge:themechange', {
     detail: { theme }
   }));
   return theme;

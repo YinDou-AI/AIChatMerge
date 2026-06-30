@@ -2,8 +2,8 @@
 // 不检查可见性（答案可能在视口外），从后往前取第一个有内容的元素
 (function() {
   'use strict';
-  window.__panelize_extractors = window.__panelize_extractors || {};
-  window.__panelize_extractors.deepseek = function(utils) {
+  window.__aichatmerge_extractors = window.__aichatmerge_extractors || {};
+  window.__aichatmerge_extractors.deepseek = function(utils) {
     // Primary: find LAST AI message content
     const allMainContent = document.querySelectorAll('.ds-assistant-message-main-content');
     for (let i = allMainContent.length - 1; i >= 0; i--) {

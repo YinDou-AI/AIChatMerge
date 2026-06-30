@@ -29,7 +29,8 @@ export const PACKAGE_INCLUDE_PATHS = [
   'options',
   'rules',
   'LICENSE',
-  'manifest.json'
+  'manifest.json',
+  'sse-detect.js'
 ];
 
 export const PACKAGE_EXCLUDED_PREFIXES = [
