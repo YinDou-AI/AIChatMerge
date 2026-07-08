@@ -14,6 +14,7 @@ describe('discussion message context', () => {
   it('binds discussion send retries and completion monitoring to the same session', () => {
     const source = readFileSync(resolve(process.cwd(), 'aichatmerge-panel/multi-panel.js'), 'utf8');
 
+    expect(source).toContain('const DISCUSSION_ROUNDS = 1;');
     expect(source).toMatch(/if\s*\(mergeSessionId\)\s*{[\s\S]*type:\s*'MONITOR_COMPLETION'[\s\S]*mergeSessionId[\s\S]*panelId:\s*panel\.id[\s\S]*context:\s*'multi-panel'/);
     expect(source).toMatch(/const discussionSessionId = `discussion-round-\$\{round\}-\$\{panel\.id\}-\$\{Date\.now\(\)\}`;/);
     expect(source).toContain("String(data.mergeSessionId || '').startsWith('discussion-round-')");

@@ -355,6 +355,7 @@ let pendingAnswerExtractions = new Map();
 let isExtractingAnswers = false;
 let extractionDepth = 0; // 引用计数，防止并发 extractMode 切换
 let pendingExtractionPromise = null; // 并发调用时等待中的调用者可复用
+const DISCUSSION_ROUNDS = 1;
 function getThemeAwareProviderIcon(provider) {
   return getProviderIcon(provider);
 }
