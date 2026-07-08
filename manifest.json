@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
   "short_name": "AIChatMerge",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Compare AI responses side by side, merge useful answers, manage prompts, and export results.",
   "default_locale": "en",
   "permissions": [
