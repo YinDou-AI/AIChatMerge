@@ -18,45 +18,104 @@ import { describe, it, expect, beforeEach } from 'vitest';
 function buildMergePrompt(question, answers, currentLocale = 'zh_CN') {
   const isEn = currentLocale === 'en';
   const today = new Date().toLocaleDateString(isEn ? 'en-US' : 'zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-  const parts = answers.map(a => `【${a.providerName}】\n${normalizeAnswerForMerge(a.answer)}`).join('\n\n---\n\n');
+  const parts = answers.map(a => `【${a.providerName}】\n${normalizeAnswerForMerge(a.answer)}`).join('\n');
 
   if (isEn) {
-    return `You are a skilled answer synthesizer. Today: ${today}.
+    return `You synthesize multiple model responses. Today: ${today}
 [Original Question]
 ${question}
 [Model Responses]
 ${parts}
 Rules:
-1. Quote the original question as-is
-2. Extract the best content from each response, remove duplicates
-3. When citing a viewpoint, note which model(s) support it (e.g. "— DeepSeek, ChatGPT")
-4. Remove outdated info based on today's date
-5. Note disagreements briefly, then give the best answer
-6. Use Markdown formatting (## for headings, **bold** for emphasis, - for lists)
-Output the synthesized answer with source attribution.`;
+1. Start by writing the original question exactly
+2. Synthesize useful content from each response, remove duplicates, cite source models; when models disagree, preserve each position and cite the source model
+3. Remove outdated information based on today's date
+4. Use Markdown, no tables
+5. Output scores on a separate line starting with "Model scores:", format: Model scores: ModelName=score, ModelName=score
+6. Output a title on a separate line starting with "Title:", format: Title: title within 10 words`.replace(/\n{2,}/g, '\n');
   }
 
-  return `你是一位优秀的答案综合者。当前日期：${today}。
+  return `你是一位答案综合者。当前日期：${today}
 [原始问题]
 ${question}
 [各模型回答]
 ${parts}
 规则：
-1. 先原样引用原始问题
-2. 从每个回答中提取最优质的内容，去除重复
-3. 引用观点时注明来源（如"— DeepSeek、ChatGPT"）
-4. 根据当前日期，去除过时的信息
-5. 模型有分歧时简要说明后给出最佳答案
-6. 使用 Markdown 格式输出（标题用 ##，重点用 **加粗**，列表用 -）
-直接输出综合答案，每个观点注明来源。`;
+1. 先原样写出原始问题
+2. 综合各回答的有效内容去重，注明来源模型，有分歧时保留各方立场
+3. 剔除过时信息
+4. 使用 Markdown 输出，不用表格
+5. 单独一行输出评分，必须以“模型评分：”开头，格式：模型评分：模型名=分数，模型名=分数
+6. 单独一行输出标题，必须以“标题：”开头，格式：标题：标题内容，标题控制在10字以内`.replace(/\n{2,}/g, '\n');
 }
 
 function normalizeAnswerForMerge(answer) {
+  return sanitizeMergedAnswerForDiscussion(answer);
+}
+
+function isMeaninglessStandaloneSymbolLine(line) {
+  const trimmed = String(line || '').trim();
+  if (!trimmed) return false;
+  return /^[\-–—_*•·.,，、;；:：|/\\()[\]{}<>《》【】"'“”‘’`~!！?？=+^$#@%&]+$/.test(trimmed);
+}
+
+function sanitizeMergedAnswerForDiscussion(answer) {
+  let inCodeBlock = false;
+
   return String(answer || '')
     .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .filter(line => {
+      if (/^\s*```/.test(line)) {
+        inCodeBlock = !inCodeBlock;
+        return true;
+      }
+
+      if (inCodeBlock) return true;
+      if (!String(line || '').trim()) return false;
+      return !isMeaninglessStandaloneSymbolLine(line);
+    })
+    .join('\n')
     .replace(/[ \t]+$/gm, '')
-    .replace(/^\n+|\n+$/g, '')
-    .replace(/\n{2,}/g, '\n');
+    .trim();
+}
+
+/**
+ * Build the prompt sent to each model during discussion rounds.
+ * Source: aichatmerge-panel/multi-panel.js buildDiscussPrompt
+ */
+function buildDiscussPrompt(question, mergedAnswer, currentLocale = 'zh_CN') {
+  const isEn = currentLocale === 'en';
+  const today = new Date().toLocaleDateString(isEn ? 'en-US' : 'zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+  const cleanMergedAnswer = sanitizeMergedAnswerForDiscussion(mergedAnswer);
+
+  if (isEn) {
+    return `Task: Review the current merged result. Current date: ${today}
+[Original Question]
+${question}
+[Current Merged Result]
+${cleanMergedAnswer}
+Output Rules:
+1. Do not rewrite the full answer; output only corrections, additions, or objections
+2. If there is no objection, output only: Agree with the current merged result; no new corrections
+3. Prioritize recent information and flag clearly outdated or unreliable content
+4. Do not use tables; use numbered lists for comparisons
+5. For each correction or addition, cite evidence, source model, or accurate source channel
+6. If there is a conflict, state the conflict, each position, and your judgment`.replace(/\n{2,}/g, '\n');
+  }
+
+  return `任务：复核当前融合结果。当前日期：${today}
+[原始问题]
+${question}
+[当前融合结果]
+${cleanMergedAnswer}
+输出规则：
+1. 不要重写完整答案，只输出需要修正、补充或反对的内容
+2. 如果没有异议，只输出：同意当前融合结果，无新增修正
+3. 以最新信息为准，指出明显过时或不可靠的内容
+4. 禁止使用表格；对比内容使用编号列表
+5. 每条修正或补充都注明依据、来源模型或准确来源渠道
+6. 如存在冲突，说明冲突点、各方立场和你的判断结论`.replace(/\n{2,}/g, '\n');
 }
 
 /**
@@ -119,7 +178,7 @@ describe('merge-feature', () => {
 
       const prompt = buildMergePrompt(question, answers);
 
-      expect(prompt).toContain('你是一位优秀的答案综合者');
+      expect(prompt).toContain('你是一位答案综合者');
       expect(prompt).toContain(question);
       expect(prompt).toContain('【ChatGPT】');
       expect(prompt).toContain('Python is very versatile.');
@@ -127,7 +186,7 @@ describe('merge-feature', () => {
       expect(prompt).toContain('TypeScript offers type safety.');
       expect(prompt).toContain('[原始问题]');
       expect(prompt).toContain('[各模型回答]');
-      expect(prompt).toContain('直接输出综合答案');
+      expect(prompt).toContain('规则：');
     });
 
     it('should include today date in zh-CN format', () => {
@@ -136,7 +195,7 @@ describe('merge-feature', () => {
       ]);
 
       // The date string should be somewhere in the prompt header
-      expect(prompt).toMatch(/^你是一位优秀的答案综合者。当前日期：.+。/);
+      expect(prompt).toMatch(/^你是一位答案综合者。当前日期：.+/);
     });
 
     it('should handle a single answer', () => {
@@ -147,7 +206,7 @@ describe('merge-feature', () => {
       expect(prompt).toContain('【Gemini】');
       expect(prompt).toContain('Hi there!');
       // Should still have the full template
-      expect(prompt).toContain('从每个回答中提取最优质的内容');
+      expect(prompt).toContain('综合各回答的有效内容去重');
     });
 
     it('should handle many answers', () => {
@@ -190,8 +249,8 @@ describe('merge-feature', () => {
       const prompt = buildMergePrompt('', answers);
 
       // Empty question should still produce valid structure
-      expect(prompt).toContain('[原始问题]\n\n');
-      expect(prompt).toContain('[各模型回答]');
+      expect(prompt).toContain('[原始问题]\n[各模型回答]');
+      expect(prompt).not.toContain('\n\n');
     });
 
     it('should handle multiline answers', () => {
@@ -250,29 +309,37 @@ describe('merge-feature', () => {
         { providerName: 'A', answer: 'a' },
       ]);
 
-      expect(prompt).toContain('引用观点时注明来源');
-      expect(prompt).toContain('根据当前日期，去除过时的信息');
-      expect(prompt).toContain('使用 Markdown 格式输出');
-      expect(prompt).toContain('直接输出综合答案');
+      expect(prompt).toContain('注明来源');
+      expect(prompt).toContain('剔除过时信息');
+      expect(prompt).toContain('使用 Markdown 输出');
+      expect(prompt).toContain('单独一行输出评分');
+      expect(prompt).toContain('必须以“模型评分：”开头');
+      expect(prompt).toContain('模型评分：模型名=分数，模型名=分数');
+      expect(prompt).toContain('必须以“标题：”开头');
+      expect(prompt).toContain('标题：标题内容');
+      expect(prompt).not.toContain('<<<');
     });
 
     it('should remove blank lines while preserving single line breaks', () => {
       const prompt = buildMergePrompt('q', [
-        { providerName: 'A', answer: '\n\n第一段\n  \n\n\n第二段\n' },
+        { providerName: 'A', answer: '\n\n第一段\n  \n\n\n第二段\n---\n*\n-20%\n' },
       ]);
 
-      expect(prompt).toContain('【A】\n第一段\n第二段');
+      expect(prompt).toContain('【A】\n第一段\n第二段\n-20%');
       expect(prompt).not.toContain('【A】\n\n');
       expect(prompt).not.toContain('第一段\n\n第二段');
+      expect(prompt).not.toContain('\n---\n');
+      expect(prompt).not.toContain('\n*\n');
     });
 
-    it('separates provider answers clearly', () => {
+    it('separates provider answers with provider headings', () => {
       const prompt = buildMergePrompt('q', [
         { providerName: 'A', answer: '第一段' },
         { providerName: 'B', answer: '第二段' },
       ]);
 
-      expect(prompt).toContain('【A】\n第一段\n\n---\n\n【B】\n第二段');
+      expect(prompt).toContain('【A】\n第一段\n【B】\n第二段');
+      expect(prompt).not.toContain('\n---\n');
     });
 
     it('should build the English prompt when locale is en', () => {
@@ -280,11 +347,66 @@ describe('merge-feature', () => {
         { providerName: 'DeepSeek', answer: 'Answer A.' },
       ], 'en');
 
-      expect(prompt).toContain('You are a skilled answer synthesizer');
+      expect(prompt).toContain('You synthesize multiple model responses');
       expect(prompt).toContain('[Original Question]');
       expect(prompt).toContain('[Model Responses]');
-      expect(prompt).toContain('Quote the original question as-is');
-      expect(prompt).toContain('Output the synthesized answer with source attribution.');
+      expect(prompt).toContain('Start by writing the original question exactly');
+      expect(prompt).toContain('Use Markdown, no tables');
+      expect(prompt).toContain('Output scores on a separate line starting with "Model scores:"');
+      expect(prompt).toContain('Model scores: ModelName=score, ModelName=score');
+      expect(prompt).toContain('Output a title on a separate line starting with "Title:"');
+      expect(prompt).toContain('Title: title within 10 words');
+      expect(prompt).not.toContain('<<<');
+      expect(prompt).not.toContain('\n\n');
+    });
+  });
+
+  describe('buildDiscussPrompt', () => {
+    it('should build a fixed-format Chinese review prompt', () => {
+      const prompt = buildDiscussPrompt('原始问题', '融合结果\n\n第二行');
+
+      expect(prompt).toContain('任务：复核当前融合结果');
+      expect(prompt).toContain('[原始问题]');
+      expect(prompt).toContain('原始问题');
+      expect(prompt).toContain('[当前融合结果]');
+      expect(prompt).toContain('融合结果\n第二行');
+      expect(prompt).toContain('输出规则：');
+      expect(prompt).toContain('不要重写完整答案，只输出需要修正、补充或反对的内容');
+      expect(prompt).toContain('如果没有异议，只输出：同意当前融合结果，无新增修正');
+      expect(prompt).toContain('禁止使用表格；对比内容使用编号列表');
+      expect(prompt).toContain('如存在冲突，说明冲突点、各方立场和你的判断结论');
+      expect(prompt).not.toContain('任务：输出你的最终答案');
+      expect(prompt).not.toContain('轮次：');
+      expect(prompt).not.toContain('输出必须是 Markdown');
+      expect(prompt).not.toContain('分点列表或编号列表');
+      expect(prompt).not.toContain('\n\n');
+    });
+
+    it('removes orphan symbol-only lines from review prompt input', () => {
+      const prompt = buildDiscussPrompt('原始问题', '融合结果\n---\n*\n补充内容');
+
+      expect(prompt).toContain('融合结果\n补充内容');
+      expect(prompt).not.toContain('\n---\n');
+      expect(prompt).not.toContain('\n*\n');
+    });
+
+    it('should build a fixed-format English review prompt', () => {
+      const prompt = buildDiscussPrompt('Original question', 'Merged result\n\nsecond line', 'en');
+
+      expect(prompt).toContain('Task: Review the current merged result');
+      expect(prompt).toContain('[Original Question]');
+      expect(prompt).toContain('Original question');
+      expect(prompt).toContain('[Current Merged Result]');
+      expect(prompt).toContain('Output Rules:');
+      expect(prompt).toContain('Do not rewrite the full answer; output only corrections, additions, or objections');
+      expect(prompt).toContain('If there is no objection, output only: Agree with the current merged result; no new corrections');
+      expect(prompt).toContain('Do not use tables; use numbered lists for comparisons');
+      expect(prompt).toContain('If there is a conflict, state the conflict, each position, and your judgment');
+      expect(prompt).not.toContain('Task: Output your final answer');
+      expect(prompt).not.toContain('Round: 2/4');
+      expect(prompt).not.toContain('Output must be Markdown');
+      expect(prompt).not.toContain('bullet or numbered lists');
+      expect(prompt).not.toContain('\n\n');
     });
   });
 

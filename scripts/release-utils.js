@@ -25,7 +25,7 @@ export const PACKAGE_INCLUDE_PATHS = [
   'icons',
   'libs',
   'modules',
-  'multi-panel',
+  'aichatmerge-panel',
   'options',
   'rules',
   'LICENSE',

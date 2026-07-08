@@ -3,7 +3,7 @@
     "message": "AIChatMerge"
   },
   "extensionDescription": {
-    "message": "Compare AI assistants side by side in one window. Send one prompt and review responses faster."
+    "message": "Compare AI responses side by side, merge useful answers, manage prompts, and export results."
   },
   "commandOpenSidebar": {
     "message": "Open AIChatMerge"
@@ -56,29 +56,68 @@
   "msgOpenModeUpdated": {
     "message": "Open mode updated"
   },
+  "sectionScoreData": {
+    "message": "Score Data"
+  },
+  "labelExportScoreHistory": {
+    "message": "Export Score History"
+  },
+  "descExportScoreHistory": {
+    "message": "Export all score records as a CSV file"
+  },
+  "btnExportCsv": {
+    "message": "Export CSV"
+  },
+  "labelClearScoreHistory": {
+    "message": "Clear Score History"
+  },
+  "descClearScoreHistory": {
+    "message": "Delete all saved score records"
+  },
+  "btnClearScoreHistory": {
+    "message": "Clear"
+  },
+  "msgScoreExportEmpty": {
+    "message": "No scores to export yet"
+  },
+  "msgScoreExported": {
+    "message": "Exported $1 score records"
+  },
+  "msgScoreExportFailed": {
+    "message": "Score export failed: $1"
+  },
+  "msgConfirmClearScoreHistory": {
+    "message": "Clear all score records? This cannot be undone."
+  },
+  "msgScoreHistoryCleared": {
+    "message": "Score records cleared"
+  },
+  "msgScoreClearFailed": {
+    "message": "Failed to clear scores: $1"
+  },
   "sectionAdvancedSettings": {
     "message": "Advanced Settings"
   },
   "claudeCustomEntryTitle": {
-    "message": "Claude Custom Page URL (Advanced)"
+    "message": "Claude Fallback Page URL (Advanced)"
   },
   "claudeCustomEntryDescription": {
-    "message": "Use this when Claude's default entry fails. Enter a verified full page URL, such as a /chat/... URL. Leave blank to use the default entry"
+    "message": "Claude uses the new-chat page by default. Only enter a verified fallback page URL if the default entry still fails. Leave blank to use the default entry"
   },
   "claudeCustomEntryPlaceholder": {
-    "message": "https://claude.ai/chat/..."
+    "message": "https://claude.ai/new"
   },
   "claudeRestoreDefault": {
     "message": "Restore Default Entry"
   },
   "claudeCustomEntryWarning": {
-    "message": "May open an existing conversation, may stop working after account changes, and should not be shared. Clear it to restore the default entry"
+    "message": "A fallback URL may open an existing conversation, may stop working after account changes, and should not be shared. Clear it to restore the default entry"
   },
   "claudeEntryDefaultStatus": {
-    "message": "Using the system default entry"
+    "message": "Using the default new-chat page"
   },
   "claudeEntryCustomStatus": {
-    "message": "Using custom entry: $1"
+    "message": "Using fallback entry: $1"
   },
   "claudeEntryUrlValid": {
     "message": "URL format is valid. Reopen the Claude panel to apply it"
@@ -908,28 +947,17 @@
   "optionManualMerge": {
     "message": "Manual Merge"
   },
-  "labelDiscussRounds": {
-    "message": "Discussion Rounds"
-  },
-  "descDiscussRounds": {
-    "message": "Set the number of discussion rounds, more rounds = more thorough discussion"
-  },
   "stopDiscussion": {
     "message": "Stop Discussion"
   },
   "discussionProgress": {
-    "message": "Discussing (Round $1/$2)",
-    "placeholders": {
-      "current": {
-        "content": "$1"
-      },
-      "total": {
-        "content": "$2"
-      }
-    }
+    "message": "Discussing"
   },
   "msgDiscussionStopped": {
     "message": "Discussion stopped"
+  },
+  "msgMergeModeUpdated": {
+    "message": "Merge mode updated"
   },
   "obsidianExport": {
     "message": "Export Markdown"
@@ -949,6 +977,9 @@
   "labelObsidianStoragePath": {
     "message": "Export Folder"
   },
+  "descMarkdownExportPath": {
+    "message": "Saved to a subfolder inside your browser's default Downloads folder, for example: Downloads/AIChatMerge/raw/"
+  },
   "placeholderObsidianStoragePath": {
     "message": "AIChatMerge/raw"
   },
@@ -960,5 +991,11 @@
   },
   "obsidianExportManual": {
     "message": "Manual Only"
+  },
+  "labelExportInitialMerge": {
+    "message": "Export Initial Merge"
+  },
+  "descExportInitialMerge": {
+    "message": "Export initial merge result separately in discussion mode"
   }
 }

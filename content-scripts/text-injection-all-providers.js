@@ -1514,27 +1514,18 @@ if ((window.__realParent__ || window.parent) !== window) {
         return false;
   }
 
-  // Find and click new chat button
-  function clickNewChatButton(provider, providerMode = null) {
-    // Special handling for Google
-    if (provider === 'google') {
-      return handleGoogleNewSearch(providerMode);
-    }
-
+  function findNewChatButton(provider) {
     const selectors = NEW_CHAT_BUTTON_SELECTORS[provider];
     if (!selectors) {
       console.warn('[Text Injection] No new chat button selectors for provider:', provider);
-      return false;
+      return null;
     }
 
-    // Try to find and click button
     const button = findDeepFirstVisibleElement(selectors) || findFirstVisibleElement(selectors);
     if (button) {
-            button.click();
-      return true;
+      return button;
     }
 
-    // Fallback: Try to find any link or button containing "new" text
     try {
       const allButtons = document.querySelectorAll('button, a, div[role="button"]');
       for (const elem of allButtons) {
@@ -1554,27 +1545,66 @@ if ((window.__realParent__ || window.parent) !== window) {
           ariaLabel.includes('新建会话') ||
           ariaLabel.includes('新建对话') ||
           (href === '/' && elem.closest('nav, aside'))) {
-                    elem.click();
-          return true;
+          return elem;
         }
       }
     } catch (error) {
       console.warn('[Text Injection] Error in text-based button search:', error);
     }
 
-    // Ultimate fallback: navigate to new chat URL
+    return null;
+  }
+
+  function navigateToNewChatFallback(provider) {
     const fallbackUrl = NEW_CHAT_URLS[provider];
-    if (fallbackUrl) {
-            if (fallbackUrl.startsWith('http')) {
-        window.location.href = fallbackUrl;
-      } else {
-        window.location.href = window.location.origin + fallbackUrl;
-      }
+    if (!fallbackUrl) {
+      console.warn('[Text Injection] New chat button not found for:', provider);
+      return false;
+    }
+
+    if (fallbackUrl.startsWith('http')) {
+      window.location.href = fallbackUrl;
+    } else {
+      window.location.href = window.location.origin + fallbackUrl;
+    }
+    return true;
+  }
+
+  // Find and click new chat button
+  function clickNewChatButton(provider, providerMode = null) {
+    // Special handling for Google
+    if (provider === 'google') {
+      return handleGoogleNewSearch(providerMode);
+    }
+
+    const button = findNewChatButton(provider);
+    if (button) {
+            button.click();
       return true;
     }
 
-    console.warn('[Text Injection] New chat button not found for:', provider);
-    return false;
+    // Ultimate fallback: navigate to new chat URL
+    return navigateToNewChatFallback(provider);
+  }
+
+  // Wait for Claude's new chat button before triggering auto-new-chat flows.
+  function waitForNewChatButtonReady(timeout = 10000) {
+    return new Promise((resolve) => {
+      const startTime = Date.now();
+      const checkInterval = setInterval(() => {
+        if (Date.now() - startTime > timeout) {
+          clearInterval(checkInterval);
+          resolve(false);
+          return;
+        }
+
+        const button = findNewChatButton('claude');
+        if (button && isElementEnabled(button)) {
+          clearInterval(checkInterval);
+          resolve(true);
+        }
+      }, 200);
+    });
   }
 
   function normalizeYuanbaoEditorText(value) {
@@ -2086,6 +2116,21 @@ if ((window.__realParent__ || window.parent) !== window) {
       return;
     }
 
+    // Handle NEW_CHAT_WHEN_READY messages (wait for button ready then create new chat)
+    if (event.data.type === 'NEW_CHAT_WHEN_READY' && event.data.context === 'multi-panel') {
+      const provider = detectProvider();
+      if (provider === 'claude') {
+        waitForNewChatButtonReady().then(ready => {
+          if (ready) {
+            clickNewChatButton('claude');
+          } else {
+            window.location.href = 'https://claude.ai/new';
+          }
+        });
+      }
+      return;
+    }
+
     // Handle EXTRACT_ANSWER messages (collect AI responses from the page)
     if (event.data.type === 'EXTRACT_ANSWER' && event.data.context === 'multi-panel') {
       const provider = detectProvider();
@@ -2367,10 +2412,27 @@ if ((window.__realParent__ || window.parent) !== window) {
         return;
       }
 
+      if (tag === 'HR') {
+        appendLineBreak(parts, true);
+        parts.push('---');
+        appendLineBreak(parts, true);
+        return;
+      }
+
       if (tag === 'PRE' || tag === 'CODE') {
         const raw = current.textContent || '';
         if (raw.trim()) parts.push(raw);
         appendLineBreak(parts, tag === 'PRE');
+        return;
+      }
+
+      if (/^H[1-6]$/.test(tag)) {
+        appendLineBreak(parts, true);
+        parts.push(`${'#'.repeat(Number(tag[1]))} `);
+        for (const child of current.childNodes) {
+          walk(child);
+        }
+        appendLineBreak(parts, true);
         return;
       }
 
@@ -2871,6 +2933,7 @@ if ((window.__realParent__ || window.parent) !== window) {
     ],
     deepseek: [
       'button[aria-label="Stop"]',
+      'button[aria-label*="停止"]',
       '.ds-stop-button',
       'button[aria-label*="Stop"]',
       'button[class*="stop"]'
@@ -2927,6 +2990,7 @@ if ((window.__realParent__ || window.parent) !== window) {
   let completionAlreadyDetected = false; // prevent duplicate COMPLETION_DETECTED from SSE path
   let completionMergeSessionId = null;
   let completionMonitorDelayTimer = null; // delay before starting DOM fallback
+  let completionDeepseekFallbackTimer = null; // DeepSeek answer-stability fallback
   let beforeunloadListenerAdded = false; // Issue 8: track whether beforeunload cleanup is registered
 
   // Issue 8: Clean up MutationObserver on page navigation to prevent leaked observers.
@@ -2958,6 +3022,10 @@ if ((window.__realParent__ || window.parent) !== window) {
     if (completionMonitorDelayTimer) {
       clearTimeout(completionMonitorDelayTimer);
       completionMonitorDelayTimer = null;
+    }
+    if (completionDeepseekFallbackTimer) {
+      clearTimeout(completionDeepseekFallbackTimer);
+      completionDeepseekFallbackTimer = null;
     }
     completionPhase = null;
     completionProvider = null;
@@ -3088,6 +3156,30 @@ if ((window.__realParent__ || window.parent) !== window) {
     prevAnswerLen = getAnswerLen();
     let kimiSawStopButton = provider === 'kimi' && isStopButtonPresent(provider);
     let kimiStopDisappearanceHandled = false;
+
+    // DeepSeek stable fallback: if answer has been stable long enough with sufficient
+    // length, report completion even if button-state detection missed it.
+    if (provider === 'deepseek') {
+      const DEEPSEEK_FALLBACK_STABLE_MS = 8000;
+      const DEEPSEEK_MIN_ANSWER_LENGTH = 30;
+      let deepseekFallbackLastLen = getAnswerLen();
+      let deepseekFallbackLastChangeAt = Date.now();
+
+      completionDeepseekFallbackTimer = setInterval(() => {
+        const curLen = getAnswerLen();
+        if (curLen !== deepseekFallbackLastLen) {
+          deepseekFallbackLastChangeAt = Date.now();
+          deepseekFallbackLastLen = curLen;
+        }
+        const stableMs = Date.now() - deepseekFallbackLastChangeAt;
+        if (hasObservedAnswerChange && curLen >= DEEPSEEK_MIN_ANSWER_LENGTH &&
+            stableMs >= DEEPSEEK_FALLBACK_STABLE_MS) {
+          clearInterval(completionDeepseekFallbackTimer);
+          completionDeepseekFallbackTimer = null;
+          notifyCompletion(`DeepSeek answer stable for ${stableMs}ms (fallback).`);
+        }
+      }, 1500);
+    }
 
     completionObserver = new MutationObserver(() => {
       const curLen = getAnswerLen();
@@ -3241,29 +3333,11 @@ if ((window.__realParent__ || window.parent) !== window) {
 
       }
 
-  // SSE 优先，DOM 兜底：仅内容层的协议最终帧能结束监控。该表必须与
-  // sse-bridge.js 的策略保持一致；没有可靠内容帧的平台直接使用 DOM。
-  const SSE_COMPLETION_LAYERS = {
-    deepseek: ['content'],
-    doubao: ['content'],
-    // Qianwen SSE completion may precede its final visible summary segment.
-    // Retain SSE text accumulation, but use DOM completion confirmation.
-    qianwen: [],
-    yuanbao: ['content'],
-    wenxin: ['content'],
-    zhipu: [],
-    kimi: [],
-    chatgpt: ['content'],
-    claude: ['content'],
-    gemini: [],
-    grok: [],
-    metaso: []
-  };
-  const SSE_SUPPORTED_PROVIDERS = Object.keys(SSE_COMPLETION_LAYERS)
-    .filter(provider => SSE_COMPLETION_LAYERS[provider].includes('content'));
+  const SSE_SUPPORTED_PROVIDERS =
+    window.ACM_SSE_COMPLETION_POLICY?.supportedProviders() || [];
 
   function acceptsSseCompletion(provider, layer) {
-    return (SSE_COMPLETION_LAYERS[provider] || []).includes(layer);
+    return window.ACM_SSE_COMPLETION_POLICY?.accepts(provider, layer) === true;
   }
 
   function startCompletionMonitor(mergeSessionId) {
@@ -3277,13 +3351,14 @@ if ((window.__realParent__ || window.parent) !== window) {
       return;
     }
 
-    // Wenxin, Zhipu and Kimi may finish a fast response before the old
+    // Wenxin, Zhipu, Kimi and DeepSeek may finish a fast response before the old
     // 3-second SSE grace period expired. Start their DOM observer now (before
     // text is injected) so it sees the entire answer change. Kimi previously
     // waited to observe a stop button that had already appeared and vanished,
     // leaving it stuck until the global timeout when its SSE final frame was
     // unavailable.
-    if (provider === 'wenxin' || provider === 'zhipu' || provider === 'kimi' || provider === 'gemini') {
+    if (provider === 'wenxin' || provider === 'zhipu' || provider === 'kimi' ||
+        provider === 'gemini' || provider === 'deepseek') {
             startMutationFallback(provider);
       return;
     }

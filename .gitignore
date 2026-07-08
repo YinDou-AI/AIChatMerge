@@ -20,6 +20,10 @@ dist/
 build/
 *.zip
 
+# Local release/upload staging
+_codex_release_work/
+UPLOAD_EDGE_ASSETS/
+
 # Temporary files
 *.tmp
 *.bak
@@ -67,9 +71,6 @@ specs/
 AGENTS.md
 web-ext-artifacts/
 
-# Documentation (local reference only)
-docs/
-
 # Auto Claude data directory
 .auto-claude/
 
@@ -85,3 +86,12 @@ logs/security/
 .reviews/
 TRANSLATION_REVIEW_SUMMARY.md
 VERIFICATION_REPORT.md
+
+# Generated design drafts
+assets/cat-cutouts/
+assets/logo-cutout-noring/
+assets/logo-redesign/
+assets/logo-refined/
+assets/logo-rembg-noring/
+assets/store-screenshots/
+assets/store/icon-backup-*/

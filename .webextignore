@@ -1,0 +1,14 @@
+healthcheck/
+docs/
+.reviews/
+.auto-claude/
+.claude/
+.trash/
+assets/
+content-scripts/src/
+content-scripts/dist/
+tests/
+scripts/
+node_modules/
+*.test.js
+*.md

@@ -15,7 +15,7 @@ export function normalizeClaudeCustomEntryUrl(rawValue) {
   try {
     url = new URL(value);
   } catch {
-    return { valid: false, value: '', error: '请输入完整的网址，例如 https://claude.ai/chat/…' };
+    return { valid: false, value: '', error: '请输入完整的网址，例如 https://claude.ai/new' };
   }
 
   const host = url.hostname.toLowerCase();

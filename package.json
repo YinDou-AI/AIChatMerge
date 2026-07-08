@@ -12,7 +12,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "web-ext lint --source-dir .",
+    "lint": "web-ext lint --source-dir . --ignore-files \"healthcheck/**\" \"docs/**\" \"tests/**\" \"scripts/**\" \"content-scripts/src/**\" \"content-scripts/dist/**\" \"assets/**\" \".claude/**\" \".trash/**\"",
     "release:package": "node scripts/package-release.js",
     "release:prepare": "node scripts/prepare-release.js",
     "release:prepare:dry-run": "node scripts/prepare-release.js --dry-run",
@@ -20,7 +20,8 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "build:content": "esbuild content-scripts/src/text-injection-entry.js --bundle --format=iife --outfile=content-scripts/text-injection-all-providers.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.1",

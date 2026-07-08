@@ -77,6 +77,7 @@ describe('discussion answer cleanup', () => {
     const source = readFileSync(resolve(process.cwd(), 'aichatmerge-panel/multi-panel.js'), 'utf8');
 
     expect(source).toContain('function sanitizeMergedAnswerForDiscussion(answer)');
+    expect(source).toMatch(/function normalizeAnswerForMerge\(answer\)\s*{[\s\S]*return sanitizeMergedAnswerForDiscussion\(answer\);[\s\S]*}/);
     expect(source).toContain('const cleanMergedAnswer = sanitizeMergedAnswerForDiscussion(mergedAnswer);');
     expect(source).not.toContain("mergedAnswer.replace(/^\\s*\\n/gm, '')");
     expect(source).not.toContain(".replace(/\\n{3,}/g, '\\n\\n')");

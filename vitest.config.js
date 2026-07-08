@@ -4,7 +4,8 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     globals: true,
-    exclude: ['node_modules/**', 'tests/e2e/**'],
+    include: ['tests/**/*.test.js'],
+    exclude: ['node_modules/**', '_codex_release_work/**', 'tests/e2e/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

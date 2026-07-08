@@ -6,7 +6,7 @@
 
 AIChatMerge is committed to protecting your privacy. This privacy policy explains what data the extension collects, how it's used, and your control over it.
 
-**In short:** AIChatMerge stores all data locally on your device. We do not collect, transmit, or sell any of your personal information to third parties or external servers.
+**In short:** AIChatMerge stores all data locally on your device. We do not collect, transmit, or sell any of your personal information to third parties or external servers. Prompts you send through the extension go directly to the AI provider you select, and each provider processes data according to its own privacy policy.
 
 ---
 
@@ -75,7 +75,7 @@ All data collected by AIChatMerge is used solely for providing extension functio
 
 AIChatMerge loads AI provider websites (DeepSeek, Kimi, ChatGPT, Claude, and others) inside embedded panels. These providers operate under their own privacy policies.
 
-When you interact with these AI providers through AIChatMerge, you are subject to their respective privacy policies. AIChatMerge injects your prompts into provider text fields and extracts AI responses to display them in its interface, but it does not store the content of your conversations.
+When you interact with these AI providers through AIChatMerge, you are subject to their respective privacy policies. The prompts you send are transmitted to the AI provider you selected — AIChatMerge itself does not relay or store them, but the provider processes them as part of its service. AIChatMerge extracts AI responses to display them in its interface, but it does not store the content of your conversations.
 
 ### Cookie Access
 
@@ -83,11 +83,7 @@ AIChatMerge does not access cookie data directly and does not use the cookies AP
 
 ### Update Checks
 
-AIChatMerge does not perform automatic update checks and does not contact the project repository in the background. You can manually check for updates from the official release page once it is published.
-
-### UI Assets
-
-AIChatMerge loads the Material Symbols font from Google Fonts for UI icons. This request is made directly to Google Fonts.
+AIChatMerge does not perform automatic update checks and does not contact the project repository in the background. You can manually check for updates from the GitHub Releases page.
 
 ---
 
@@ -156,6 +152,9 @@ AIChatMerge requests the following Chrome extension permissions:
 |------------|---------|
 | `storage` | Store your prompts and settings locally |
 | `contextMenus` | Add "Send to AIChatMerge" option when right-clicking |
+| `downloads` | Export Markdown files and backup JSON files through the browser download manager |
+| `activeTab` | Read selected text or page content only when you explicitly use the context menu action |
+| `scripting` | Inject extension scripts into supported AI provider pages to fill prompts, detect send buttons, and extract responses |
 | `declarativeNetRequest` | Allow AI provider websites to load in embedded panels (bypass X-Frame-Options) |
 | `declarativeNetRequestWithHostAccess` | Apply header modifications for specific AI provider domains |
 | Host permissions | Access the AI provider websites selected for embedded panels |
@@ -219,10 +218,10 @@ If you are a California resident:
 - Send your prompts or settings to AIChatMerge servers
 - Track your usage or behavior
 - Sell or share your data with third parties
-- Access your AI conversations
+- Access or store your AI conversations
 - Require account creation or personal information
 
-**Your privacy is protected because all data stays on your device, under your control.**
+**Your privacy is protected because AIChatMerge does not send any data to external servers. However, prompts you submit through the extension are sent to the AI provider you choose, and each provider handles your data according to its own privacy policy.**
 
 ---
 

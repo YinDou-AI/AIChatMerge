@@ -14,6 +14,14 @@
   --warning: #ff9800;
 }
 
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('../libs/fonts/material-symbols-outlined-400.ttf') format('truetype');
+}
+
 /* 深色主题 - 由内联脚本设置 data-theme 属性 */
 :root[data-theme="dark"] {
   --bg: #1e1e1e;
@@ -54,12 +62,24 @@
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: 'liga';
+  position: relative;
+  overflow: hidden;
+  width: 1em;
+  height: 1em;
+  text-indent: -9999px;
   transition: font-variation-settings 0.2s ease;
   font-variation-settings:
     'FILL' 0,
     'wght' 400,
     'GRAD' 0,
     'opsz' 24;
+}
+
+.material-symbols-outlined::before {
+  content: attr(data-icon);
+  position: absolute;
+  inset: 0;
+  text-indent: 0;
 }
 
 [data-theme="dark"] .material-symbols-outlined {
@@ -891,6 +911,22 @@ body {
   color: var(--text-faint);
 }
 
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.checkbox-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
 /* Layout Options */
 .layout-options {
   display: grid;
@@ -988,7 +1024,11 @@ body {
 }
 
 .prompt-item-modal {
-  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
@@ -1000,11 +1040,70 @@ body {
   background: var(--accent-bg);
 }
 
+.prompt-favorite-icon {
+  order: 0;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.prompt-favorite-icon:hover {
+  color: #666;
+}
+
+.prompt-favorite-icon.favorited {
+  color: #fbc02d;
+}
+
+.prompt-favorite-icon.favorited:hover {
+  color: #f9a825;
+}
+
+.prompt-delete-icon {
+  order: 3;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #999;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.prompt-item-modal:hover .prompt-delete-icon {
+  opacity: 1;
+}
+
+.prompt-delete-icon:hover {
+  color: #f44336;
+}
+
+.prompt-item-content {
+  order: 1;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
 .prompt-item-modal-title {
   font-size: 14px;
   font-weight: 500;
   color: var(--text);
-  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .prompt-item-modal-preview {
@@ -1294,10 +1393,6 @@ body {
   font-size: 18px;
 }
 
-#debug-log-btn {
-  display: none;
-}
-
 @keyframes obsidian-export-pulse {
   0%, 100% {
     transform: translateY(0);
@@ -1468,4 +1563,85 @@ body {
 .stop-discussion-btn:hover {
   background: rgba(255, 255, 255, 0.26);
   color: #fff;
+}
+
+/* 默认提示词提示条 */
+.default-prompt-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #e3f2fd;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #1976d2;
+}
+
+.default-prompt-icon {
+  font-size: 14px;
+}
+
+.default-prompt-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skip-default-prompt-btn {
+  padding: 2px 8px;
+  border: 1px solid #1976d2;
+  border-radius: 4px;
+  background: transparent;
+  color: #1976d2;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.skip-default-prompt-btn:hover {
+  background: #bbdefb;
+}
+
+/* 设为默认按钮 */
+.prompt-set-default-btn {
+  order: 2;
+  flex-shrink: 0;
+  min-width: 64px;
+  height: 26px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.prompt-set-default-btn:hover {
+  border-color: #1976d2;
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.prompt-set-default-btn.active {
+  border-color: #1976d2;
+  background: #e3f2fd;
+  color: #1976d2;
+  font-weight: 600;
+}
+
+/* 提示词元信息行 */
+.prompt-item-meta-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 6px;
 }

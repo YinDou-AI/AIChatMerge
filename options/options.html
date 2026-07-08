@@ -4,18 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-i18n="optionsPageTitle">AIChatMerge - 设置</title>
-  <script>
-    (function() {
-      try {
-        chrome.storage.sync.get({ theme: 'auto' }, function(s) {
-          var t = s.theme;
-          if (t === 'auto') t = window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
-          document.documentElement.setAttribute('data-theme', t);
-        });
-      } catch(e) {}
-    })();
-  </script>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet">
+  <script src="options-preload.js"></script>
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
@@ -119,21 +108,6 @@
           </div>
         </div>
 
-        <div class="setting-item" id="discuss-rounds-setting" style="display: none;">
-          <div class="setting-info">
-            <div class="setting-label" data-i18n="labelDiscussRounds">讨论轮次</div>
-            <div class="setting-description" data-i18n="descDiscussRounds">
-              设置AI讨论的轮次，轮次越多讨论越充分
-            </div>
-          </div>
-          <div class="setting-control">
-            <select id="discuss-rounds-select" class="setting-select">
-              <option value="1">1 轮</option>
-              <option value="2">2 轮</option>
-              <option value="3" selected>3 轮</option>
-            </select>
-          </div>
-        </div>
       </section>
 
       <!-- Markdown Export Settings -->
@@ -143,6 +117,7 @@
         <div class="setting-item">
           <div class="setting-info">
             <div class="setting-label" data-i18n="labelObsidianStoragePath">导出文件夹</div>
+            <div class="setting-description" data-i18n="descMarkdownExportPath">保存到浏览器默认下载目录下的子文件夹，例如：下载目录/AIChatMerge/raw/</div>
           </div>
           <div class="setting-control">
             <input type="text" id="markdown-export-path" data-i18n-placeholder="placeholderObsidianStoragePath" placeholder="AIChatMerge/raw">
@@ -160,6 +135,44 @@
             </select>
           </div>
         </div>
+
+        <div class="setting-item" id="export-initial-merge-item" style="display: none;">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelExportInitialMerge">导出初始融合</div>
+            <div class="setting-description" data-i18n="descExportInitialMerge">讨论模式下是否额外导出初始融合结果</div>
+          </div>
+          <div class="setting-control">
+            <select id="export-initial-merge-select">
+              <option value="true">是</option>
+              <option value="false">否</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Score Data Settings -->
+      <section class="section">
+        <h2 class="section-title" data-i18n="sectionScoreData">评分数据</h2>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelExportScoreHistory">导出评分历史</div>
+            <div class="setting-description" data-i18n="descExportScoreHistory">将所有评分记录导出为 CSV 文件</div>
+          </div>
+          <div class="setting-control">
+            <button class="btn btn-secondary" id="export-score-history-btn" type="button" data-i18n="btnExportCsv">导出 CSV</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelClearScoreHistory">清空评分历史</div>
+            <div class="setting-description" data-i18n="descClearScoreHistory">删除所有已保存的评分记录</div>
+          </div>
+          <div class="setting-control">
+            <button class="btn btn-danger" id="clear-score-history-btn" type="button" data-i18n="btnClearScoreHistory">清空</button>
+          </div>
+        </div>
       </section>
 
       <!-- Advanced provider compatibility settings -->
@@ -167,16 +180,16 @@
         <h2 class="section-title" data-i18n="sectionAdvancedSettings">高级设置</h2>
 
         <details id="claude-entry-settings">
-          <summary data-i18n="claudeCustomEntryTitle">Claude 自定义页面网址（高级）</summary>
-          <div class="setting-description" style="margin: 12px 0;" data-i18n="claudeCustomEntryDescription">Claude 默认入口异常时使用。可填已验证的完整页面网址，例如带 /chat/... 的网址。留空则使用默认入口</div>
+          <summary data-i18n="claudeCustomEntryTitle">Claude 备用页面网址（高级）</summary>
+          <div class="setting-description" style="margin: 12px 0;" data-i18n="claudeCustomEntryDescription">入口异常时填写已验证的备用页面网址。留空则使用默认入口</div>
           <div class="setting-control" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <input id="claude-custom-entry-url" type="url" inputmode="url" autocomplete="off"
-              data-i18n-placeholder="claudeCustomEntryPlaceholder" placeholder="https://claude.ai/chat/…" style="min-width: min(100%, 420px); flex: 1;">
+              data-i18n-placeholder="claudeCustomEntryPlaceholder" placeholder="https://claude.ai/new" style="min-width: min(100%, 420px); flex: 1;">
             <button class="btn btn-primary" id="save-claude-entry-url" type="button" data-i18n="save">保存</button>
             <button class="btn btn-secondary" id="reset-claude-entry-url" type="button" data-i18n="claudeRestoreDefault">恢复默认入口</button>
           </div>
           <p id="claude-entry-url-status" class="setting-description" style="margin-top: 10px;"></p>
-          <p class="setting-description" style="margin-top: 8px; color: #b45309;" data-i18n="claudeCustomEntryWarning">可能进入已有对话，更换账号后可能失效，不建议分享。页面异常时清空即可恢复默认入口</p>
+          <p class="setting-description" style="margin-top: 8px; color: #b45309;" data-i18n="claudeCustomEntryWarning">备用网址可能进入已有对话，更换账号后可能失效，不建议分享。页面异常时清空即可恢复默认入口</p>
         </details>
 
         <div class="setting-item">

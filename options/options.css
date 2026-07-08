@@ -16,6 +16,14 @@
   --warning: #ff9800;
 }
 
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('../libs/fonts/material-symbols-outlined-400.ttf') format('truetype');
+}
+
 /* 深色主题 - 由内联脚本设置 data-theme 属性 */
 :root[data-theme="dark"] {
   --bg: #1e1e1e;
@@ -55,6 +63,18 @@
   direction: ltr;
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
+  position: relative;
+  overflow: hidden;
+  width: 1em;
+  height: 1em;
+  text-indent: -9999px;
+}
+
+.material-symbols-outlined::before {
+  content: attr(data-icon);
+  position: absolute;
+  inset: 0;
+  text-indent: 0;
 }
 
 body {

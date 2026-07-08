@@ -27,7 +27,7 @@
 
 Ever found yourself copying the same prompt across multiple AI tabs just to compare answers? AIChatMerge eliminates that workflow entirely.
 
-**One window. One prompt. Multiple AI responses—instantly.**
+**One window. One prompt. Multiple AI responses — then merge the best answer automatically.**
 
 <p align="center">
   <img src="assets/screenshots/PixPin_2026-06-30_14-13-19.jpg" alt="AIChatMerge Main Interface" width="800">
@@ -43,11 +43,19 @@ Type your question once and send it to your selected providers simultaneously. S
 
 ### 📐 Flexible Layouts
 
-Choose from 15 different layouts to fit your workflow. Need a quick 2-way comparison? Use 1×2. Deep research across 4 models? Try 1×4. The choice is yours.
+Choose from 5 different layouts (1×1, 1×2, 1×3, 1×4, 1×5) to fit your workflow. Need a quick 2-way comparison? Use 1×2. Deep research across 4 models? Try 1×4. The choice is yours.
 
 <p align="center">
   <img src="assets/screenshots/PixPin_2026-06-30_12-31-44.jpg" alt="Discussion Mode" width="600">
 </p>
+
+### 🔀 Auto-Merge & Discussion
+
+After all providers respond, AIChatMerge can automatically merge their answers into a single best response. You can also enter Discussion mode to continue refining the result with any provider.
+
+### 📝 Markdown Export
+
+Export merged results or individual conversations as Markdown files for easy sharing and archival.
 
 ### ⚡ Zero Setup
 
@@ -60,9 +68,16 @@ Save your best prompts and reuse them across all providers. Supports variables l
 ### 🔒 Privacy First
 
 - One-click privacy mode across supported providers
-- All data stays in your browser—nothing leaves your machine
+- AIChatMerge does not send your data to any AIChatMerge-owned server
+- Prompts you submit go directly to the AI provider you select; each provider handles data according to its own privacy policy
 - No tracking, no analytics, no data collection
 - Open source—review the code yourself
+
+### 🛠️ Developer-Friendly
+
+- Debug log export for quick issue reporting
+- Custom entry URL support for Claude
+- Focused Chinese & English UI
 
 ---
 
@@ -140,7 +155,17 @@ Customize shortcuts at `chrome://extensions/shortcuts`
 → Check for conflicts at `chrome://extensions/shortcuts`
 
 **Need more help?**
-→ Open an issue in the official GitHub repository
+→ [Open an issue](https://github.com/YinDou-AI/AIChatMerge/issues)
+
+---
+
+## Known Limitations
+
+- You must log into each AI platform yourself before using it in AIChatMerge.
+- Some AI platforms may restrict iframe embedding, limit available models, or have login/state issues within embedded panels.
+- Claude's default entry URL may become unavailable. You can configure a custom page URL in Advanced Settings.
+- Overseas AI platforms (ChatGPT, Gemini, Claude, Grok) may be affected by your network environment.
+- Auto-merge relies on webpage state detection. In rare cases, you may need to trigger a manual merge.
 
 ---
 
@@ -148,9 +173,8 @@ Customize shortcuts at `chrome://extensions/shortcuts`
 
 Found a bug? Have an idea? Contributions are welcome:
 
-- 🐛 Report bugs via GitHub Issues
+- 🐛 Report bugs via [GitHub Issues](https://github.com/YinDou-AI/AIChatMerge/issues)
 - 💡 Suggest features
-- 🌍 Help translate to more languages
 - 🔧 Submit pull requests
 
 ---
@@ -168,6 +192,10 @@ This project includes the following third-party libraries:
 | [Readability.js](https://github.com/mozilla/readability) | Apache License 2.0 | Mozilla / Arc90 Inc |
 
 Readability.js is used in `libs/Readability.js` for extracting main content from web pages. Licensed under the Apache License, Version 2.0.
+
+### Acknowledgments
+
+AIChatMerge is based on [Panelize](https://github.com/Manho/Panelize), an MIT-licensed open-source project by the Panelize contributors.
 
 ---
 

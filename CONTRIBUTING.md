@@ -79,7 +79,7 @@ AIChatMerge/
 │   └── multi-panel.css        # Panel styles
 ├── modules/                   # Shared modules
 │   ├── settings.js            # Settings management
-│   └── obsidian-export.js     # Obsidian export (if enabled)
+│   └── obsidian-export.js     # Markdown export/download compatibility module
 ├── options/                   # Settings page
 │   ├── options.html
 │   └── options.js

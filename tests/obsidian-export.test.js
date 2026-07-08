@@ -6,6 +6,7 @@ import {
   cleanAnswer,
   escapeYamlString,
   exportToMarkdown,
+  extractScores,
   extractTitle,
   normalizeExportPath,
   sanitizeFileName
@@ -13,16 +14,23 @@ import {
 import { DEFAULT_MARKDOWN_EXPORT_PATH } from '../modules/settings.js';
 
 describe('obsidian-export helpers', () => {
-  it('extracts the last TITLE tag outside code blocks', () => {
+  it('extracts the last natural title line outside code blocks', () => {
     const answer = [
       '正文',
       '```',
-      '<<<TITLE:代码里的标题>>>',
+      '标题：代码里的标题',
       '```',
-      '<<<TITLE:最终标题>>>'
+      '标题：最终标题'
     ].join('\n');
 
     expect(extractTitle(answer)).toBe('最终标题');
+  });
+
+  it('extracts and cleans natural title lines', () => {
+    const answer = '正文\n标题：四校定位与中科院资源解析';
+
+    expect(extractTitle(answer)).toBe('四校定位与中科院资源解析');
+    expect(cleanAnswer(answer, '四校定位与中科院资源解析')).not.toContain('标题：');
   });
 
   it('falls back to a markdown h1 title', () => {
@@ -33,12 +41,36 @@ describe('obsidian-export helpers', () => {
     expect(extractTitle('只有正文')).toBeNull();
   });
 
-  it('cleans title tags and duplicate h1 heading', () => {
-    const cleaned = cleanAnswer('# 猫砂盆除味\n正文\n<<<TITLE:猫砂盆除味>>>', '猫砂盆除味');
+  it('cleans natural title lines and duplicate h1 heading', () => {
+    const cleaned = cleanAnswer('# 猫砂盆除味\n正文\n标题：猫砂盆除味', '猫砂盆除味');
 
-    expect(cleaned).not.toContain('<<<TITLE');
+    expect(cleaned).not.toContain('标题：');
     expect(cleaned).not.toContain('# 猫砂盆除味');
     expect(cleaned).toContain('正文');
+  });
+
+  it('keeps raw prose formatting for downstream markdown cleanup', () => {
+    const cleaned = cleanAnswer([
+      '分歧仅在于跌幅的具体幅度。-',
+      '上调全系列终端售价-；联想涨价-。',
+      '正常-20% 不应改',
+      '-',
+      '### 原始问题用户补充：直接给出具体的问题---### 综合答案正文。**问题2：模糊需求**'
+    ].join('\n'), null);
+
+    expect(cleaned).toContain('分歧仅在于跌幅的具体幅度。-');
+    expect(cleaned).toContain('上调全系列终端售价-；联想涨价-。');
+    expect(cleaned).toContain('正常-20% 不应改');
+    expect(cleaned).toContain('\n-\n');
+    expect(cleaned).toContain('### 原始问题用户补充：直接给出具体的问题---### 综合答案正文。**问题2：模糊需求**');
+  });
+
+  it('preserves paragraph blank lines while trimming excessive empty space', () => {
+    const cleaned = cleanAnswer('第一段\n\n第二段\n\n\n\n第三段', null);
+
+    expect(cleaned).toContain('第一段\n\n第二段');
+    expect(cleaned).toContain('第二段\n\n第三段');
+    expect(cleaned).not.toContain('\n\n\n');
   });
 
   it('sanitizes and truncates unsafe file names', () => {
@@ -65,6 +97,23 @@ describe('obsidian-export helpers', () => {
     expect(frontmatter).not.toContain('title:');
   });
 
+  it('uses the same local date in frontmatter and titled file paths', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 6, 2, 0, 8, 45));
+
+    const frontmatter = buildFrontmatter({
+      question: '',
+      providers: ['DeepSeek'],
+      mode: 'discuss'
+    }, '标题');
+    const filePath = buildFilePath('标题', { exportPath: 'AIChatMerge/raw' }, 'discuss');
+
+    expect(frontmatter).toContain('date: "2026-07-02"');
+    expect(filePath).toContain('2607020008-AI讨论-标题.md');
+
+    vi.useRealTimers();
+  });
+
   it('does not expose discussion rounds in exported markdown metadata', () => {
     const frontmatter = buildFrontmatter({
       question: '问题',
@@ -80,7 +129,7 @@ describe('obsidian-export helpers', () => {
   it('builds markdown with optional question', () => {
     const markdown = buildMarkdown({
       question: '原问题',
-      answer: '# 标题\n答案正文\n<<<TITLE:标题>>>',
+      answer: '# 标题\n答案正文\n标题：标题',
       providers: ['DeepSeek'],
       mode: 'merge'
     }, {}, '标题', true);
@@ -89,13 +138,58 @@ describe('obsidian-export helpers', () => {
     expect(markdown).toContain('## 问题');
     expect(markdown).toContain('原问题');
     expect(markdown).toContain('答案正文');
-    expect(markdown).not.toContain('<<<TITLE');
+    expect(markdown).not.toContain('标题：');
+  });
+
+  it('extracts scores from natural score lines and strips them from answers', () => {
+    const answer = [
+      '正文',
+      '模型评分：DeepSeek=10，Kimi=8，ChatGPT=9'
+    ].join('\n');
+
+    expect(extractScores(answer)).toEqual([
+      { model: 'DeepSeek', score: 10 },
+      { model: 'Kimi', score: 8 },
+      { model: 'ChatGPT', score: 9 }
+    ]);
+    expect(cleanAnswer(answer, null)).not.toContain('模型评分：');
+  });
+
+  it('exports scores whenever score data is provided', () => {
+    const data = {
+      question: '问题',
+      answer: '答案',
+      providers: ['DeepSeek'],
+      mode: 'merge'
+    };
+    const scores = [{ model: 'DeepSeek', score: 9 }];
+
+    expect(buildMarkdown(data, {}, null, false, scores)).toContain('## 评分');
+  });
+
+  it('sorts exported score rows by score without mutating extracted order', () => {
+    const data = {
+      question: '问题',
+      answer: '答案',
+      providers: ['DeepSeek', 'Kimi', 'ChatGPT'],
+      mode: 'merge'
+    };
+    const scores = [
+      { model: 'DeepSeek', score: 8 },
+      { model: 'Kimi', score: 10 },
+      { model: 'ChatGPT', score: 9 }
+    ];
+    const markdown = buildMarkdown(data, {}, null, false, scores);
+
+    expect(markdown.indexOf('- Kimi: 10分')).toBeLessThan(markdown.indexOf('- ChatGPT: 9分'));
+    expect(markdown.indexOf('- ChatGPT: 9分')).toBeLessThan(markdown.indexOf('- DeepSeek: 8分'));
+    expect(scores.map(s => s.model)).toEqual(['DeepSeek', 'Kimi', 'ChatGPT']);
   });
 
   it('builds a vault-relative file path with a sanitized title', () => {
     const filePath = buildFilePath('猫砂盆：除味', { exportPath: 'AI/Merge' }, 'discuss');
 
-    expect(filePath).toMatch(/^AI\/Merge\/AI讨论-\d{4}-\d{2}-\d{2}-猫砂盆除味\.md$/);
+    expect(filePath).toMatch(/^AI\/Merge\/\d{10}-AI讨论-猫砂盆除味\.md$/);
   });
 
   it('normalizes export paths for Chrome downloads', () => {
@@ -136,11 +230,11 @@ describe('exportToMarkdown', () => {
     });
 
     expect(result.success).toBe(true);
-    expect(result.filePath).toMatch(/^AI\/Merge\/AI融合-/);
+    expect(result.filePath).toMatch(/^AI\/Merge\/\d{10}-AI融合/);
     expect(chrome.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({
         url: 'blob:test',
-        filename: expect.stringMatching(/^AI\/Merge\/AI融合-/),
+        filename: expect.stringMatching(/^AI\/Merge\/\d{10}-AI融合/),
         saveAs: false
       }),
       expect.any(Function)
@@ -158,7 +252,7 @@ describe('exportToMarkdown', () => {
     });
 
     expect(result.success).toBe(true);
-    expect(result.filePath).toMatch(/^AIChatMerge\/raw\/AI融合-/);
+    expect(result.filePath).toMatch(/^AIChatMerge\/raw\/\d{10}-AI融合/);
   });
 
   it('exports raw markdown metadata for downstream processing', async () => {

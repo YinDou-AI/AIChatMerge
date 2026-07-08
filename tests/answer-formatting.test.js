@@ -51,4 +51,25 @@ describe('answer text formatting', () => {
     expect(text).not.toContain('\n\n');
     expect(text).not.toContain('第一段 重点 第二段 换行 - 要点 A - 要点 B');
   });
+
+  it('keeps rendered markdown block boundaries from answer DOM', () => {
+    document.body.innerHTML = `
+      <article data-message-author-role="assistant">
+        <div class="markdown-body">
+          <h3>综合答案</h3>
+          <p>正文</p>
+          <hr>
+          <h4>第一组：测试</h4>
+        </div>
+      </article>
+    `;
+
+    const text = window.__aichatmerge_extractor_utils.extractText(
+      document.querySelector('.markdown-body')
+    );
+
+    expect(text).toContain('### 综合答案');
+    expect(text).toContain('正文\n---\n#### 第一组：测试');
+    expect(text).not.toContain('\n\n');
+  });
 });

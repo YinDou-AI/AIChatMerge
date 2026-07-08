@@ -29,9 +29,28 @@ import {
   savePrompt,
   updatePrompt,
   deletePrompt,
-  getPrompt
+  getPrompt,
+  setDefaultPrompt,
+  clearDefaultPrompt
 } from '../modules/prompt-manager.js';
-import { exportToMarkdown, extractTitle as markdownExtractTitle, cleanAnswer as markdownCleanAnswer, buildMarkdown as markdownBuildMarkdown } from '../modules/obsidian-export.js';
+import { exportToMarkdown, extractTitle as markdownExtractTitle, cleanAnswer as markdownCleanAnswer, extractScores } from '../modules/obsidian-export.js';
+import { saveScoreHistory } from '../modules/score-manager.js';
+
+function setMaterialIcon(iconEl, iconName) {
+  if (!iconEl || !iconName) return;
+  iconEl.dataset.icon = iconName;
+  iconEl.classList.add('notranslate');
+  iconEl.setAttribute('translate', 'no');
+  iconEl.setAttribute('aria-hidden', 'true');
+  iconEl.textContent = '';
+}
+
+function setBrandText(element, text) {
+  if (!element) return;
+  element.textContent = text || '';
+  element.classList.add('notranslate');
+  element.setAttribute('translate', 'no');
+}
 
 
 // ===== I18N System =====
@@ -57,7 +76,6 @@ const I18N = {
     mergeTooltip: '融合总结：收集所有回答并发送给目标 AI 融合',
     mergeTargetAI: '融合目标 AI',
     mergeTimeoutTooltip: '超时触发，可在设置中调整等待时间',
-    copyAllAnswers: '复制所有回答',
     // Panel header
     copyLink: '复制链接',
     refresh: '刷新',
@@ -107,11 +125,8 @@ const I18N = {
     // Toast messages
     minOnePanel: '至少需要保留一个面板',
     clearedAllInputs: '已清空所有输入',
-    noAnswersFound: '未找到回答，请确认AI已回复',
-    copiedAnswers: '已复制 $1 个回答到剪贴板',
-    copiedAnswersPartial: '已复制 $1/$2 个回答（$3 个不完整，请重新打开面板后重试）',
-    copiedAnswersPartialShort: '已复制 $1/$2 个回答',
     newChatCreated: '已为所有AI创建新对话',
+    panelNewChatCreated: '已为当前面板创建新对话',
     promptSaved: '提示词保存成功',
     promptUpdated: '提示词更新成功',
     promptDeleted: '提示词已删除',
@@ -124,8 +139,8 @@ const I18N = {
     providerLoadFailed: '$1 加载失败',
     allAIAnswered: '所有AI回答完成，开始融合',
     waitTimeout: '等待超时，开始融合',
-    claudeEntryWarning: 'Claude 当前模型可能不可用。可在高级设置中填写可用的 Claude 页面网址，例如 https://claude.ai/chat/...',
-    openSettings: '设置入口网址',
+    claudeEntryWarning: 'Claude 入口异常时，可在高级设置中填写备用页面网址。',
+    openSettings: '高级设置',
     dismiss: '暂时关闭',
     // Status messages
     sending: '发送中...',
@@ -152,10 +167,14 @@ const I18N = {
     debugDownloadLogs: '下载调试日志',
     debugLogsDownloaded: '调试日志已下载',
     debugLogsEmpty: '暂无调试日志',
-    discussionProgress: '讨论中 (第$1/$2轮)',
-    discussionProgressInitial: '讨论中 (共$1轮)',
+    discussionProgress: '讨论中',
+    discussionProgressInitial: '讨论中',
     stopDiscussion: '停止讨论',
     msgDiscussionStopped: '讨论已停止',
+    defaultPromptEnabled: '已启用',
+    skipDefaultPrompt: '跳过',
+    setDefaultPrompt: '设为默认',
+    cancelDefaultPrompt: '取消默认',
   },
   en: {
     // Bottom bar buttons
@@ -178,7 +197,6 @@ const I18N = {
     mergeTooltip: 'Merge: collect all answers and send to target AI for fusion',
     mergeTargetAI: 'Merge Target AI',
     mergeTimeoutTooltip: 'Timeout triggered. Adjust wait time in settings.',
-    copyAllAnswers: 'Copy All Answers',
     // Panel header
     copyLink: 'Copy Link',
     refresh: 'Refresh',
@@ -228,11 +246,8 @@ const I18N = {
     // Toast messages
     minOnePanel: 'At least one panel is required',
     clearedAllInputs: 'All inputs cleared',
-    noAnswersFound: 'No answers found, please confirm AIs have replied',
-    copiedAnswers: 'Copied $1 answers to clipboard',
-    copiedAnswersPartial: 'Copied $1/$2 answers ($3 incomplete, please reopen panels and retry)',
-    copiedAnswersPartialShort: 'Copied $1/$2 answers',
     newChatCreated: 'New chat created for all AIs',
+    panelNewChatCreated: 'New chat created for this panel',
     promptSaved: 'Prompt saved successfully',
     promptUpdated: 'Prompt updated successfully',
     promptDeleted: 'Prompt deleted',
@@ -245,8 +260,8 @@ const I18N = {
     providerLoadFailed: '$1 failed to load',
     allAIAnswered: 'All AIs answered, starting merge',
     waitTimeout: 'Wait timeout, starting merge',
-    claudeEntryWarning: 'Claude may be using an unavailable model. Set a working Claude page URL in Advanced Settings, for example https://claude.ai/chat/...',
-    openSettings: 'Set Entry URL',
+    claudeEntryWarning: 'Claude uses the new-chat page by default. If it still fails, set a fallback page URL in Advanced Settings.',
+    openSettings: 'Advanced Settings',
     dismiss: 'Dismiss for Now',
     // Status messages
     sending: 'Sending...',
@@ -273,10 +288,14 @@ const I18N = {
     debugDownloadLogs: 'Download debug logs',
     debugLogsDownloaded: 'Debug logs downloaded',
     debugLogsEmpty: 'No debug logs yet',
-    discussionProgress: 'Discussing (Round $1/$2)',
-    discussionProgressInitial: 'Discussing ($1 rounds total)',
+    discussionProgress: 'Discussing',
+    discussionProgressInitial: 'Discussing',
     stopDiscussion: 'Stop Discussion',
     msgDiscussionStopped: 'Discussion stopped',
+    defaultPromptEnabled: 'Enabled',
+    skipDefaultPrompt: 'Skip',
+    setDefaultPrompt: 'Set as Default',
+    cancelDefaultPrompt: 'Cancel Default',
   }
 };
 
@@ -344,6 +363,10 @@ let extractionDepth = 0; // 引用计数，防止并发 extractMode 切换
 let pendingExtractionPromise = null; // 并发调用时等待中的调用者可复用
 const DEBUG_LOG_STORAGE_KEY = 'aichatmergeDebugLogs';
 const DEBUG_LOG_MAX_ENTRIES = 800;
+const DEBUG_LOG_RAW_TAIL_ENTRIES = 120;
+const DEBUG_LOG_KEY_EVENT_LIMIT = 220;
+const DEBUG_LOG_ISSUE_LIMIT = 80;
+const DISCUSSION_ROUNDS = 1;
 const debugSessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 let debugLogWriteQueue = Promise.resolve();
 
@@ -400,6 +423,181 @@ async function recordDebugLog(event, details = {}) {
     });
 }
 
+function getDebugLogDetails(log) {
+  return log && typeof log.details === 'object' && log.details ? log.details : {};
+}
+
+function compactDebugValue(value, depth = 0) {
+  if (typeof value === 'string') {
+    return value.length > 180 ? `${value.slice(0, 180)}…` : value;
+  }
+  if (typeof value !== 'object' || value === null) {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    const compact = value.slice(0, 8).map(item => compactDebugValue(item, depth + 1));
+    if (value.length > compact.length) {
+      compact.push(`... ${value.length - compact.length} more`);
+    }
+    return compact;
+  }
+  if (depth >= 2) {
+    const keys = Object.keys(value);
+    return keys.length ? `{${keys.slice(0, 8).join(',')}}` : {};
+  }
+
+  const compact = {};
+  Object.entries(value).forEach(([key, item]) => {
+    compact[key] = compactDebugValue(item, depth + 1);
+  });
+  return compact;
+}
+
+function compactDebugLog(log) {
+  return {
+    ts: log.ts,
+    t: log.t,
+    sessionId: log.sessionId,
+    event: log.event,
+    details: compactDebugValue(getDebugLogDetails(log))
+  };
+}
+
+function isDebugIssueEvent(event) {
+  return /error|failed|timeout|no-answer|empty|give-up|missing|aborted|fallback/i.test(event || '');
+}
+
+function isDebugKeyEvent(event) {
+  if (!event) return false;
+  return isDebugIssueEvent(event) ||
+    /^merge:(trigger-start|answers-extracted|prompt-built|reuse-panel|create-panel|auto-export|aborted)/.test(event) ||
+    /^merge-monitor:(start|timeout|all-complete|panel-complete|stop)/.test(event) ||
+    /^discussion:(start|round-start|prompt-built|send-results|round-answers-extracted|round-merge-answer-extracted|completed|stop)/.test(event) ||
+    /^discussion-wait:(start|all-complete|timeout)/.test(event) ||
+    /^discussion-start-gate:(start|new-answer-started|text-stable|timeout-fallback|overall-timeout-fallback|begin-discussion)/.test(event) ||
+    /^discussion-merge-wait:(start|stable-fallback-complete|completion-wait-ended)/.test(event) ||
+    /^markdown-export:/.test(event) ||
+    /^panel-injection:(failed|give-up|timeout)/.test(event);
+}
+
+function buildDebugEventCounts(logs) {
+  const counts = {};
+  logs.forEach(log => {
+    counts[log.event] = (counts[log.event] || 0) + 1;
+  });
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 40)
+    .map(([event, count]) => ({ event, count }));
+}
+
+function getDebugIssueSeverity(event) {
+  if (/error|failed|give-up/i.test(event || '')) return 'error';
+  if (/timeout|no-answer|empty|missing/i.test(event || '')) return 'warning';
+  return 'info';
+}
+
+function extractDebugIssues(logs) {
+  return logs
+    .filter(log => isDebugIssueEvent(log.event))
+    .slice(-DEBUG_LOG_ISSUE_LIMIT)
+    .map(log => ({
+      severity: getDebugIssueSeverity(log.event),
+      ...compactDebugLog(log)
+    }));
+}
+
+function summarizeDebugSessions(logs) {
+  const sessions = new Map();
+  logs.forEach(log => {
+    const sessionId = log.sessionId || 'unknown';
+    if (!sessions.has(sessionId)) {
+      sessions.set(sessionId, {
+        sessionId,
+        startTs: log.ts,
+        endTs: log.ts,
+        logCount: 0,
+        issueCount: 0,
+        exportStatus: null,
+        lastExportFile: null,
+        finalAnswerLength: null,
+        promptLengths: [],
+        providers: new Set(),
+        keyEvents: []
+      });
+    }
+
+    const session = sessions.get(sessionId);
+    const details = getDebugLogDetails(log);
+    session.endTs = log.ts;
+    session.logCount += 1;
+    if (isDebugIssueEvent(log.event)) session.issueCount += 1;
+    if (isDebugKeyEvent(log.event) && session.keyEvents.length < 30) {
+      session.keyEvents.push(log.event);
+    }
+    if (details.promptLength) session.promptLengths.push(details.promptLength);
+    if (details.answerLength || details.exportAnswerLength || details.finalAnswerLength) {
+      session.finalAnswerLength = details.exportAnswerLength || details.finalAnswerLength || details.answerLength;
+    }
+    if (Array.isArray(details.providers)) {
+      details.providers.forEach(provider => session.providers.add(String(provider)));
+    }
+    if (Array.isArray(details.results)) {
+      details.results.forEach(result => {
+        const providerId = result?.panel?.providerId;
+        if (providerId) session.providers.add(providerId);
+      });
+    }
+    if (log.event && log.event.startsWith('markdown-export:') &&
+        /success|failed|error|no-answer|start/.test(log.event)) {
+      session.exportStatus = log.event;
+      if (details.filePath) session.lastExportFile = details.filePath;
+    }
+  });
+
+  return Array.from(sessions.values()).map(session => ({
+    ...session,
+    providers: Array.from(session.providers),
+    promptLengths: session.promptLengths.slice(-5),
+    keyEvents: Array.from(new Set(session.keyEvents))
+  }));
+}
+
+function buildDebugAiPayload(logs) {
+  const currentSessionLogs = logs.filter(log => log.sessionId === debugSessionId);
+  const issueEvents = logs.filter(log => isDebugIssueEvent(log.event));
+  const keyEvents = logs
+    .filter(log => isDebugKeyEvent(log.event))
+    .slice(-DEBUG_LOG_KEY_EVENT_LIMIT)
+    .map(compactDebugLog);
+  const lastExport = [...logs].reverse().find(log => log.event && log.event.startsWith('markdown-export:'));
+
+  return {
+    exportedAt: new Date().toISOString(),
+    schemaVersion: 2,
+    format: 'ai-readable-debug-summary',
+    note: 'Read summary, issues, sessions, and keyEvents first. rawTail is only a short fallback; full raw logs are intentionally omitted to keep this file readable.',
+    currentSessionId: debugSessionId,
+    version: chrome.runtime?.getManifest?.().version || 'unknown',
+    summary: {
+      rawLogCount: logs.length,
+      currentSessionLogCount: currentSessionLogs.length,
+      firstLogAt: logs[0]?.ts || null,
+      lastLogAt: logs[logs.length - 1]?.ts || null,
+      sessionCount: new Set(logs.map(log => log.sessionId || 'unknown')).size,
+      issueCount: issueEvents.length,
+      keyEventCount: keyEvents.length,
+      rawTailCount: Math.min(logs.length, DEBUG_LOG_RAW_TAIL_ENTRIES),
+      lastExport: lastExport ? compactDebugLog(lastExport) : null,
+      eventCounts: buildDebugEventCounts(logs)
+    },
+    issues: extractDebugIssues(logs),
+    sessions: summarizeDebugSessions(logs),
+    keyEvents,
+    rawTail: logs.slice(-DEBUG_LOG_RAW_TAIL_ENTRIES).map(compactDebugLog)
+  };
+}
+
 async function downloadDebugLogs() {
   try {
     await debugLogWriteQueue.catch(() => {});
@@ -412,13 +610,7 @@ async function downloadDebugLogs() {
       return;
     }
 
-    const payload = {
-      exportedAt: new Date().toISOString(),
-      currentSessionId: debugSessionId,
-      version: chrome.runtime?.getManifest?.().version || 'unknown',
-      logCount: logs.length,
-      logs
-    };
+    const payload = buildDebugAiPayload(logs);
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -489,8 +681,6 @@ let currentOpenMode = 'tab'; // 'tab' 或 'popup'
 let isPopupWindow = false;   // 当前窗口是否为弹出窗口
 let claudeCustomEntryUrl = '';
 
-// Default panel configuration
-const DEFAULT_PROVIDERS = DEFAULT_PROVIDER_IDS;
 const PENDING_MULTI_PANEL_ACTION_KEY = 'pendingMultiPanelAction';
 const SEND_FOCUS_RESTORE_DELAYS = [0, 80, 200, 400, 800, 1500, 2500, 4000, 6000, 8000, 10000, 12000];
 const SEND_FOCUS_NO_BUSY_TIMEOUT_MS = 2000;
@@ -554,6 +744,8 @@ async function init() {
 
   isInitialized = true;
   await handlePendingMultiPanelAction();
+  updateDefaultPromptBar();
+  bindDefaultPromptEvents();
 }
 
 function focusUnifiedInput({ force = false } = {}) {
@@ -695,23 +887,26 @@ function getPanelHeaderRightHtml(providerId) {
 
   return `
     ${googleModeSelect}
+    <button class="panel-new-chat-btn" title="${t('newChat')}">
+      <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="add_comment"></span>
+    </button>
     <button class="copy-link-btn" title="${t('copyLink')}">
-      <span class="material-symbols-outlined">content_copy</span>
+      <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="content_copy"></span>
     </button>
     <button class="refresh-panel-btn" title="${t('refresh')}">
-      <span class="material-symbols-outlined">refresh</span>
+      <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="refresh"></span>
     </button>
     <button class="home-btn" title="${t('home')}">
-      <span class="material-symbols-outlined">home</span>
+      <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="home"></span>
     </button>
     <button class="maximize-btn" title="${t('maximize')}">
-      <span class="material-symbols-outlined">open_in_full</span>
+      <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="open_in_full"></span>
     </button>
     <button class="switch-provider-btn" title="${t('switchProvider')}">
-      <span class="material-symbols-outlined">swap_horiz</span>
+      <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="swap_horiz"></span>
     </button>
     <button class="close-panel-btn" title="${t('close')}">
-      <span class="material-symbols-outlined">close</span>
+      <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="close"></span>
     </button>
   `;
 }
@@ -813,6 +1008,15 @@ function bindPanelHeaderActions(panelId) {
     return;
   }
 
+  const panelNewChatBtn = panelEl.querySelector('.panel-new-chat-btn');
+  if (panelNewChatBtn) {
+    panelNewChatBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      startFreshChatForPanel(panel);
+      showToast(t('panelNewChatCreated'));
+    });
+  }
+
   // 复制链接
   const copyLinkBtn = panelEl.querySelector('.copy-link-btn');
   if (copyLinkBtn) {
@@ -823,8 +1027,8 @@ function bindPanelHeaderActions(panelId) {
         const url = iframe?.src || '';
         await navigator.clipboard.writeText(url);
         const icon = copyLinkBtn.querySelector('.material-symbols-outlined');
-        icon.textContent = 'check';
-        setTimeout(() => { icon.textContent = 'content_copy'; }, 1500);
+        setMaterialIcon(icon, 'check');
+        setTimeout(() => { setMaterialIcon(icon, 'content_copy'); }, 1500);
       } catch (err) {
         console.warn('[Panel] Failed to copy link:', err);
       }
@@ -856,7 +1060,7 @@ function bindPanelHeaderActions(panelId) {
       const panelItem = panelEl;
       const isMaximized = panelItem.classList.toggle('panel-maximized');
       const icon = maximizeBtn.querySelector('.material-symbols-outlined');
-      icon.textContent = isMaximized ? 'close_fullscreen' : 'open_in_full';
+      setMaterialIcon(icon, isMaximized ? 'close_fullscreen' : 'open_in_full');
       maximizeBtn.title = isMaximized ? t('restore') : t('maximize');
     });
   }
@@ -951,9 +1155,8 @@ function registerStorageChangeListener() {
     }
     if (changes.autoMergeEnabled) {
       AUTO_MERGE_ENABLED = changes.autoMergeEnabled.newValue !== false;
-      if (!AUTO_MERGE_ENABLED && mergeTimeoutTimer) {
-        clearTimeout(mergeTimeoutTimer);
-        mergeTimeoutTimer = null;
+      if (!AUTO_MERGE_ENABLED) {
+        stopMergeMonitor();
       }
     }
 
@@ -996,10 +1199,14 @@ function cancelUnifiedInputFocusRestoreAfterSend() {
   isRestoringFocusAfterSend = false;
 }
 
-function startFreshChatForPanel(panel) {
+function startFreshChatForPanel(panel, { invalidateSession = true } = {}) {
   if (!panel) {
     return;
   }
+  if (invalidateSession) {
+    invalidateCompletionSessions('panel-new-chat');
+  }
+  stopMergeMonitor();
   postNewChatToPanel(panel);
 }
 
@@ -1008,7 +1215,7 @@ function isUnifiedInputOrNewChatControl(target) {
     return false;
   }
 
-  return Boolean(target.closest('#unified-input, #new-chat-btn'));
+  return Boolean(target.closest('#unified-input, #new-chat-btn, #prompt-editor-modal input, #prompt-editor-modal textarea, #prompt-editor-modal button'));
 }
 
 function isUnifiedInputOrSendControl(target) {
@@ -1016,7 +1223,12 @@ function isUnifiedInputOrSendControl(target) {
     return false;
   }
 
-  return Boolean(target.closest('#unified-input, #send-all-btn'));
+  return Boolean(target.closest('#unified-input, #send-all-btn, #prompt-editor-modal input, #prompt-editor-modal textarea, #prompt-editor-modal button'));
+}
+
+function isPromptEditorTextControl(target) {
+  return target instanceof Element &&
+    Boolean(target.closest('#prompt-editor-modal input, #prompt-editor-modal textarea'));
 }
 
 function restoreUnifiedInputFocusAfterNewChat() {
@@ -1205,7 +1417,11 @@ function handleProviderStatusMessage(event) {
 
   // Handle completion detection from iframe MutationObserver or SSE bridge
   if (data.type === 'COMPLETION_DETECTED' && data.context === 'multi-panel-completion') {
-    handleMergeCompletionDetected(data);
+    handleMergeCompletionDetected({
+      ...data,
+      panelId: data.panelId || panel.id,
+      provider: data.provider || panel.providerId
+    });
     return;
   }
 
@@ -1390,7 +1606,7 @@ async function loadSettings() {
   try {
     const settings = await chrome.storage.sync.get({
       multiPanelLayout: '1x3',
-      multiPanelProviders: DEFAULT_PROVIDERS,
+      multiPanelProviders: DEFAULT_PROVIDER_IDS,
       openMode: 'tab',
       googleProviderMode: DEFAULT_GOOGLE_PROVIDER_MODE,
       currentPanelPage: 0,
@@ -1440,10 +1656,10 @@ function updateToggleButton() {
   const icon = btn.querySelector('.material-symbols-outlined');
 
   if (isPopupWindow) {
-    if (icon) icon.textContent = 'tab';
+    setMaterialIcon(icon, 'tab');
     btn.title = t('switchToTabModeTitle');
   } else {
-    if (icon) icon.textContent = 'open_in_new';
+    setMaterialIcon(icon, 'open_in_new');
     btn.title = t('switchToPopupModeTitle');
   }
 }
@@ -1555,10 +1771,10 @@ async function restoreStateIfNeeded() {
 async function initializePanels() {
   try {
     const settings = await chrome.storage.sync.get({
-      multiPanelProviders: DEFAULT_PROVIDERS
+      multiPanelProviders: DEFAULT_PROVIDER_IDS
     });
 
-    const providerIds = settings.multiPanelProviders || DEFAULT_PROVIDERS;
+    const providerIds = settings.multiPanelProviders || DEFAULT_PROVIDER_IDS;
 
     isInitializing = true;
     for (const providerId of providerIds) {
@@ -1572,7 +1788,7 @@ async function initializePanels() {
     isInitializing = false;
     console.error('Error initializing panels:', error);
     // Fallback to default providers
-    for (const providerId of DEFAULT_PROVIDERS) {
+    for (const providerId of DEFAULT_PROVIDER_IDS) {
       await addPanel(providerId);
     }
     saveProviderConfiguration();
@@ -1613,7 +1829,7 @@ async function addPanel(providerId) {
   headerIcon.dataset.providerId = provider.id;
 
   const headerName = document.createElement('span');
-  headerName.textContent = provider.name; // safe: textContent
+  setBrandText(headerName, provider.name);
 
   headerLeft.appendChild(headerIcon);
   headerLeft.appendChild(headerName);
@@ -1813,7 +2029,7 @@ async function switchPanelProvider(panelId, newProviderId) {
   headerIcon.src = getThemeAwareProviderIcon(provider);
   headerIcon.dataset.providerId = provider.id;
   headerIcon.alt = provider.name;
-  headerName.textContent = provider.name;
+  setBrandText(headerName, provider.name);
   panelEl.dataset.providerId = newProviderId;
   headerRight.textContent = ''; // clear existing children safely
   headerRight.innerHTML = getPanelHeaderRightHtml(newProviderId);
@@ -1888,9 +2104,16 @@ async function broadcastMessage(text, autoSubmit = true, mergeSessionId = null) 
       mergeSessionId,
       targetPanels: targetPanels.map(getPanelDebugInfo)
     });
-    const panelResults = await Promise.allSettled(
-      targetPanels.map(panel => sendToPanel(panel, text, shouldAutoSubmit, sendFocusRequestId, 0, mergeSessionId))
-    );
+    const panelResults = [];
+    for (const panel of targetPanels) {
+      await ensurePanelVisibleBeforeAutoSubmit(panel, shouldAutoSubmit, 'broadcast');
+      try {
+        const value = await sendToPanel(panel, text, shouldAutoSubmit, sendFocusRequestId, 0, mergeSessionId);
+        panelResults.push({ status: 'fulfilled', value });
+      } catch (reason) {
+        panelResults.push({ status: 'rejected', reason });
+      }
+    }
 
     // Count results (panels only)
     const panelSuccessful = panelResults.filter(r => r.status === 'fulfilled' && r.value).length;
@@ -2091,6 +2314,30 @@ async function sendToPanel(panel, text, autoSubmit = true, requestId = null, rec
   });
 }
 
+function getPanelPageIndex(panel) {
+  const panelIndex = panels.indexOf(panel);
+  if (panelIndex < 0) return currentPanelPage;
+  const panelsPerPage = LAYOUT_PANEL_COUNTS[currentLayout] || 3;
+  return Math.floor(panelIndex / panelsPerPage);
+}
+
+async function ensurePanelVisibleBeforeAutoSubmit(panel, autoSubmit, reason = 'send') {
+  if (!autoSubmit || !panel) return;
+
+  const targetPage = getPanelPageIndex(panel);
+  if (currentPanelPage === targetPage) return;
+
+  recordDebugLog('panel-send:activate-page', {
+    panel: getPanelDebugInfo(panel),
+    fromPage: currentPanelPage,
+    toPage: targetPage,
+    reason
+  });
+  currentPanelPage = targetPage;
+  renderCurrentPage();
+  await sleep(500);
+}
+
 // Clear all input boxes (unified input + all panels)
 async function clearAllInputs() {
   // Clear unified input
@@ -2115,11 +2362,23 @@ async function clearAllInputs() {
 async function newChatAllProviders() {
   const newChatBtn = document.getElementById('new-chat-btn');
 
+  if (discussionActive || discussionAbortController) {
+    stopDiscussion('new-chat');
+  }
+
+  invalidateCompletionSessions('new-chat');
+  stopMergeMonitor();
+  if (autoExportWaitController) {
+    autoExportWaitController.abort();
+    autoExportWaitController = null;
+  }
+  autoExportRunId += 1;
+
   // Disable button during operation
   newChatBtn.disabled = true;
 
-  getNonMergePanels().forEach(panel => {
-    startFreshChatForPanel(panel);
+  panels.forEach(panel => {
+    startFreshChatForPanel(panel, { invalidateSession: false });
   });
 
   restoreUnifiedInputFocusAfterNewChat();
@@ -2279,8 +2538,117 @@ async function loadCategoryFilter() {
   }
 }
 
+async function toggleFavorite(promptId) {
+  try {
+    const prompt = await getPrompt(promptId);
+    if (!prompt) return;
+
+    await updatePrompt(promptId, { isFavorite: !prompt.isFavorite });
+    renderPromptList(); // 刷新列表
+  } catch (error) {
+    console.error('[PromptLibrary] Toggle favorite failed:', error);
+  }
+}
+
+async function deletePromptDirect(promptId) {
+  try {
+    const prompt = await getPrompt(promptId);
+    if (!prompt) return;
+
+    // 显示toast确认
+    const toastId = showToast(
+      `确认删除 "${prompt.title}"？`,
+      {
+        type: 'warning',
+        duration: 3000,
+        actions: [
+          {
+            label: '删除',
+            onClick: async () => {
+              await deletePrompt(promptId);
+              await renderPromptList();
+              await updateDefaultPromptBar();
+              showToast('已删除', { type: 'success', duration: 1500 });
+            }
+          },
+          {
+            label: '取消',
+            onClick: () => {} // 什么都不做
+          }
+        ]
+      }
+    );
+  } catch (error) {
+    console.error('[PromptLibrary] Delete prompt failed:', error);
+  }
+}
+
+function detectVariables(content) {
+  const regex = /\{(\w+)\}/g;
+  const variables = [];
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    if (!variables.includes(match[1])) {
+      variables.push(match[1]);
+    }
+  }
+  return variables;
+}
+
+// 默认提示词相关
+let skipDefaultPromptOnce = false;
+
+async function getDefaultPrompt() {
+  const prompts = await getAllPrompts();
+  return prompts.find(p => p.isDefault === true);
+}
+
+async function updateDefaultPromptBar() {
+  const bar = document.getElementById('default-prompt-bar');
+  const titleSpan = document.getElementById('default-prompt-title');
+
+  if (!bar || !titleSpan) return;
+
+  const defaultPrompt = await getDefaultPrompt();
+  if (defaultPrompt) {
+    titleSpan.textContent = defaultPrompt.title;
+    bar.style.display = 'flex';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+async function prependDefaultPrompt(userInput) {
+  const defaultPrompt = await getDefaultPrompt();
+  if (defaultPrompt) {
+    const content = defaultPrompt.content.replace(/\n+$/, '');
+    return `${content}\n\n${userInput}`;
+  }
+  return userInput;
+}
+
+function bindDefaultPromptEvents() {
+  const skipBtn = document.getElementById('skip-default-prompt-btn');
+  if (skipBtn) {
+    skipBtn.addEventListener('click', () => {
+      skipDefaultPromptOnce = true;
+      showToast('本次发送将跳过默认提示词', { type: 'info', duration: 2000 });
+    });
+  }
+}
+
+async function sendMessageWithDefaultPrompt(inputValue) {
+  let text = inputValue;
+  if (!skipDefaultPromptOnce) {
+    text = await prependDefaultPrompt(text);
+  }
+  skipDefaultPromptOnce = false;
+  broadcastMessage(text);
+}
+
 async function renderPromptList(searchQuery = '') {
   const promptList = document.getElementById('prompt-list-modal');
+  if (!promptList) return;
 
   try {
     let prompts;
@@ -2310,7 +2678,7 @@ async function renderPromptList(searchQuery = '') {
       emptyDiv.className = 'prompt-empty';
       const emptyIcon = document.createElement('span');
       emptyIcon.className = 'material-symbols-outlined';
-      emptyIcon.textContent = 'auto_awesome';
+      setMaterialIcon(emptyIcon, 'auto_awesome');
       const emptyText = document.createElement('p');
       emptyText.textContent = searchQuery ? t('noMatchingPrompts') : t('noPrompts');
       emptyDiv.appendChild(emptyIcon);
@@ -2323,57 +2691,56 @@ async function renderPromptList(searchQuery = '') {
     prompts.slice(0, 30).forEach(prompt => {
       const itemDiv = document.createElement('div');
       itemDiv.className = 'prompt-item-modal';
-      itemDiv.dataset.id = prompt.id;
+      itemDiv.dataset.id = String(prompt.id);
 
-      if (prompt.isFavorite) {
-        const favDiv = document.createElement('div');
-        favDiv.className = 'prompt-item-favorite';
-        const favIcon = document.createElement('span');
-        favIcon.className = 'material-symbols-outlined filled';
-        favIcon.textContent = 'star';
-        favDiv.appendChild(favIcon);
-        itemDiv.appendChild(favDiv);
-      }
+      // 创建星标图标
+      const favoriteIcon = document.createElement('span');
+      favoriteIcon.className = `prompt-favorite-icon ${prompt.isFavorite ? 'favorited' : ''}`;
+      favoriteIcon.textContent = prompt.isFavorite ? '★' : '☆';
+      favoriteIcon.title = prompt.isFavorite ? '取消收藏' : '添加收藏';
+      favoriteIcon.addEventListener('click', (e) => {
+        e.stopPropagation(); // 阻止冒泡
+        toggleFavorite(prompt.id);
+      });
+      itemDiv.appendChild(favoriteIcon);
+
+      // 创建删除图标
+      const deleteIcon = document.createElement('span');
+      deleteIcon.className = 'prompt-delete-icon';
+      deleteIcon.textContent = '🗑️';
+      deleteIcon.title = '删除';
+      deleteIcon.addEventListener('click', (e) => {
+        e.stopPropagation(); // 阻止冒泡
+        deletePromptDirect(prompt.id);
+      });
+      itemDiv.appendChild(deleteIcon);
+
+      // 创建设为默认按钮
+      const setDefaultBtn = document.createElement('button');
+      setDefaultBtn.type = 'button';
+      setDefaultBtn.className = `prompt-set-default-btn ${prompt.isDefault ? 'active' : ''}`;
+      setDefaultBtn.textContent = prompt.isDefault ? '已默认' : '设为默认';
+      setDefaultBtn.title = prompt.isDefault ? t('cancelDefaultPrompt') : t('setDefaultPrompt');
+      setDefaultBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (prompt.isDefault) {
+          await clearDefaultPrompt();
+        } else {
+          await setDefaultPrompt(prompt.id);
+        }
+        renderPromptList();
+        updateDefaultPromptBar();
+      });
+      itemDiv.appendChild(setDefaultBtn);
+
+      const contentWrapper = document.createElement('div');
+      contentWrapper.className = 'prompt-item-content';
 
       const titleDiv = document.createElement('div');
       titleDiv.className = 'prompt-item-modal-title';
-      titleDiv.textContent = prompt.title;
-      itemDiv.appendChild(titleDiv);
-
-      const previewDiv = document.createElement('div');
-      previewDiv.className = 'prompt-item-modal-preview';
-      previewDiv.textContent = prompt.content.substring(0, 150) + (prompt.content.length > 150 ? '...' : '');
-      itemDiv.appendChild(previewDiv);
-
-      const metaRow = document.createElement('div');
-      metaRow.className = 'prompt-item-meta-row';
-
-      if (prompt.category) {
-        const catSpan = document.createElement('span');
-        catSpan.className = 'prompt-item-category';
-        catSpan.textContent = prompt.category;
-        metaRow.appendChild(catSpan);
-      }
-
-      if (prompt.variables && prompt.variables.length > 0) {
-        const varsDiv = document.createElement('div');
-        varsDiv.className = 'prompt-item-variables';
-        prompt.variables.slice(0, 3).forEach(v => {
-          const tag = document.createElement('span');
-          tag.className = 'prompt-variable-tag';
-          tag.textContent = `{${v}}`;
-          varsDiv.appendChild(tag);
-        });
-        if (prompt.variables.length > 3) {
-          const moreTag = document.createElement('span');
-          moreTag.className = 'prompt-variable-tag';
-          moreTag.textContent = `+${prompt.variables.length - 3}`;
-          varsDiv.appendChild(moreTag);
-        }
-        metaRow.appendChild(varsDiv);
-      }
-
-      itemDiv.appendChild(metaRow);
+      titleDiv.textContent = prompt.title || '未命名提示词';
+      contentWrapper.appendChild(titleDiv);
+      itemDiv.appendChild(contentWrapper);
       promptList.appendChild(itemDiv);
     });
 
@@ -2404,17 +2771,15 @@ async function renderPromptList(searchQuery = '') {
 }
 
 async function selectPrompt(prompt) {
-  // Record usage
-  try {
-    await recordPromptUsage(prompt.id);
-  } catch (error) {
-    console.error('Error recording prompt usage:', error);
-  }
+  await recordPromptUsage(prompt.id);
 
-  // Check if prompt has variables
-  if (prompt.variables && prompt.variables.length > 0) {
-    selectedPromptForVariables = prompt;
-    showVariableModal(prompt);
+  // 自动检测变量（合并已声明的变量和内容中检测到的变量）
+  const detectedVars = detectVariables(prompt.content);
+  const allVars = [...new Set([...(prompt.variables || []), ...detectedVars])];
+
+  if (allVars.length > 0) {
+    selectedPromptForVariables = { ...prompt, variables: allVars };
+    showVariableModal({ ...prompt, variables: allVars });
   } else {
     applyPromptToInput(prompt.content);
     closePromptModal();
@@ -2702,40 +3067,6 @@ function handleExtractedAnswer(data) {
   }
 }
 
-async function copyAllAnswers() {
-  const answers = await extractAllAnswers();
-  const validAnswers = answers.filter(a => a.answer && a.answer.trim().length > 0);
-  if (validAnswers.length === 0) {
-    showToast(t('noAnswersFound'));
-    return;
-  }
-
-  const text = validAnswers.map(a =>
-    `=== ${a.providerName} ===\n${a.answer}`
-  ).join('\n---\n');
-
-  try {
-    await navigator.clipboard.writeText(text);
-    const missing = answers.length - validAnswers.length;
-    const msg = missing > 0
-      ? t('copiedAnswersPartial', validAnswers.length, answers.length, missing)
-      : t('copiedAnswers', validAnswers.length);
-    showToast(msg);
-  } catch (err) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-    const missing = answers.length - validAnswers.length;
-    const msg = missing > 0
-      ? t('copiedAnswersPartialShort', validAnswers.length, answers.length)
-      : t('copiedAnswers', validAnswers.length);
-    showToast(msg);
-  }
-}
-
 // Debug extraction - call debugExtraction() from console
 window.debugExtraction = function() {
   panels.forEach(panel => {
@@ -2774,6 +3105,11 @@ let mergeCompletedPanels = new Set();
 let mergeTimeoutTimer = null;
 let mergeIsActive = false;
 let activeMergeSessionId = null;
+let completionSessionGeneration = 0;
+let activeCompletionSessionGeneration = 0;
+let autoExportWaitController = null;
+let autoExportRunId = 0;
+let autoExportWriteInProgress = false;
 let lastSentQuestion = '';
 let lastMergeType = null; // 'auto' | 'timeout' | 'manual' | null
 
@@ -2805,6 +3141,7 @@ function startMergeMonitor(mergeSessionId) {
   stopMergeMonitor();
   mergeIsActive = true;
   activeMergeSessionId = mergeSessionId;
+  activeCompletionSessionGeneration = completionSessionGeneration;
   mergeCompletedPanels = new Set();
   const mergeBtn = document.getElementById('merge-btn');
   if (mergeBtn) mergeBtn.classList.add('active');
@@ -2854,12 +3191,27 @@ function handleMergeCompletionDetected(data) {
     return;
   }
 
+  if (String(data.mergeSessionId || '').startsWith('discussion-round-')) {
+    return;
+  }
+
   if (!activeMergeSessionId || data.mergeSessionId !== activeMergeSessionId) {
     recordDebugLog('completion:ignored-session-mismatch', {
       provider: data.provider,
       panelId: data.panelId,
       incomingSessionId: data.mergeSessionId,
       activeMergeSessionId
+    });
+    return;
+  }
+
+  if (activeCompletionSessionGeneration !== completionSessionGeneration) {
+    recordDebugLog('completion:ignored-stale-generation', {
+      provider: data.provider,
+      panelId: data.panelId,
+      mergeSessionId: data.mergeSessionId,
+      activeCompletionSessionGeneration,
+      completionSessionGeneration
     });
     return;
   }
@@ -2942,6 +3294,7 @@ function stopMergeMonitor() {
   }
   mergeIsActive = false;
   activeMergeSessionId = null;
+  activeCompletionSessionGeneration = 0;
   mergeCompletedPanels.clear();
   releaseExtractMode();
 
@@ -2964,87 +3317,108 @@ function stopMergeMonitor() {
   if (mergeBtn) mergeBtn.classList.remove('active');
 }
 
+function clearActiveCompletionSession() {
+  mergeIsActive = false;
+  activeMergeSessionId = null;
+  activeCompletionSessionGeneration = 0;
+  mergeCompletedPanels.clear();
+}
+
+function beginCompletionSession(mergeSessionId, generation = completionSessionGeneration) {
+  activeMergeSessionId = mergeSessionId;
+  mergeIsActive = true;
+  activeCompletionSessionGeneration = generation;
+}
+
+function invalidateCompletionSessions(reason = 'reset') {
+  completionSessionGeneration += 1;
+  recordDebugLog('completion-session:invalidate', {
+    reason,
+    completionSessionGeneration
+  });
+  clearActiveCompletionSession();
+}
+
 function generateFallbackTitle() {
   const now = new Date();
   const hhmmss = now.toTimeString().slice(0, 8).replace(/:/g, '');
   return `AI融合-${now.toISOString().slice(0, 10)}-${hhmmss}`;
 }
 
+function isTrueSetting(value) {
+  return value === true || value === 'true';
+}
+
+function normalizeAnswerForMerge(answer) {
+  return sanitizeMergedAnswerForDiscussion(answer);
+}
+
 function buildMergePrompt(question, answers) {
   const isEn = currentLocale === 'en';
   const today = new Date().toLocaleDateString(isEn ? 'en-US' : 'zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-  const parts = answers.map(a => `【${a.providerName}】\n${a.answer.replace(/^[ \t]*\n/gm, '')}`).join('\n');
+  const parts = answers.map(a => `【${a.providerName}】\n${normalizeAnswerForMerge(a.answer)}`).join('\n');
 
   if (isEn) {
-    return `You are a skilled answer synthesizer. Today: ${today}.
+    return `You synthesize multiple model responses. Today: ${today}
 [Original Question]
 ${question}
 [Model Responses]
 ${parts}
 Rules:
-1. Quote the original question as-is
-2. Extract the best content from each response, remove duplicates
-3. When citing a viewpoint, note which model(s) support it
-4. Remove outdated info based on today's date
-5. Note disagreements briefly, then give the best answer
-6. Use Markdown formatting
-Output the synthesized answer with source attribution.
-Finally, on a new line, output the file title in strictly this format: <<<TITLE:concise title within 10 characters>>>`;
+1. Start by writing the original question exactly
+2. Prioritize the most recent information; remove clearly outdated data
+3. Synthesize useful content from each response and remove duplicates; when models disagree, preserve each position and cite the source model
+4. Use Markdown, no tables
+5. Output scores on a separate line starting with "Model scores:", format: Model scores: ModelName=score, ModelName=score
+6. Output a title on a separate line starting with "Title:", format: Title: title within 10 words`.replace(/\n{2,}/g, '\n');
   }
 
-  return `你是一位优秀的答案综合者。当前日期：${today}。
+  return `你是一位答案综合者。当前日期：${today}
 [原始问题]
 ${question}
 [各模型回答]
 ${parts}
 规则：
-1. 先原样引用原始问题
-2. 从每个回答中提取最优质的内容，去除重复
-3. 引用观点时注明来源
-4. 根据当前日期，去除过时的信息
-5. 模型有分歧时简要说明后给出最佳答案
-6. 使用 Markdown 格式输出
-直接输出综合答案，每个观点注明来源。
-最后另起一行，输出文件标题，格式必须严格为：<<<TITLE:10字以内的概括性标题>>>`;
+1. 先原样写出原始问题
+2. 以最新的信息为准，删除明显过时的数据
+3. 综合各回答的有效内容并去重，有分歧时保留各方立场，注明来源
+4. 使用 Markdown 输出，不用表格
+5. 单独一行输出评分，必须以“模型评分：”开头，格式：模型评分：模型名=分数，模型名=分数
+6. 单独一行输出标题，必须以“标题：”开头，格式：标题：标题内容，标题控制在10字以内`.replace(/\n{2,}/g, '\n');
 }
 
-function buildDiscussPrompt(mergedAnswer, currentRound, totalRounds) {
+function buildDiscussPrompt(question, mergedAnswer) {
   const isEn = currentLocale === 'en';
   const today = new Date().toLocaleDateString(isEn ? 'en-US' : 'zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+  const cleanMergedAnswer = sanitizeMergedAnswerForDiscussion(mergedAnswer);
 
   if (isEn) {
-    let prompt = `You are an AI assistant participating in a multi-AI discussion (Round ${currentRound}/${totalRounds}). Today: ${today}.
-[Merged Result]
-${mergedAnswer}
-Discussion Rules:
-1. This is a merged result from multiple AI responses
-2. You may question, supplement, or support this result
-3. You may change or maintain your stance, explain your reasoning and evidence
-4. Must reach consensus within ${totalRounds} rounds of discussion
-Based on the above, provide your viewpoint.`;
-
-    if (currentRound === totalRounds) {
-      prompt += '\nThis is the final round of discussion. Please provide your final conclusion.';
-    }
-
-    return prompt;
+    return `Task: Review the current merged result. Current date: ${today}
+[Original Question]
+${question}
+[Current Merged Result]
+${cleanMergedAnswer}
+Output Rules:
+1. Do not rewrite the full answer; output only corrections, additions, or objections
+2. If there is no objection, output only: Agree with the current merged result; no new corrections
+3. Prioritize recent information and flag clearly outdated or unreliable content
+4. Do not use tables; use numbered lists for comparisons
+5. For each correction or addition, cite evidence, source model, or accurate source channel
+6. If there is a conflict, state the conflict, each position, and your judgment`.replace(/\n{2,}/g, '\n');
   }
 
-  let prompt = `你是一位AI助手，正在参与多AI讨论（第${currentRound}/${totalRounds}轮）。当前日期：${today}。
-【融合结果】
-${mergedAnswer}
-讨论规则：
-1. 这是多个AI回答后的融合结果
-2. 你可以质疑、补充或支持这个结果
-3. 你可以改变或坚持立场，说明原因和依据
-4. 必须在${totalRounds}轮讨论内达成共识
-请基于以上内容，给出你的观点。`;
-
-  if (currentRound === totalRounds) {
-    prompt += '\n这是最后一轮讨论，请给出你的最终结论。';
-  }
-
-  return prompt;
+  return `任务：复核当前融合结果。当前日期：${today}
+[原始问题]
+${question}
+[当前融合结果]
+${cleanMergedAnswer}
+输出规则：
+1. 不要重写完整答案，只输出需要修正、补充或反对的内容
+2. 如果没有异议，只输出：同意当前融合结果，无新增修正
+3. 以最新信息为准，指出明显过时或不可靠的内容
+4. 禁止使用表格；对比内容使用编号列表
+5. 每条修正或补充都注明依据、来源模型或准确来源渠道
+6. 如存在冲突，说明冲突点、各方立场和你的判断结论`.replace(/\n{2,}/g, '\n');
 }
 
 function isMeaninglessStandaloneSymbolLine(line) {
@@ -3109,7 +3483,7 @@ async function triggerMerge() {
   // 获取讨论模式设置
   const settings = await getSettings();
   const mergeMode = settings.mergeMode || 'merge';
-  const discussRounds = settings.discussRounds || 3;
+  const discussRounds = DISCUSSION_ROUNDS;
   recordDebugLog('merge:prompt-built', {
     targetProvider,
     mergeMode,
@@ -3167,8 +3541,7 @@ async function triggerMerge() {
 
     // 先监听融合面板完成，再发送 INJECT_TEXT，避免普通融合和讨论融合的导出/讨论竞态
     const mergeOutputSessionId = `merge-output-${Date.now()}`;
-    activeMergeSessionId = mergeOutputSessionId;
-    mergeIsActive = true;
+    beginCompletionSession(mergeOutputSessionId);
     postToPanelIframe(existingPanel, {
       type: 'MONITOR_COMPLETION',
       mergeSessionId: mergeOutputSessionId,
@@ -3251,7 +3624,7 @@ async function triggerMerge() {
   headerIcon.dataset.providerId = provider.id;
 
   const headerName = document.createElement('span');
-  headerName.textContent = `${provider.name}(${t('merge')})`;
+  setBrandText(headerName, `${provider.name}(${t('merge')})`);
 
   const mergeBadge = document.createElement('span');
   mergeBadge.id = 'merge-status-badge';
@@ -3324,7 +3697,12 @@ async function triggerMerge() {
     id: panelId,
     providerId: targetProvider,
     iframe,
-    state: 'loading'
+    state: 'loading',
+    exportData: {
+      question,
+      providers: validAnswers.map(a => a.providerName),
+      mode: mergeMode === 'merge+discuss' ? 'discuss' : 'merge'
+    }
   });
 
   bindPanelHeaderActions(panelId);
@@ -3338,8 +3716,7 @@ async function triggerMerge() {
   const mergeOutputSessionId = `merge-output-${Date.now()}`;
 
   // 提前设置 mergeSessionId，让普通融合和讨论融合都能收到融合面板完成信号
-  activeMergeSessionId = mergeOutputSessionId;
-  mergeIsActive = true;
+  beginCompletionSession(mergeOutputSessionId);
 
   iframe.addEventListener('load', () => {
     loadingEl.classList.add('hidden');
@@ -3433,9 +3810,16 @@ let discussionAbortController = null;
 let discussionActive = false;
 let lastDiscussionTitle = '';
 
-function stopDiscussion() {
+function stopDiscussion(reason = 'user') {
+  const wasActive = discussionActive || Boolean(discussionAbortController);
   if (discussionAbortController) {
     discussionAbortController.abort();
+  }
+  invalidateCompletionSessions(`discussion-stop:${reason}`);
+  if (wasActive) {
+    recordDebugLog('discussion:stop', { reason });
+    hideDiscussionStatusBar();
+    stopMergeMonitor();
   }
 }
 
@@ -3468,7 +3852,7 @@ function getCurrentMergeMaxWait() {
     : 120000;
 }
 
-function waitForDiscussionPanelsCompletionWithAbort(targetPanels, signal, timeoutMs = getCurrentMergeMaxWait()) {
+function waitForDiscussionPanelsCompletionWithAbort(targetPanels, signal, timeoutMs = getCurrentMergeMaxWait(), abortEventName = 'discussion-wait:aborted') {
   return new Promise((resolve) => {
     if (targetPanels.length === 0) { resolve(); return; }
     if (signal.aborted) { resolve(); return; }
@@ -3512,7 +3896,7 @@ function waitForDiscussionPanelsCompletionWithAbort(targetPanels, signal, timeou
     };
 
     const onAbort = () => {
-      recordDebugLog('discussion-wait:aborted', {
+      recordDebugLog(abortEventName, {
         completedCount: completedPanelIds.size,
         totalCount: targetPanels.length,
         completedPanelIds: Array.from(completedPanelIds)
@@ -3563,6 +3947,12 @@ function getDiscussionStartGateTimeout(timeoutMs) {
   return Math.min(configuredTimeoutMs, DISCUSSION_START_GATE_MAX_WAIT_MS);
 }
 
+function getDiscussionStartGateOverallTimeout(timeoutMs) {
+  return Number.isFinite(Number(timeoutMs)) && Number(timeoutMs) > 0
+    ? Number(timeoutMs)
+    : getCurrentMergeMaxWait();
+}
+
 function sleepWithAbort(ms, signal) {
   return new Promise(resolve => {
     if (signal?.aborted) {
@@ -3587,8 +3977,16 @@ function normalizeAnswerForStability(answer) {
   return String(answer || '').replace(/\s+/g, ' ').trim();
 }
 
-async function waitForDiscussionStartGate(panel, signal, timeoutMs) {
-  const safeTimeoutMs = getDiscussionStartGateTimeout(timeoutMs);
+async function waitForDiscussionStartGate(panel, signal, timeoutMs, baselineText) {
+  // Two timers are intentionally separated:
+  // 1. overallTimeoutMs: how long we may wait for the merge panel to produce this round's answer.
+  // 2. activeTimeoutMs: fallback timer after the new answer has actually started.
+  //
+  // When reusing a merge panel, old answers remain visible. Counting the 30s fallback from gate:start
+  // lets the old visible answer consume most of the budget, so discussion can begin while the new
+  // merge answer is still generating. Count the short fallback only after new-answer-started.
+  const activeTimeoutMs = getDiscussionStartGateTimeout(timeoutMs);
+  const overallTimeoutMs = getDiscussionStartGateOverallTimeout(timeoutMs);
   const startedAt = Date.now();
   let completionEventData = null;
   let completedByEvent = false;
@@ -3597,12 +3995,18 @@ async function waitForDiscussionStartGate(panel, signal, timeoutMs) {
   let stableCandidate = '';
   let stableSince = 0;
   let firstSeenLogged = false;
+  const baselineNormalized = normalizeAnswerForStability(baselineText || '');
+  let newAnswerStarted = false;
+  let newAnswerStartedAt = 0;
 
   recordDebugLog('discussion-start-gate:start', {
     panel: getPanelDebugInfo(panel),
-    timeoutMs: safeTimeoutMs,
+    timeoutMs: activeTimeoutMs,
+    overallTimeoutMs,
     pollMs: DISCUSSION_START_GATE_POLL_MS,
-    stableMs: DISCUSSION_START_GATE_STABLE_MS
+    stableMs: DISCUSSION_START_GATE_STABLE_MS,
+    baselineLength: baselineNormalized.length,
+    hasBaseline: baselineNormalized.length > 0
   });
 
   const completionHandler = (event) => {
@@ -3613,24 +4017,35 @@ async function waitForDiscussionStartGate(panel, signal, timeoutMs) {
   window.addEventListener('message', completionHandler);
 
   try {
-    while (!signal.aborted && Date.now() - startedAt < safeTimeoutMs) {
+    while (!signal.aborted && Date.now() - startedAt < overallTimeoutMs) {
       if (completedByEvent) {
         let eventAnswer = completionEventData?.answer || '';
         if (!eventAnswer && panel) {
           eventAnswer = await extractSinglePanelAnswer(panel) || '';
         }
+        const eventNormalized = normalizeAnswerForStability(eventAnswer);
 
         recordDebugLog('discussion-start-gate:event-complete', {
           panel: getPanelDebugInfo(panel),
           elapsedMs: Date.now() - startedAt,
-          answerLength: String(eventAnswer || '').length
+          answerLength: String(eventAnswer || '').length,
+          baselineLength: baselineNormalized.length
         });
 
-        if (eventAnswer && eventAnswer.trim()) {
+        if (eventAnswer && eventAnswer.trim() && (!baselineNormalized || eventNormalized !== baselineNormalized)) {
           return {
             answer: eventAnswer,
             reason: 'event-complete'
           };
+        }
+
+        if (baselineNormalized && eventNormalized === baselineNormalized) {
+          recordDebugLog('discussion-start-gate:event-ignored-baseline', {
+            panel: getPanelDebugInfo(panel),
+            elapsedMs: Date.now() - startedAt,
+            answerLength: String(eventAnswer || '').length,
+            baselineLength: baselineNormalized.length
+          });
         }
 
         completedByEvent = false;
@@ -3652,40 +4067,88 @@ async function waitForDiscussionStartGate(panel, signal, timeoutMs) {
           });
         }
 
-        if (currentNormalized !== stableCandidate) {
-          stableCandidate = currentNormalized;
-          stableSince = Date.now();
-          recordDebugLog('discussion-start-gate:text-changed', {
-            panel: getPanelDebugInfo(panel),
-            elapsedMs: Date.now() - startedAt,
-            answerLength: currentAnswer.length
-          });
-        } else if (Date.now() - stableSince >= DISCUSSION_START_GATE_STABLE_MS) {
-          recordDebugLog('discussion-start-gate:text-stable', {
-            panel: getPanelDebugInfo(panel),
-            elapsedMs: Date.now() - startedAt,
-            stableMs: Date.now() - stableSince,
-            answerLength: currentAnswer.length
-          });
-          return {
-            answer: currentAnswer,
-            reason: 'text-stable'
-          };
+        // 检测本轮新答案是否已开始（与 baseline 不同）
+        if (!newAnswerStarted) {
+          const changedFromBaseline = baselineNormalized
+            ? currentNormalized !== baselineNormalized &&
+              Math.abs(currentNormalized.length - baselineNormalized.length) > 20
+            : Boolean(currentNormalized);
+          if (changedFromBaseline) {
+            newAnswerStarted = true;
+            newAnswerStartedAt = Date.now();
+            stableCandidate = '';
+            stableSince = 0;
+            recordDebugLog('discussion-start-gate:new-answer-started', {
+              panel: getPanelDebugInfo(panel),
+              elapsedMs: Date.now() - startedAt,
+              answerLength: currentAnswer.length,
+              baselineLength: baselineNormalized.length
+            });
+          }
+        }
+
+        if (newAnswerStarted) {
+          if (currentNormalized !== stableCandidate) {
+            stableCandidate = currentNormalized;
+            stableSince = Date.now();
+            recordDebugLog('discussion-start-gate:text-changed', {
+              panel: getPanelDebugInfo(panel),
+              elapsedMs: Date.now() - startedAt,
+              answerLength: currentAnswer.length
+            });
+          } else if (Date.now() - stableSince >= DISCUSSION_START_GATE_STABLE_MS) {
+            recordDebugLog('discussion-start-gate:text-stable', {
+              panel: getPanelDebugInfo(panel),
+              elapsedMs: Date.now() - startedAt,
+              stableMs: Date.now() - stableSince,
+              answerLength: currentAnswer.length
+            });
+            return {
+              answer: currentAnswer,
+              reason: 'text-stable'
+            };
+          }
+
+          if (newAnswerStartedAt && Date.now() - newAnswerStartedAt >= activeTimeoutMs) {
+            recordDebugLog('discussion-start-gate:timeout-fallback', {
+              panel: getPanelDebugInfo(panel),
+              elapsedMs: Date.now() - startedAt,
+              activeElapsedMs: Date.now() - newAnswerStartedAt,
+              answerLength: currentAnswer.length
+            });
+            return {
+              answer: currentAnswer,
+              reason: 'timeout-fallback'
+            };
+          }
         }
       }
 
       await sleepWithAbort(DISCUSSION_START_GATE_POLL_MS, signal);
     }
 
-    if (latestNormalized) {
-      recordDebugLog('discussion-start-gate:timeout-fallback', {
+    if (latestNormalized && newAnswerStarted) {
+      recordDebugLog('discussion-start-gate:overall-timeout-fallback', {
         panel: getPanelDebugInfo(panel),
         elapsedMs: Date.now() - startedAt,
+        activeElapsedMs: newAnswerStartedAt ? Date.now() - newAnswerStartedAt : 0,
         answerLength: latestAnswer.length
       });
       return {
         answer: latestAnswer,
-        reason: 'timeout-fallback'
+        reason: 'overall-timeout-fallback'
+      };
+    }
+
+    if (latestNormalized && baselineNormalized && latestNormalized === baselineNormalized) {
+      recordDebugLog('discussion-start-gate:timeout-baseline-only', {
+        panel: getPanelDebugInfo(panel),
+        elapsedMs: Date.now() - startedAt,
+        baselineLength: baselineNormalized.length
+      });
+      return {
+        answer: '',
+        reason: 'timeout-baseline-only'
       };
     }
 
@@ -3708,12 +4171,19 @@ async function waitForDiscussionMergeCompletionWithFallback(panel, signal, timeo
     : getCurrentMergeMaxWait();
   const startedAt = Date.now();
   const previousNormalized = normalizeAnswerForStability(previousAnswer);
+  const baselineAnswer = await extractSinglePanelAnswer(panel) || '';
+  const baselineNormalized = normalizeAnswerForStability(baselineAnswer);
 
   const localController = new AbortController();
   const onExternalAbort = () => localController.abort();
   signal.addEventListener('abort', onExternalAbort, { once: true });
 
-  const completionWait = waitForDiscussionPanelsCompletionWithAbort([panel], localController.signal, safeTimeoutMs);
+  const completionWait = waitForDiscussionPanelsCompletionWithAbort(
+    [panel],
+    localController.signal,
+    safeTimeoutMs,
+    'discussion-wait:cancelled-after-stable-fallback'
+  );
   let completionResolved = false;
   completionWait.then(() => { completionResolved = true; });
 
@@ -3722,7 +4192,8 @@ async function waitForDiscussionMergeCompletionWithFallback(panel, signal, timeo
   recordDebugLog('discussion-merge-wait:start', {
     panel: getPanelDebugInfo(panel),
     timeoutMs: safeTimeoutMs,
-    previousAnswerLength: String(previousAnswer || '').length
+    previousAnswerLength: String(previousAnswer || '').length,
+    baselineLength: baselineNormalized.length
   });
 
   try {
@@ -3732,7 +4203,9 @@ async function waitForDiscussionMergeCompletionWithFallback(panel, signal, timeo
 
       const currentAnswer = await extractSinglePanelAnswer(panel) || '';
       const currentNormalized = normalizeAnswerForStability(currentAnswer);
-      if (!currentNormalized || currentNormalized === previousNormalized) {
+      if (!currentNormalized ||
+          currentNormalized === previousNormalized ||
+          (baselineNormalized && currentNormalized === baselineNormalized)) {
         stableCandidate = '';
         stableSince = 0;
         continue;
@@ -3743,7 +4216,8 @@ async function waitForDiscussionMergeCompletionWithFallback(panel, signal, timeo
         stableSince = Date.now();
         recordDebugLog('discussion-merge-wait:answer-changed', {
           panel: getPanelDebugInfo(panel),
-          answerLength: currentAnswer.length
+          answerLength: currentAnswer.length,
+          baselineLength: baselineNormalized.length
         });
         continue;
       }
@@ -3857,7 +4331,7 @@ async function waitForFinalMergeAnswerBeforeExport(panel, signal, timeoutMs) {
 // ===== Discussion Mode Helpers =====
 async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) {
   if (totalRounds <= 0) return;
-  totalRounds = Math.min(totalRounds, 3);
+  totalRounds = DISCUSSION_ROUNDS;
   const discussionWaitMs = getCurrentMergeMaxWait();
   recordDebugLog('discussion:start', {
     totalRounds,
@@ -3869,6 +4343,7 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
   discussionAbortController = new AbortController();
   discussionActive = true;
   const signal = discussionAbortController.signal;
+  const discussionGeneration = completionSessionGeneration;
 
   // 快照 providers 列表（用于导出）
   const providersSnapshot = getNonMergePanels().map(p =>
@@ -3878,9 +4353,12 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
   showDiscussionStatusBar(totalRounds);
 
   try {
-    // 等待初始融合结果。优先使用明确完成事件；如果事件缺失，则用“答案文本稳定”
-    // 作为兜底，避免融合答案已生成但讨论轮次硬等完整超时时间。
-    const initialGateResult = await waitForDiscussionStartGate(mergePanel, signal, discussionWaitMs);
+    // 快照融合面板当前答案作为 baseline，避免复用面板时旧答案被误判为新答案
+    const baselineAnswer = await extractSinglePanelAnswer(mergePanel) || '';
+
+    // 等待初始融合结果。优先使用明确完成事件；如果事件缺失，则用”答案文本稳定”
+    // 作为兜底，避免融合答案已生成但讨论流程硬等完整超时时间。
+    const initialGateResult = await waitForDiscussionStartGate(mergePanel, signal, discussionWaitMs, baselineAnswer);
 
     if (signal.aborted) {
       recordDebugLog('discussion:aborted-before-initial-merge-extract');
@@ -3906,12 +4384,34 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
       answerLength: mergedAnswer.length
     });
 
-    // 提取标题 + 清理
+    // 提取标题和评分后再清理；cleanAnswer 会移除末尾的模型评分和标题行。
     const extractedTitle = markdownExtractTitle(mergedAnswer);
+    let discussionScores = extractScores(mergedAnswer);
     lastDiscussionTitle = extractedTitle || generateFallbackTitle();
     mergedAnswer = markdownCleanAnswer(mergedAnswer, extractedTitle);
 
-    // 停止融合监控器，防止讨论轮次的完成事件触发 handleMergeCompletionDetected → triggerMerge 无限循环
+    // 导出初始融合结果（如果启用）
+    const settingsForExport = await getSettings();
+    const exportModeForInit = settingsForExport.markdownExportMode || settingsForExport.obsidianExportMode || 'auto';
+    if (isTrueSetting(settingsForExport.exportInitialMerge) && exportModeForInit === 'auto' && mergedAnswer) {
+      try {
+        const initialResult = await exportToMarkdown({
+          question: lastSentQuestion || '',
+          answer: mergedAnswer,
+          providers: providersSnapshot,
+          title: lastDiscussionTitle,
+          mode: 'merge',
+          scores: discussionScores
+        });
+        if (initialResult.success) {
+          showToast(t('obsidianExportSuccess', initialResult.filePath), { type: 'success', duration: 3600 });
+        }
+      } catch (e) {
+        console.warn('[Discussion] Initial merge export failed:', e);
+      }
+    }
+
+    // 停止融合监控器，防止讨论流程的完成事件触发 handleMergeCompletionDetected → triggerMerge 无限循环
     stopMergeMonitor();
 
     const question = lastSentQuestion || document.getElementById('unified-input')?.value || '';
@@ -3930,7 +4430,7 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
       const cleanMergedAnswer = sanitizeMergedAnswerForDiscussion(mergedAnswer);
 
       // 构造讨论提示词
-      const discussPrompt = buildDiscussPrompt(cleanMergedAnswer, round, totalRounds);
+      const discussPrompt = buildDiscussPrompt(question, cleanMergedAnswer);
       recordDebugLog('discussion:prompt-built', {
         round,
         totalRounds,
@@ -3944,14 +4444,13 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
       for (const panel of currentNonMergePanels) {
         if (panel.iframe && panel.iframe.contentWindow) {
           const discussionSessionId = `discussion-round-${round}-${panel.id}-${Date.now()}`;
-          discussionSendResults.push(
-            sendToPanel(panel, discussPrompt, true, null, 0, discussionSessionId)
-              .then(success => ({ panel, success }))
-          );
+          await ensurePanelVisibleBeforeAutoSubmit(panel, true, 'discussion');
+          const success = await sendToPanel(panel, discussPrompt, true, null, 0, discussionSessionId);
+          discussionSendResults.push({ panel, success });
         }
       }
 
-      const settledDiscussionSends = await Promise.all(discussionSendResults);
+      const settledDiscussionSends = discussionSendResults;
       recordDebugLog('discussion:send-results', {
         round,
         results: settledDiscussionSends.map(result => ({
@@ -3990,13 +4489,29 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
         break;
       }
 
-      // 融合本轮答案
-      const roundMergePrompt = buildMergePrompt(question, validRoundAnswers);
+      // 融合本轮答案时，把上一版完整融合稿作为第一条材料，复核意见只提供增量。
+      const previousMergeLabel = currentLocale === 'en' ? 'Previous merge result' : '上一版融合结果';
+      const roundMergeAnswers = mergedAnswer && mergedAnswer.trim()
+        ? [
+          { providerName: previousMergeLabel, answer: mergedAnswer },
+          ...validRoundAnswers
+        ]
+        : validRoundAnswers;
+      const roundMergePrompt = buildMergePrompt(question, roundMergeAnswers);
       const mergePanelCurrent = panels.find(p => p.providerId === (selectedMergeTarget || 'deepseek') && mergePanelIds.has(p.id));
 
       if (mergePanelCurrent && mergePanelCurrent.iframe && mergePanelCurrent.iframe.contentWindow) {
         const previousMergedAnswer = mergedAnswer;
         const roundSessionId = `discussion-merge-${round}-${Date.now()}`;
+        if (signal.aborted || discussionGeneration !== completionSessionGeneration) {
+          recordDebugLog('discussion:skip-stale-merge-session', {
+            round,
+            discussionGeneration,
+            completionSessionGeneration
+          });
+          break;
+        }
+        beginCompletionSession(roundSessionId, discussionGeneration);
         postToPanelIframe(mergePanelCurrent, {
           type: 'MONITOR_COMPLETION',
           mergeSessionId: roundSessionId,
@@ -4013,7 +4528,14 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
 
         // 等待融合完成。若平台没有发出可靠完成事件，则用“新答案稳定”作为兜底，
         // 避免最后一轮已经完成但停止讨论按钮一直显示到超时。
-        await waitForDiscussionMergeCompletionWithFallback(mergePanelCurrent, signal, discussionWaitMs, previousMergedAnswer);
+        try {
+          await waitForDiscussionMergeCompletionWithFallback(mergePanelCurrent, signal, discussionWaitMs, previousMergedAnswer);
+        } finally {
+          if (activeMergeSessionId === roundSessionId &&
+              activeCompletionSessionGeneration === discussionGeneration) {
+            clearActiveCompletionSession();
+          }
+        }
 
         if (signal.aborted) break;
 
@@ -4021,6 +4543,7 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
         const newMergedAnswer = await extractSinglePanelAnswer(mergePanelCurrent) || '';
         if (newMergedAnswer) {
           const newExtractedTitle = markdownExtractTitle(newMergedAnswer);
+          discussionScores = extractScores(newMergedAnswer) || discussionScores;
           lastDiscussionTitle = newExtractedTitle || generateFallbackTitle();
           mergedAnswer = markdownCleanAnswer(newMergedAnswer, newExtractedTitle);
           recordDebugLog('discussion:round-merge-answer-extracted', {
@@ -4045,16 +4568,17 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
     if (!signal.aborted) {
       const settings = await getSettings();
       const finalMergePanel = panels.find(p => p.providerId === (selectedMergeTarget || 'deepseek') && mergePanelIds.has(p.id)) || mergePanel;
-      let exportAnswer = '';
+      let exportAnswer = mergedAnswer || '';
       let latestVisibleAnswer = '';
 
-      if (finalMergePanel) {
+      if (!exportAnswer && finalMergePanel) {
         latestVisibleAnswer = await waitForFinalMergeAnswerBeforeExport(finalMergePanel, signal, discussionWaitMs) || '';
         if (!latestVisibleAnswer && !signal.aborted) {
           latestVisibleAnswer = await extractSinglePanelAnswer(finalMergePanel) || '';
         }
         if (latestVisibleAnswer && latestVisibleAnswer.trim()) {
           const latestTitle = markdownExtractTitle(latestVisibleAnswer);
+          discussionScores = extractScores(latestVisibleAnswer) || discussionScores;
           lastDiscussionTitle = latestTitle || lastDiscussionTitle || generateFallbackTitle();
           exportAnswer = markdownCleanAnswer(latestVisibleAnswer, latestTitle);
         }
@@ -4064,6 +4588,14 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
           latestVisibleAnswerLength: latestVisibleAnswer.length,
           exportAnswerLength: exportAnswer.length,
           usedLatestVisibleAnswer: Boolean(latestVisibleAnswer && latestVisibleAnswer.trim())
+        });
+      } else if (exportAnswer) {
+        recordDebugLog('markdown-export:discussion-final-answer-resolved', {
+          panel: getPanelDebugInfo(finalMergePanel),
+          cachedAnswerLength: mergedAnswer.length,
+          latestVisibleAnswerLength: 0,
+          exportAnswerLength: exportAnswer.length,
+          usedLatestVisibleAnswer: false
         });
       } else {
         recordDebugLog('markdown-export:discussion-final-answer-no-panel', {
@@ -4077,6 +4609,8 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
           cachedAnswerLength: mergedAnswer.length
         });
       }
+
+      await saveMergeScoresIfPresent(finalMergePanel, lastSentQuestion || '', discussionScores);
 
       const exportMode = settings.markdownExportMode || settings.obsidianExportMode || 'auto';
       if (exportMode === 'auto' && exportAnswer) {
@@ -4093,7 +4627,8 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
             answer: exportAnswer,
             providers: providersSnapshot,
             title: lastDiscussionTitle,
-            mode: 'discuss'
+            mode: 'discuss',
+            scores: discussionScores
           });
 
           if (result.success) {
@@ -4128,26 +4663,6 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
     discussionAbortController = null;
     hideDiscussionStatusBar();
   }
-}
-
-// 等待融合完成
-async function waitForMergeCompletion(timeoutMs = getCurrentMergeMaxWait()) {
-  return new Promise((resolve) => {
-    const handler = (event) => {
-      if (event?.data?.type === 'MERGE_COMPLETE') {
-        clearTimeout(timeout);
-        window.removeEventListener('message', handler);
-        resolve(event.data?.answer || null);
-      }
-    };
-
-    const timeout = setTimeout(() => {
-      window.removeEventListener('message', handler);
-      resolve(null);
-    }, timeoutMs);
-
-    window.addEventListener('message', handler);
-  });
 }
 
 // ===== Event Listeners =====
@@ -4191,8 +4706,6 @@ function setupEventListeners() {
     });
   }
 
-  // Copy All Answers button
-  document.getElementById('copy-all-btn').addEventListener('click', copyAllAnswers);
 
   // Markdown export button
   document.getElementById('obsidian-export-btn').addEventListener('click', handleManualExport);
@@ -4309,7 +4822,7 @@ function setupEventListeners() {
     } else {
       stopMergeMonitor();
     }
-    broadcastMessage(input.value, true, mergeSessionId);
+    sendMessageWithDefaultPrompt(input.value);
   });
 
   // Merge button (manual trigger)
@@ -4354,15 +4867,24 @@ function setupEventListeners() {
       }
       e.preventDefault();
       lastSentQuestion = inputTextarea.value || '';
-      const mergeSessionId = `merge-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      startMergeMonitor(mergeSessionId);
+      const mergeSessionId = AUTO_MERGE_ENABLED
+        ? `merge-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+        : null;
+      if (mergeSessionId) {
+        startMergeMonitor(mergeSessionId);
+      } else {
+        stopMergeMonitor();
+      }
       broadcastMessage(inputTextarea.value, true, mergeSessionId);
     }
   });
 
   // Prevent iframes from stealing focus from unified input during page load.
   // Also active during post-send and post-new-chat restore windows.
-  inputTextarea.addEventListener('blur', () => {
+  inputTextarea.addEventListener('blur', (event) => {
+    if (isPromptEditorTextControl(event.relatedTarget)) {
+      return;
+    }
     if (shouldPreserveUnifiedInputFocus()) {
       focusUnifiedInput();
     }
@@ -4514,7 +5036,7 @@ async function showProviderSwitcher(panelId) {
     img.dataset.providerId = provider.id;
 
     const span = document.createElement('span');
-    span.textContent = provider.name;
+    setBrandText(span, provider.name);
 
     item.appendChild(img);
     item.appendChild(span);
@@ -4737,7 +5259,7 @@ function showAddPanelMenu() {
     item.appendChild(iconWrap);
 
     const nameSpan = document.createElement('span');
-    nameSpan.textContent = provider.name;
+    setBrandText(nameSpan, provider.name);
     item.appendChild(nameSpan);
 
     item.addEventListener('click', async () => {
@@ -4762,14 +5284,14 @@ function showAddPanelMenu() {
 
 // ===== Utility Functions =====
 function showToast(message, options = {}) {
-  const { duration = 2600, type = 'default' } = options;
+  const { duration = 2600, type = 'default', actions = [] } = options;
   const toast = document.createElement('div');
-  toast.textContent = message;
   const backgroundByType = {
     default: '#333',
     success: '#2563eb',
     error: '#dc2626',
-    info: '#374151'
+    info: '#374151',
+    warning: '#f59e0b'
   };
   toast.style.cssText = `
     position: fixed;
@@ -4784,15 +5306,50 @@ function showToast(message, options = {}) {
     font-weight: 500;
     z-index: 10000;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 12px;
   `;
+
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = message;
+  toast.appendChild(msgSpan);
+
+  if (actions.length > 0) {
+    actions.forEach(action => {
+      const btn = document.createElement('button');
+      btn.textContent = action.label;
+      btn.style.cssText = `
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 4px;
+        padding: 4px 12px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+      `;
+      btn.addEventListener('mouseenter', () => { btn.style.background = 'rgba(255,255,255,0.35)'; });
+      btn.addEventListener('mouseleave', () => { btn.style.background = 'rgba(255,255,255,0.2)'; });
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toast.remove();
+        if (typeof action.onClick === 'function') action.onClick();
+      });
+      toast.appendChild(btn);
+    });
+  }
 
   document.body.appendChild(toast);
 
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transition = 'opacity 0.3s';
-    setTimeout(() => toast.remove(), 300);
-  }, duration);
+  if (actions.length === 0) {
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s';
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  }
 }
 
 function setMarkdownExportFeedback(isExporting) {
@@ -4809,6 +5366,28 @@ function setMarkdownExportFeedback(isExporting) {
     statusEl.textContent = isExporting ? t('obsidianExporting') : '';
     statusEl.className = isExporting ? 'send-status partial' : 'send-status';
   }
+}
+
+function buildScoreSignature(question, scores) {
+  const scoreText = (scores || [])
+    .map(score => `${score.model}:${score.score}`)
+    .join('|');
+  return `${String(question || '').trim()}::${scoreText}`;
+}
+
+async function saveMergeScoresIfPresent(panel, question, scores) {
+  if (!scores || scores.length === 0) return null;
+
+  const signature = buildScoreSignature(question, scores);
+  if (panel && panel.lastSavedScoreSignature === signature) {
+    return null;
+  }
+
+  const saved = await saveScoreHistory(question, scores);
+  if (saved && panel) {
+    panel.lastSavedScoreSignature = signature;
+  }
+  return saved;
 }
 
 // ===== Markdown Export =====
@@ -4840,11 +5419,14 @@ async function handleManualExport() {
   });
 
   try {
+    const scores = extractScores(answer);
+    await saveMergeScoresIfPresent(mergePanel, exportData.question || '', scores);
     const result = await exportToMarkdown({
       question: exportData.question || '',
       answer: answer,
       providers: exportData.providers || [],
-      mode: exportData.mode || 'merge'
+      mode: exportData.mode || 'merge',
+      scores
     });
 
     if (result.success) {
@@ -4874,44 +5456,85 @@ async function autoExportToMarkdown(mergePanel) {
   const exportMode = settings.markdownExportMode || settings.obsidianExportMode || 'auto';
   if (exportMode !== 'auto') return;
 
+  if (autoExportWaitController) {
+    autoExportWaitController.abort();
+  }
+  const exportWaitController = new AbortController();
+  autoExportWaitController = exportWaitController;
+  const exportRunId = ++autoExportRunId;
+
   const exportData = mergePanel.exportData || {};
-  setMarkdownExportFeedback(true);
   recordDebugLog('markdown-export:auto-wait-final-answer', {
     panel: getPanelDebugInfo(mergePanel),
     providers: exportData.providers || [],
-    mode: exportData.mode || 'merge'
+    mode: exportData.mode || 'merge',
+    exportRunId
   });
 
-  const exportWaitController = new AbortController();
   const answer = await waitForFinalMergeAnswerBeforeExport(
     mergePanel,
     exportWaitController.signal,
     getCurrentMergeMaxWait()
   );
 
-  if (!answer) {
-    recordDebugLog('markdown-export:auto-no-answer', {
-      panel: getPanelDebugInfo(mergePanel)
+  if (exportWaitController.signal.aborted || exportRunId !== autoExportRunId) {
+    recordDebugLog('markdown-export:auto-cancelled-stale-run', {
+      panel: getPanelDebugInfo(mergePanel),
+      exportRunId,
+      currentExportRunId: autoExportRunId
     });
-    stopMergeMonitor();
-    setMarkdownExportFeedback(false);
     return;
   }
 
+  if (!answer) {
+    recordDebugLog('markdown-export:auto-no-answer', {
+      panel: getPanelDebugInfo(mergePanel),
+      exportRunId
+    });
+    if (autoExportWaitController === exportWaitController) {
+      autoExportWaitController = null;
+    }
+    stopMergeMonitor();
+    return;
+  }
+
+  setMarkdownExportFeedback(true);
   showToast(t('obsidianExporting'), { type: 'info', duration: 1800 });
   recordDebugLog('markdown-export:auto-start', {
     panel: getPanelDebugInfo(mergePanel),
     answerLength: answer.length,
     providers: exportData.providers || [],
-    mode: exportData.mode || 'merge'
+    mode: exportData.mode || 'merge',
+    exportRunId
   });
 
   try {
+    if (exportRunId !== autoExportRunId) {
+      recordDebugLog('markdown-export:auto-skip-stale-before-write', {
+        panel: getPanelDebugInfo(mergePanel),
+        exportRunId,
+        currentExportRunId: autoExportRunId
+      });
+      return;
+    }
+
+    if (autoExportWriteInProgress) {
+      recordDebugLog('markdown-export:auto-skip-write-in-progress', {
+        panel: getPanelDebugInfo(mergePanel),
+        exportRunId
+      });
+      return;
+    }
+
+    autoExportWriteInProgress = true;
+    const scores = extractScores(answer);
+    await saveMergeScoresIfPresent(mergePanel, exportData.question || '', scores);
     const result = await exportToMarkdown({
       question: exportData.question || '',
       answer: answer,
       providers: exportData.providers || [],
-      mode: exportData.mode || 'merge'
+      mode: exportData.mode || 'merge',
+      scores
     });
 
     if (result.success) {
@@ -4932,7 +5555,13 @@ async function autoExportToMarkdown(mergePanel) {
     });
     showToast(t('obsidianExportFailed', error?.message || 'Unknown error'), { type: 'error', duration: 4200 });
   } finally {
-    stopMergeMonitor();
+    autoExportWriteInProgress = false;
+    if (autoExportWaitController === exportWaitController) {
+      autoExportWaitController = null;
+    }
+    if (exportRunId === autoExportRunId) {
+      stopMergeMonitor();
+    }
     setMarkdownExportFeedback(false);
   }
 }
@@ -4971,6 +5600,8 @@ async function loadPromptForEditing(promptId) {
       document.getElementById('prompt-content-input').value = prompt.content || '';
       document.getElementById('prompt-category-input').value = prompt.category || '';
       document.getElementById('prompt-tags-input').value = prompt.tags ? prompt.tags.join(', ') : '';
+      const defaultCheckbox = document.getElementById('prompt-default-checkbox');
+      if (defaultCheckbox) defaultCheckbox.checked = prompt.isDefault === true;
     }
   } catch (error) {
     console.error('Error loading prompt for editing:', error);
@@ -4984,6 +5615,8 @@ function clearPromptEditor() {
   document.getElementById('prompt-content-input').value = '';
   document.getElementById('prompt-category-input').value = '';
   document.getElementById('prompt-tags-input').value = '';
+  const defaultCheckbox = document.getElementById('prompt-default-checkbox');
+  if (defaultCheckbox) defaultCheckbox.checked = false;
 }
 
 // 关闭编辑器
@@ -4998,6 +5631,7 @@ async function savePromptFromEditor() {
   const content = document.getElementById('prompt-content-input').value.trim();
   const category = document.getElementById('prompt-category-input').value.trim();
   const tagsStr = document.getElementById('prompt-tags-input').value.trim();
+  const makeDefault = document.getElementById('prompt-default-checkbox')?.checked === true;
 
   if (!title || !content) {
     alert(t('titleContentRequired'));
@@ -5006,19 +5640,39 @@ async function savePromptFromEditor() {
 
   const tags = tagsStr ? tagsStr.split(',').map(tag => tag.trim()).filter(Boolean) : [];
 
-  const promptData = { title, content, category, tags };
+  // 获取现有提示词的收藏状态
+  const existingPrompt = currentEditingPromptId ? await getPrompt(currentEditingPromptId) : null;
+
+  const promptData = {
+    title,
+    content,
+    category,
+    tags,
+    isFavorite: existingPrompt?.isFavorite || false, // 保留现有收藏状态
+    isDefault: makeDefault
+  };
 
   try {
+    let savedPrompt = null;
     if (currentEditingPromptId) {
-      await updatePrompt(currentEditingPromptId, promptData);
+      savedPrompt = await updatePrompt(currentEditingPromptId, promptData);
+      if (makeDefault) {
+        await setDefaultPrompt(currentEditingPromptId);
+      } else if (existingPrompt?.isDefault) {
+        await clearDefaultPrompt();
+      }
       showToast(t('promptUpdated'));
     } else {
-      await savePrompt(promptData);
+      savedPrompt = await savePrompt(promptData);
+      if (makeDefault && savedPrompt?.id) {
+        await setDefaultPrompt(savedPrompt.id);
+      }
       showToast(t('promptSaved'));
     }
 
     closePromptEditor();
     await renderPromptList();
+    await updateDefaultPromptBar();
   } catch (error) {
     console.error('Error saving prompt:', error);
     showToast(t('promptSaveFailed'));
@@ -5035,6 +5689,7 @@ async function deletePromptFromEditor() {
       showToast(t('promptDeleted'));
       closePromptEditor();
       await renderPromptList();
+      await updateDefaultPromptBar();
     } catch (error) {
       console.error('Error deleting prompt:', error);
       showToast(t('promptDeleteFailed'));

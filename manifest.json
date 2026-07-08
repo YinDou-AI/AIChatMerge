@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
+  "short_name": "AIChatMerge",
   "version": "1.0.0",
-  "description": "Compare AI assistants side by side in one window. Send one prompt and review responses faster.",
+  "description": "Compare AI responses side by side, merge useful answers, manage prompts, and export results.",
   "default_locale": "en",
   "permissions": [
     "storage",
@@ -74,6 +75,7 @@
       ],
       "js": [
         "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/send-button-finder.js",
@@ -92,6 +94,7 @@
       ],
       "js": [
         "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/send-button-finder.js",
@@ -110,6 +113,7 @@
       ],
       "js": [
         "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/send-button-finder.js",
@@ -128,6 +132,7 @@
       ],
       "js": [
         "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/send-button-finder.js",
@@ -146,6 +151,7 @@
       ],
       "js": [
         "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/send-button-finder.js",
@@ -164,6 +170,7 @@
       ],
       "js": [
         "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/send-button-finder.js",
@@ -183,6 +190,7 @@
       ],
       "js": [
         "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/send-button-finder.js",
@@ -202,6 +210,7 @@
       ],
       "js": [
         "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/send-button-finder.js",
@@ -218,6 +227,7 @@
       "matches": ["https://chatgpt.com/*"],
       "js": [
         "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/send-button-finder.js",
@@ -234,6 +244,7 @@
       "matches": ["https://gemini.google.com/*"],
       "js": [
         "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/send-button-finder.js",
@@ -250,6 +261,7 @@
       "matches": ["https://claude.ai/*"],
       "js": [
         "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/send-button-finder.js",
@@ -266,6 +278,7 @@
       "matches": ["https://grok.com/*"],
       "js": [
         "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
         "content-scripts/sse-bridge.js",
         "content-scripts/button-finder-utils.js",
         "content-scripts/send-button-finder.js",

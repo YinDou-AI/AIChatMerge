@@ -29,10 +29,11 @@ const DEFAULT_SETTINGS = {
   autoMergeEnabled: true,
   sourceUrlPlacement: DEFAULT_SOURCE_URL_PLACEMENT,
   mergeMode: 'merge',        // 'merge'（仅融合）或 'merge+discuss'（融合后讨论）
-  discussRounds: 3,          // 讨论轮次（仅讨论模式生效）
+  discussRounds: 1,          // Legacy compatibility; discussion mode now runs one review round
   // Markdown 导出设置
   markdownExportPath: DEFAULT_MARKDOWN_EXPORT_PATH,
-  markdownExportMode: 'auto'
+  markdownExportMode: 'auto',
+  exportInitialMerge: false,
 };
 
 export async function getSettings() {
@@ -112,7 +113,7 @@ export async function resetSettings() {
     await chrome.storage.sync.clear();
     await chrome.storage.sync.set(DEFAULT_SETTINGS);
     if (typeof chrome.storage.local?.remove === 'function') {
-      await chrome.storage.local.remove([CLAUDE_CUSTOM_ENTRY_URL_KEY, 'obsidianApiKey']);
+      await chrome.storage.local.remove([CLAUDE_CUSTOM_ENTRY_URL_KEY]);
     }
   } catch (error) {
     console.warn('chrome.storage.sync unavailable, using local', error);

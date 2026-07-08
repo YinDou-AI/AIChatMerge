@@ -5,120 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AIChatMerge - AI Comparison</title>
   <!-- 立即应用主题和i18n，避免白色闪烁和中英文同时显示 -->
-  <script>
-    (function() {
-      try {
-        chrome.storage.sync.get({ theme: 'auto', language: null }, function(s) {
-          // 主题
-          var t = s.theme;
-          if (t === 'auto') t = window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
-          document.documentElement.setAttribute('data-theme', t);
-
-          // i18n: 确定语言
-          var lang = s.language;
-          if (!lang) {
-            try { lang = chrome.i18n.getUILanguage(); } catch(e) { lang = navigator.language || 'en'; }
-          }
-          var isZh = lang.startsWith('zh');
-
-          // 同步翻译静态元素（placeholder, title, textContent）
-          var translations = {
-            zh: {
-              prevPage: '上一页', nextPage: '下一页',
-              promptLibrary: '提示词库', uploadImage: '上传图片',
-              inputPlaceholder: '输入你的问题，同时发送给所有AI...',
-              sendToAllAI: '发送给所有AI', mergeTooltip: '融合总结：收集所有回答并发送给目标 AI 融合',
-              mergeTargetAI: '融合目标 AI', copyAllAnswers: '复制所有回答',
-              addPanel: '添加面板', newChat: '全部新建对话', layout: '切换布局',
-              switchToPopupMode: '弹窗模式', settings: '设置',
-              selectLayout: '选择布局', singlePanel: '单面板', twoPanels: '两面板',
-              threePanels: '三面板', fourPanels: '四面板', fivePanels: '五面板',
-              promptLibraryTitle: '提示词库', newPrompt: '新建提示词',
-              searchPrompts: '搜索提示词...', allCategories: '所有分类',
-              showFavoritesOnly: '仅显示收藏', recentUsed: '最近使用',
-              newPromptTitle: '新建提示词', title: '标题', titlePlaceholder: '输入提示词标题...',
-              content: '内容', contentPlaceholder: '输入提示词内容... 使用 {variable} 作为变量',
-              category: '分类', categoryPlaceholder: '例如：写作、编程、调研',
-              tags: '标签（逗号分隔）', tagsPlaceholder: '例如：写作、创意、博客',
-              delete: '删除', cancel: '取消', save: '保存',
-              fillVariables: '填写变量', variableInstruction: '此提示词包含变量，请填写：', apply: '应用'
-            },
-            en: {
-              prevPage: 'Previous page', nextPage: 'Next page',
-              promptLibrary: 'Prompt Library', uploadImage: 'Upload Image',
-              inputPlaceholder: 'Enter your question to send to all AIs...',
-              sendToAllAI: 'Send to all AIs', mergeTooltip: 'Merge: collect all answers and send to target AI for fusion',
-              mergeTargetAI: 'Merge Target AI', copyAllAnswers: 'Copy All Answers',
-              addPanel: 'Add Panel', newChat: 'New Chat', layout: 'Layout',
-              switchToPopupMode: 'Popup Mode', settings: 'Settings',
-              selectLayout: 'Select Layout', singlePanel: 'Single Panel', twoPanels: 'Two Panels',
-              threePanels: 'Three Panels', fourPanels: 'Four Panels', fivePanels: 'Five Panels',
-              promptLibraryTitle: 'Prompt Library', newPrompt: 'New Prompt',
-              searchPrompts: 'Search prompts...', allCategories: 'All Categories',
-              showFavoritesOnly: 'Show Favorites Only', recentUsed: 'Recently Used',
-              newPromptTitle: 'New Prompt', title: 'Title', titlePlaceholder: 'Enter prompt title...',
-              content: 'Content', contentPlaceholder: 'Enter prompt content... Use {variable} as variables',
-              category: 'Category', categoryPlaceholder: 'e.g.: Writing, Programming, Research',
-              tags: 'Tags (comma separated)', tagsPlaceholder: 'e.g.: Writing, Creative, Blog',
-              delete: 'Delete', cancel: 'Cancel', save: 'Save',
-              fillVariables: 'Fill Variables', variableInstruction: 'This prompt contains variables, please fill in:', apply: 'Apply'
-            }
-          };
-          var dict = isZh ? translations.zh : translations.en;
-
-          document.querySelectorAll('[data-i18n]').forEach(function(el) {
-            var key = el.getAttribute('data-i18n');
-            if (dict[key]) el.textContent = dict[key];
-          });
-          document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
-            var key = el.getAttribute('data-i18n-placeholder');
-            if (dict[key]) el.setAttribute('placeholder', dict[key]);
-          });
-          document.querySelectorAll('[data-i18n-title]').forEach(function(el) {
-            var key = el.getAttribute('data-i18n-title');
-            if (dict[key]) el.setAttribute('title', dict[key]);
-          });
-        });
-      } catch(e) {}
-    })();
-  </script>
+  <script src="multi-panel-preload.js"></script>
   <link rel="stylesheet" href="multi-panel.css">
-
-  <!-- Material Symbols font -->
-  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet">
-
-  <!-- DNS prefetch and preconnect for faster loading -->
-  <link rel="dns-prefetch" href="https://chat.deepseek.com">
-  <link rel="dns-prefetch" href="https://www.doubao.com">
-  <link rel="dns-prefetch" href="https://www.qianwen.com">
-  <link rel="dns-prefetch" href="https://chatglm.cn">
-  <link rel="dns-prefetch" href="https://yiyan.baidu.com">
-  <link rel="dns-prefetch" href="https://metaso.cn">
-
-  <link rel="preconnect" href="https://chat.deepseek.com">
-  <link rel="preconnect" href="https://www.doubao.com">
-  <link rel="preconnect" href="https://www.qianwen.com">
-  <link rel="preconnect" href="https://chatglm.cn">
-  <link rel="preconnect" href="https://yiyan.baidu.com">
-  <link rel="preconnect" href="https://metaso.cn">
 </head>
 <body data-theme="auto">
   <div id="app">
     <!-- Main Content Area -->
     <div id="main-content">
       <button id="scroll-left-btn" class="panel-scroll-arrow panel-scroll-left" data-i18n-title="prevPage">
-        <span class="material-symbols-outlined">chevron_left</span>
+        <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="chevron_left"></span>
       </button>
       <!-- Panel Grid Container -->
       <div id="panel-grid" class="layout-1x3">
         <!-- Panels will be dynamically generated -->
       </div>
       <button id="scroll-right-btn" class="panel-scroll-arrow panel-scroll-right" data-i18n-title="nextPage">
-        <span class="material-symbols-outlined">chevron_right</span>
+        <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="chevron_right"></span>
       </button>
     </div>
 
@@ -126,15 +28,19 @@
     <footer id="input-bar">
       <div class="input-container">
         <button id="prompt-library-btn" class="input-btn" data-i18n-title="promptLibrary">
-          <span class="material-symbols-outlined">auto_awesome</span>
+          <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="auto_awesome"></span>
         </button>
-        <!-- 图片上传功能已移除（v4.0），如需恢复参考 paste 模拟方案 -->
-        <button id="image-upload-btn" class="input-btn" data-i18n-title="uploadImage" style="display: none;">
-          <span class="material-symbols-outlined">add_photo_alternate</span>
-        </button>
-        <input type="file" id="image-file-input" accept="image/*" multiple style="display: none;">
         <div class="input-wrapper">
           <div id="image-preview-container" class="image-preview-container" style="display: none;"></div>
+          <!-- 默认提示词提示条 -->
+          <div id="default-prompt-bar" class="default-prompt-bar" style="display: none;">
+            <span class="default-prompt-icon">📌</span>
+            <span class="default-prompt-text">
+              <span data-i18n="defaultPromptEnabled">已启用</span>：
+              <span id="default-prompt-title"></span>
+            </span>
+            <button id="skip-default-prompt-btn" class="skip-default-prompt-btn" data-i18n="skipDefaultPrompt" title="本次发送不使用">跳过</button>
+          </div>
           <textarea id="unified-input" data-i18n-placeholder="inputPlaceholder" rows="1"></textarea>
         </div>
         <!-- Discussion Status Bar -->
@@ -148,45 +54,41 @@
           <span id="send-status" class="send-status"></span>
           <!-- Send All Button -->
           <button id="send-all-btn" class="send-btn" data-i18n-title="sendToAllAI">
-            <span class="material-symbols-outlined">send</span>
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="send"></span>
           </button>
           <!-- Merge Button -->
           <button id="merge-btn" class="merge-btn" data-i18n-title="mergeTooltip">
-            <span class="material-symbols-outlined">call_merge</span>
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="call_merge"></span>
           </button>
           <!-- Merge Target AI Select -->
           <button id="merge-target-btn" class="merge-select" data-i18n-title="mergeTargetAI">
             <span id="merge-target-label">DeepSeek</span>
-            <span class="material-symbols-outlined" style="font-size:16px;">expand_more</span>
-          </button>
-          <!-- Copy All Answers Button -->
-          <button id="copy-all-btn" class="copy-all-bottom-btn" data-i18n-title="copyAllAnswers">
-            <span class="material-symbols-outlined">content_copy</span>
+            <span class="material-symbols-outlined notranslate" style="font-size:16px;" translate="no" aria-hidden="true" data-icon="expand_more"></span>
           </button>
           <!-- Add Panel Button -->
           <button id="add-panel-btn" class="bottom-action-btn" data-i18n-title="addPanel">
-            <span class="material-symbols-outlined">add</span>
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="add"></span>
           </button>
           <!-- Toolbar action buttons (moved from header) -->
           <button id="new-chat-btn" class="bottom-action-btn" data-i18n-title="newChat">
-            <span class="material-symbols-outlined">add_comment</span>
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="add_comment"></span>
           </button>
           <!-- Export Markdown Button -->
           <button id="obsidian-export-btn" class="bottom-action-btn" data-i18n-title="obsidianExport">
-            <span class="material-symbols-outlined">upload_file</span>
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="upload_file"></span>
           </button>
-          <!-- Temporary Debug Log Button (remove before public release) -->
+          <!-- Debug Log Button -->
           <button id="debug-log-btn" class="bottom-action-btn" data-i18n-title="debugDownloadLogs">
-            <span class="material-symbols-outlined">bug_report</span>
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="bug_report"></span>
           </button>
           <button id="layout-btn" class="bottom-action-btn" data-i18n-title="layout">
-            <span class="material-symbols-outlined">grid_view</span>
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="grid_view"></span>
           </button>
           <button id="toggle-open-mode-btn" class="bottom-action-btn" data-i18n-title="switchToPopupMode">
-            <span class="material-symbols-outlined">open_in_new</span>
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="open_in_new"></span>
           </button>
           <button id="settings-btn" class="bottom-action-btn" data-i18n-title="settings">
-            <span class="material-symbols-outlined">settings</span>
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="settings"></span>
           </button>
         </div>
       </div>
@@ -198,7 +100,7 @@
         <div class="modal-header">
           <h3 data-i18n="selectLayout">选择布局</h3>
           <button class="close-btn" id="close-layout-modal">
-            <span class="material-symbols-outlined">close</span>
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="close"></span>
           </button>
         </div>
         <div class="modal-body">
@@ -245,10 +147,10 @@
           <h3 data-i18n="promptLibraryTitle">提示词库</h3>
           <div class="modal-header-actions">
             <button id="new-prompt-btn" class="header-action-btn" data-i18n-title="newPrompt">
-              <span class="material-symbols-outlined">add</span>
+              <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="add"></span>
             </button>
             <button class="close-btn" id="close-prompt-modal">
-              <span class="material-symbols-outlined">close</span>
+              <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="close"></span>
             </button>
           </div>
         </div>
@@ -262,10 +164,10 @@
                 <option value="" data-i18n="allCategories">所有分类</option>
               </select>
               <button id="prompt-favorites-btn" class="filter-btn" data-i18n-title="showFavoritesOnly">
-                <span class="material-symbols-outlined">star</span>
+                <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="star"></span>
               </button>
               <button id="prompt-recent-btn" class="filter-btn active" data-i18n-title="recentUsed">
-                <span class="material-symbols-outlined">schedule</span>
+                <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="schedule"></span>
               </button>
             </div>
           </div>
@@ -282,7 +184,7 @@
         <div class="modal-header">
           <h3 id="prompt-editor-title" data-i18n="newPromptTitle">新建提示词</h3>
           <button class="close-btn" id="close-prompt-editor">
-            <span class="material-symbols-outlined">close</span>
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="close"></span>
           </button>
         </div>
         <div class="modal-body">
@@ -302,6 +204,10 @@
             <label for="prompt-tags-input" data-i18n="tags">标签（逗号分隔）</label>
             <input type="text" id="prompt-tags-input" data-i18n-placeholder="tagsPlaceholder">
           </div>
+          <label class="checkbox-row">
+            <input type="checkbox" id="prompt-default-checkbox">
+            <span data-i18n="setDefaultPrompt">设为默认</span>
+          </label>
         </div>
         <div class="modal-footer">
           <button id="delete-prompt-btn" class="btn-danger" style="margin-right: auto; display: none;" data-i18n="delete">删除</button>
@@ -317,7 +223,7 @@
         <div class="modal-header">
           <h3 data-i18n="fillVariables">填写变量</h3>
           <button class="close-btn" id="close-variable-modal">
-            <span class="material-symbols-outlined">close</span>
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="close"></span>
           </button>
         </div>
         <div class="modal-body">

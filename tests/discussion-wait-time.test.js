@@ -7,7 +7,7 @@ describe('discussion wait time', () => {
 
   it('uses MERGE_MAX_WAIT for discussion round completion timeout', () => {
     expect(source).toContain('function getCurrentMergeMaxWait()');
-    expect(source).toContain('function waitForDiscussionPanelsCompletionWithAbort(targetPanels, signal, timeoutMs = getCurrentMergeMaxWait())');
+    expect(source).toContain("function waitForDiscussionPanelsCompletionWithAbort(targetPanels, signal, timeoutMs = getCurrentMergeMaxWait(), abortEventName = 'discussion-wait:aborted')");
     expect(source).toContain('const discussionWaitMs = getCurrentMergeMaxWait();');
     expect(source).toContain('await waitForDiscussionPanelsCompletionWithAbort(currentNonMergePanels, signal, discussionWaitMs);');
     expect(source).toContain('await waitForDiscussionMergeCompletionWithFallback(mergePanelCurrent, signal, discussionWaitMs, previousMergedAnswer);');

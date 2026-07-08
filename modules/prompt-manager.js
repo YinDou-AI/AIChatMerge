@@ -2,7 +2,7 @@
 // Handles CRUD operations for prompts in the Prompt Library
 
 const DB_NAME = 'SmarterPanelDB';
-const DB_VERSION = 5;  // Upgraded to remove conversations store
+const DB_VERSION = 6;  // Upgraded to remove tags index
 const PROMPTS_STORE = 'prompts';
 
 
@@ -89,10 +89,12 @@ export async function initPromptDB() {
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
       const oldVersion = event.oldVersion;
+      const transaction = event.target.transaction;
+      let promptsStore = null;
 
       // Create prompts object store (version 1)
       if (oldVersion < 1) {
-        const promptsStore = db.createObjectStore(PROMPTS_STORE, {
+        promptsStore = db.createObjectStore(PROMPTS_STORE, {
           keyPath: 'id',
           autoIncrement: true
         });
@@ -111,6 +113,14 @@ export async function initPromptDB() {
         // Delete the conversations object store if it exists
         if (db.objectStoreNames.contains('conversations')) {
           db.deleteObjectStore('conversations');
+        }
+      }
+
+      // Version 6: Remove tags index (queries now scan in memory)
+      if (oldVersion < 6 && db.objectStoreNames.contains(PROMPTS_STORE)) {
+        promptsStore = promptsStore || transaction.objectStore(PROMPTS_STORE);
+        if (promptsStore.indexNames.contains('tags')) {
+          promptsStore.deleteIndex('tags');
         }
       }
     };
@@ -137,6 +147,7 @@ export async function savePrompt(promptData) {
       : [],
     variables: Array.isArray(promptData.variables) ? promptData.variables : [],
     isFavorite: Boolean(promptData.isFavorite),
+    isDefault: Boolean(promptData.isDefault), // 新增：是否为默认提示词
     createdAt: promptData.createdAt || Date.now(),
     lastUsed: promptData.lastUsed || null,
     useCount: promptData.useCount || 0
@@ -149,6 +160,36 @@ export async function savePrompt(promptData) {
 
     return wrapRequest(request, resolveValue => ({ ...prompt, id: resolveValue }));
   });
+}
+
+// 设置默认提示词（同时取消其他默认）
+export async function setDefaultPrompt(promptId) {
+  await ensureDb();
+
+  // 先取消所有默认提示词
+  const allPrompts = await getAllPrompts();
+  for (const prompt of allPrompts) {
+    if (prompt.isDefault && prompt.id !== promptId) {
+      await updatePrompt(prompt.id, { isDefault: false });
+    }
+  }
+
+  // 设置新的默认提示词
+  await updatePrompt(promptId, { isDefault: true });
+  return true;
+}
+
+// 清除所有默认提示词
+export async function clearDefaultPrompt() {
+  await ensureDb();
+
+  const allPrompts = await getAllPrompts();
+  for (const prompt of allPrompts) {
+    if (prompt.isDefault) {
+      await updatePrompt(prompt.id, { isDefault: false });
+    }
+  }
+  return true;
 }
 
 // T031: Get prompt by ID
@@ -264,31 +305,15 @@ export async function searchPrompts(searchText) {
   await ensureDb();
 
   const allPrompts = await getAllPrompts();
-  const lowerSearch = searchText.toLowerCase();
+  const lowerSearch = String(searchText || '').toLowerCase();
 
   return allPrompts.filter(prompt =>
-    prompt.title.toLowerCase().includes(lowerSearch) ||
-    prompt.content.toLowerCase().includes(lowerSearch) ||
-    prompt.tags.some(tag => tag.toLowerCase().includes(lowerSearch))
+    String(prompt.title || '').toLowerCase().includes(lowerSearch) ||
+    String(prompt.content || '').toLowerCase().includes(lowerSearch) ||
+    (Array.isArray(prompt.tags) ? prompt.tags : []).some(tag =>
+      String(tag || '').toLowerCase().includes(lowerSearch)
+    )
   );
-}
-
-// T036: Filter prompts by category
-export async function getPromptsByCategory(category) {
-  await ensureDb();
-
-  // If category is not provided or invalid, return all prompts
-  if (!category || typeof category !== 'string') {
-    return getAllPrompts();
-  }
-
-  return runWithRetry(() => {
-    const transaction = db.transaction([PROMPTS_STORE], 'readonly');
-    const store = transaction.objectStore(PROMPTS_STORE);
-    const index = store.index('category');
-    const request = index.getAll(category);
-    return wrapRequest(request, value => value || []);
-  });
 }
 
 // T037: Get favorite prompts
@@ -300,14 +325,6 @@ export async function getFavoritePrompts() {
   return allPrompts.filter(p => p.isFavorite === true);
 }
 
-// T038: Toggle favorite status
-export async function toggleFavorite(id) {
-  const prompt = await getPrompt(id);
-  if (!prompt) throw new Error(`Prompt ${id} not found`);
-
-  return await updatePrompt(id, { isFavorite: !prompt.isFavorite });
-}
-
 // T039: Record prompt usage
 export async function recordPromptUsage(id) {
   const prompt = await getPrompt(id);
@@ -317,21 +334,6 @@ export async function recordPromptUsage(id) {
     lastUsed: Date.now(),
     useCount: (prompt.useCount || 0) + 1
   });
-}
-
-// T040: Get all categories
-export async function getAllCategories() {
-  const prompts = await getAllPrompts();
-  const categories = new Set(prompts.map(p => p.category));
-  return Array.from(categories).sort();
-}
-
-// T041: Get all tags
-export async function getAllTags() {
-  const prompts = await getAllPrompts();
-  const tags = new Set();
-  prompts.forEach(p => p.tags.forEach(tag => tags.add(tag)));
-  return Array.from(tags).sort();
 }
 
 // T042: Export all prompts as JSON
@@ -400,14 +402,6 @@ export async function getRecentlyUsedPrompts(limit = 5) {
   return allPrompts
     .filter(p => p.lastUsed !== null && p.lastUsed !== undefined)
     .sort((a, b) => b.lastUsed - a.lastUsed)
-    .slice(0, limit);
-}
-
-// T072: Get top favorites (ordered by useCount DESC, favorites only)
-export async function getTopFavorites(limit = 5) {
-  const favorites = await getFavoritePrompts();
-  return favorites
-    .sort((a, b) => (b.useCount || 0) - (a.useCount || 0))
     .slice(0, limit);
 }
 

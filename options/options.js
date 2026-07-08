@@ -14,6 +14,7 @@ import {
   importDefaultLibrary
 } from '../modules/prompt-manager.js';
 import { t, translatePage, initializeLanguage } from '../modules/i18n.js';
+import { clearScoreHistory, exportScoreHistory } from '../modules/score-manager.js';
 import {
   getCurrentBrowserLanguage,
   isEdgeBrowser,
@@ -201,28 +202,32 @@ async function loadSettings() {
 
   // Discussion mode settings
   const mergeModeSelect = document.getElementById('merge-mode-select');
-  const discussRoundsSelect = document.getElementById('discuss-rounds-select');
-  const discussRoundsSetting = document.getElementById('discuss-rounds-setting');
 
   if (mergeModeSelect) {
     mergeModeSelect.value = settings.autoMergeEnabled === false ? 'manual' : (settings.mergeMode || 'merge');
-    if (discussRoundsSetting) {
-      discussRoundsSetting.style.display = mergeModeSelect.value === 'merge+discuss' ? 'flex' : 'none';
-    }
   }
 
-  if (discussRoundsSelect) {
-    discussRoundsSelect.value = settings.discussRounds || 3;
+  // 控制"导出初始融合"的可见性
+  const exportInitialMergeItem = document.getElementById('export-initial-merge-item');
+  function updateExportInitialMergeVisibility() {
+    const mode = mergeModeSelect?.value;
+    exportInitialMergeItem.style.display = (mode === 'merge+discuss') ? '' : 'none';
   }
+  mergeModeSelect?.addEventListener('change', updateExportInitialMergeVisibility);
+  updateExportInitialMergeVisibility();
 
   // Markdown 导出设置
   const markdownExportPath = document.getElementById('markdown-export-path');
   const markdownExportMode = document.getElementById('markdown-export-mode');
+  const exportInitialMergeSelect = document.getElementById('export-initial-merge-select');
   if (markdownExportPath) {
     markdownExportPath.value = settings.markdownExportPath || settings.obsidianVaultPath || DEFAULT_MARKDOWN_EXPORT_PATH;
   }
   if (markdownExportMode) {
     markdownExportMode.value = settings.markdownExportMode || settings.obsidianExportMode || 'auto';
+  }
+  if (exportInitialMergeSelect) {
+    exportInitialMergeSelect.value = String(readBooleanSetting(settings.exportInitialMerge, false));
   }
 
   refreshAutoSizedSelects();
@@ -239,6 +244,12 @@ function formatClaudeEntryUrlForDisplay(url) {
   } catch {
     return t('claudeEntryCustomStatus', 'Claude');
   }
+}
+
+function readBooleanSetting(value, defaultValue = false) {
+  if (value === true || value === 'true') return true;
+  if (value === false || value === 'false') return false;
+  return defaultValue;
 }
 
 async function loadClaudeCustomEntryUrl() {
@@ -350,6 +361,8 @@ function setupEventListeners() {
   // Danger Zone - Clear buttons
   document.getElementById('clear-prompts-btn').addEventListener('click', clearPrompts);
   document.getElementById('reset-settings-btn').addEventListener('click', resetSettingsOnly);
+  document.getElementById('export-score-history-btn')?.addEventListener('click', exportScoreHistoryFromOptions);
+  document.getElementById('clear-score-history-btn')?.addEventListener('click', clearScoreHistoryFromOptions);
 
   // Default library import button
   document.getElementById('import-default-library')?.addEventListener('click', importDefaultLibraryHandler);
@@ -447,20 +460,7 @@ function setupEventListeners() {
         mergeMode: manualMode ? 'merge' : newMode,
         autoMergeEnabled: !manualMode
       });
-      const discussRoundsSetting = document.getElementById('discuss-rounds-setting');
-      if (discussRoundsSetting) {
-        discussRoundsSetting.style.display = newMode === 'merge+discuss' ? 'flex' : 'none';
-      }
       showStatus('success', t('msgMergeModeUpdated') || 'Merge mode updated');
-    });
-  }
-
-  const discussRoundsSelect = document.getElementById('discuss-rounds-select');
-  if (discussRoundsSelect) {
-    discussRoundsSelect.addEventListener('change', async (e) => {
-      const newRounds = parseInt(e.target.value, 10);
-      await saveSetting('discussRounds', newRounds);
-      showStatus('success', t('msgDiscussRoundsUpdated') || 'Discuss rounds updated');
     });
   }
 
@@ -516,13 +516,15 @@ function setupEventListeners() {
   // Markdown 导出设置 - 保存（sync 存储）
   const markdownFields = [
     { id: 'markdown-export-path', key: 'markdownExportPath' },
-    { id: 'markdown-export-mode', key: 'markdownExportMode' }
+    { id: 'markdown-export-mode', key: 'markdownExportMode' },
+    { id: 'export-initial-merge-select', key: 'exportInitialMerge', type: 'boolean' }
   ];
-  markdownFields.forEach(({ id, key }) => {
+  markdownFields.forEach(({ id, key, type }) => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener('change', async (e) => {
-        await saveSetting(key, e.target.value);
+        const value = type === 'boolean' ? e.target.value === 'true' : e.target.value;
+        await saveSetting(key, value);
       });
     }
   });
@@ -687,6 +689,42 @@ function showToast(type, messageKey, params = []) {
       toast.remove();
     }, 300);
   }, 3000);
+}
+
+async function exportScoreHistoryFromOptions() {
+  const button = document.getElementById('export-score-history-btn');
+  try {
+    if (button) button.disabled = true;
+    const result = await exportScoreHistory();
+    if (result.rowCount === 0) {
+      showStatus('success', t('msgScoreExportEmpty'));
+      return;
+    }
+    showStatus('success', t('msgScoreExported', result.rowCount));
+  } catch (error) {
+    console.error('Failed to export score history:', error);
+    showStatus('error', t('msgScoreExportFailed', error?.message || 'Unknown error'));
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+async function clearScoreHistoryFromOptions() {
+  if (!confirm(t('msgConfirmClearScoreHistory'))) {
+    return;
+  }
+
+  const button = document.getElementById('clear-score-history-btn');
+  try {
+    if (button) button.disabled = true;
+    await clearScoreHistory();
+    showStatus('success', t('msgScoreHistoryCleared'));
+  } catch (error) {
+    console.error('Failed to clear score history:', error);
+    showStatus('error', t('msgScoreClearFailed', error?.message || 'Unknown error'));
+  } finally {
+    if (button) button.disabled = false;
+  }
 }
 
 

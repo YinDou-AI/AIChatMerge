@@ -837,29 +837,68 @@
   "descDefaultLayout": {
     "message": "选择默认的面板排列方式"
   },
+  "sectionScoreData": {
+    "message": "评分数据"
+  },
+  "labelExportScoreHistory": {
+    "message": "导出评分历史"
+  },
+  "descExportScoreHistory": {
+    "message": "将所有评分记录导出为 CSV 文件"
+  },
+  "btnExportCsv": {
+    "message": "导出 CSV"
+  },
+  "labelClearScoreHistory": {
+    "message": "清空评分历史"
+  },
+  "descClearScoreHistory": {
+    "message": "删除所有已保存的评分记录"
+  },
+  "btnClearScoreHistory": {
+    "message": "清空"
+  },
+  "msgScoreExportEmpty": {
+    "message": "暂无评分可导出"
+  },
+  "msgScoreExported": {
+    "message": "已导出 $1 条评分记录"
+  },
+  "msgScoreExportFailed": {
+    "message": "导出评分失败：$1"
+  },
+  "msgConfirmClearScoreHistory": {
+    "message": "确定要清空所有评分记录吗？此操作不可撤销。"
+  },
+  "msgScoreHistoryCleared": {
+    "message": "评分记录已清空"
+  },
+  "msgScoreClearFailed": {
+    "message": "清空评分失败：$1"
+  },
   "sectionAdvancedSettings": {
     "message": "高级设置"
   },
   "claudeCustomEntryTitle": {
-    "message": "Claude 自定义页面网址（高级）"
+    "message": "Claude 备用页面网址（高级）"
   },
   "claudeCustomEntryDescription": {
-    "message": "Claude 默认入口异常时使用。可填已验证的完整页面网址，例如带 /chat/... 的网址。留空则使用默认入口"
+    "message": "入口异常时填写已验证的备用页面网址。留空则使用默认入口"
   },
   "claudeCustomEntryPlaceholder": {
-    "message": "https://claude.ai/chat/..."
+    "message": "https://claude.ai/new"
   },
   "claudeRestoreDefault": {
     "message": "恢复默认入口"
   },
   "claudeCustomEntryWarning": {
-    "message": "可能进入已有对话，更换账号后可能失效，不建议分享。页面异常时清空即可恢复默认入口"
+    "message": "备用网址可能进入已有对话，更换账号后可能失效，不建议分享。页面异常时清空即可恢复默认入口"
   },
   "claudeEntryDefaultStatus": {
-    "message": "当前使用系统默认入口"
+    "message": "当前使用默认新建页面"
   },
   "claudeEntryCustomStatus": {
-    "message": "当前使用自定义入口：$1"
+    "message": "当前使用备用入口：$1"
   },
   "claudeEntryUrlValid": {
     "message": "网址格式有效，保存后重新打开 Claude 面板生效"
@@ -905,28 +944,17 @@
   "optionManualMerge": {
     "message": "不自动融合"
   },
-  "labelDiscussRounds": {
-    "message": "讨论轮次"
-  },
-  "descDiscussRounds": {
-    "message": "设置AI讨论的轮次，轮次越多讨论越充分"
-  },
   "stopDiscussion": {
     "message": "停止讨论"
   },
   "discussionProgress": {
-    "message": "讨论中 (第$1/$2轮)",
-    "placeholders": {
-      "current": {
-        "content": "$1"
-      },
-      "total": {
-        "content": "$2"
-      }
-    }
+    "message": "讨论中"
   },
   "msgDiscussionStopped": {
     "message": "讨论已停止"
+  },
+  "msgMergeModeUpdated": {
+    "message": "融合模式已更新"
   },
   "obsidianExport": {
     "message": "导出 Markdown"
@@ -946,6 +974,9 @@
   "labelObsidianStoragePath": {
     "message": "导出文件夹"
   },
+  "descMarkdownExportPath": {
+    "message": "保存到浏览器默认下载目录下的子文件夹，例如：下载目录/AIChatMerge/raw/"
+  },
   "placeholderObsidianStoragePath": {
     "message": "AIChatMerge/raw"
   },
@@ -960,5 +991,11 @@
   },
   "save": {
     "message": "Save"
+  },
+  "labelExportInitialMerge": {
+    "message": "导出初始融合"
+  },
+  "descExportInitialMerge": {
+    "message": "讨论模式下是否额外导出初始融合结果"
   }
 }
