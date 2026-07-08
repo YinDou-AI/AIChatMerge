@@ -27,7 +27,7 @@ describe('discussion status cleanup', () => {
 
   it('stops active discussion before starting a new chat', () => {
     expect(source).toMatch(/async function newChatAllProviders\(\)\s*{[\s\S]*if\s*\(discussionActive \|\| discussionAbortController\)\s*{[\s\S]*stopDiscussion\('new-chat'\);[\s\S]*}[\s\S]*invalidateCompletionSessions\('new-chat'\);[\s\S]*stopMergeMonitor\(\);[\s\S]*panels\.forEach\(panel => \{[\s\S]*startFreshChatForPanel\(panel,\s*\{ invalidateSession: false \}\);/);
-    expect(source).toMatch(/function stopDiscussion\(reason = 'user'\)\s*{[\s\S]*discussionAbortController\.abort\(\);[\s\S]*invalidateCompletionSessions\(`discussion-stop:\$\{reason\}`\);[\s\S]*recordDebugLog\('discussion:stop', \{ reason \}\);[\s\S]*hideDiscussionStatusBar\(\);[\s\S]*stopMergeMonitor\(\);/);
+    expect(source).toMatch(/function stopDiscussion\(reason = 'user'\)\s*{[\s\S]*discussionAbortController\.abort\(\);[\s\S]*invalidateCompletionSessions\(`discussion-stop:\$\{reason\}`\);[\s\S]*hideDiscussionStatusBar\(\);[\s\S]*stopMergeMonitor\(\);/);
   });
 
   it('stops merge monitoring before starting a fresh chat for a single panel', () => {

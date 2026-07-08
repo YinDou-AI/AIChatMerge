@@ -2164,40 +2164,6 @@ if ((window.__realParent__ || window.parent) !== window) {
       return;
     }
 
-    // Handle EXTRACT_DEBUG messages (diagnostic: return phase-by-phase results)
-    if (event.data.type === 'EXTRACT_DEBUG' && event.data.context === 'multi-panel') {
-      const provider = detectProvider();
-      const utils = window.__aichatmerge_extractor_utils;
-      const extractors = window.__aichatmerge_extractors || {};
-      const debug = { provider, phases: [] };
-
-      // Phase 1
-      const d1 = extractByDirectSelector(provider);
-      debug.phases.push({ phase: 1, name: 'direct-selector', hit: !!d1, len: d1 ? d1.length : 0 });
-      // Phase 2
-      if (extractors[provider]) {
-        try {
-          const d2 = extractors[provider](utils);
-          debug.phases.push({ phase: 2, name: 'provider-extractor', hit: !!d2, len: d2 ? d2.length : 0 });
-        } catch (e) {
-          debug.phases.push({ phase: 2, name: 'provider-extractor', error: e.message });
-        }
-      } else {
-        debug.phases.push({ phase: 2, name: 'provider-extractor', skipped: true });
-      }
-      // Phase 3
-      const d3 = extractByCopyButton(provider);
-      debug.phases.push({ phase: 3, name: 'copy-button', hit: !!d3, len: d3 ? d3.length : 0 });
-      // Phase 4
-      const d4 = extractGenericMarkdownAnswer();
-      debug.phases.push({ phase: 4, name: 'generic-markdown', hit: !!d4, len: d4 ? d4.length : 0 });
-
-      if ((window.__realParent__ || window.parent) !== window) {
-        window.parent.postMessage({ type: 'EXTRACT_DEBUG_RESULT', provider, debug, context: 'multi-panel-debug' }, extensionOrigin);
-      }
-      return;
-    }
-
     // Only handle INJECT_TEXT messages
     if (event.data.type !== 'INJECT_TEXT') {
       return;

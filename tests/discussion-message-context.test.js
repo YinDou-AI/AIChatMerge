@@ -34,8 +34,8 @@ describe('discussion message context', () => {
     expect(source).toContain('let completionSessionGeneration = 0;');
     expect(source).toContain('let activeCompletionSessionGeneration = 0;');
     expect(source).toContain("invalidateCompletionSessions('new-chat');");
-    expect(source).toMatch(/function handleMergeCompletionDetected\(data\)[\s\S]*activeCompletionSessionGeneration !== completionSessionGeneration[\s\S]*completion:ignored-stale-generation/);
-    expect(source).toMatch(/if\s*\(signal\.aborted \|\| discussionGeneration !== completionSessionGeneration\)[\s\S]*discussion:skip-stale-merge-session/);
+    expect(source).toMatch(/function handleMergeCompletionDetected\(data\)[\s\S]*activeCompletionSessionGeneration !== completionSessionGeneration[\s\S]*return;/);
+    expect(source).toMatch(/if\s*\(signal\.aborted \|\| discussionGeneration !== completionSessionGeneration\)\s*{[\s\S]*break;[\s\S]*}/);
   });
 
   it('includes the previous merged result when merging discussion review feedback', () => {
@@ -67,9 +67,9 @@ describe('discussion message context', () => {
     expect(source).toContain('let autoExportRunId = 0;');
     expect(source).toContain('autoExportWaitController.abort();');
     expect(source).toContain('const exportRunId = ++autoExportRunId;');
-    expect(source).toContain("recordDebugLog('markdown-export:auto-cancelled-stale-run'");
+    expect(source).toMatch(/if\s*\(exportWaitController\.signal\.aborted \|\| exportRunId !== autoExportRunId\)\s*{[\s\S]*return;[\s\S]*}/);
     expect(source).toContain('let autoExportWriteInProgress = false;');
-    expect(source).toContain("recordDebugLog('markdown-export:auto-skip-write-in-progress'");
+    expect(source).toMatch(/if\s*\(autoExportWriteInProgress\)\s*{[\s\S]*return;[\s\S]*}/);
   });
 
   it('fully stops the merge monitor when auto merge is disabled', () => {

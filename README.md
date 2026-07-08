@@ -75,7 +75,6 @@ Save your best prompts and reuse them across all providers. Supports variables l
 
 ### 🛠️ Developer-Friendly
 
-- Debug log export for quick issue reporting
 - Custom entry URL support for Claude
 - Focused Chinese & English UI
 

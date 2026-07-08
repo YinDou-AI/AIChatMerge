@@ -17,4 +17,3 @@ Initial public release.
 - Local settings and prompt storage (no account required)
 - Right-click context menu to send page content to AI
 - Custom entry URL support for Claude
-- Debug log export for issue reporting

@@ -355,243 +355,6 @@ let pendingAnswerExtractions = new Map();
 let isExtractingAnswers = false;
 let extractionDepth = 0; // 引用计数，防止并发 extractMode 切换
 let pendingExtractionPromise = null; // 并发调用时等待中的调用者可复用
-const DEBUG_LOG_STORAGE_KEY = 'aichatmergeDebugLogs';
-const DEBUG_LOG_MAX_ENTRIES = 800;
-const DEBUG_LOG_RAW_TAIL_ENTRIES = 120;
-const DEBUG_LOG_KEY_EVENT_LIMIT = 220;
-const DEBUG_LOG_ISSUE_LIMIT = 80;
-const DISCUSSION_ROUNDS = 1;
-const debugSessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-let debugLogWriteQueue = Promise.resolve();
-
-function getPanelDebugInfo(panel) {
-  if (!panel) return null;
-  return {
-    panelId: panel.id,
-    providerId: panel.providerId,
-    isMergePanel: mergePanelIds.has(panel.id)
-  };
-}
-
-function sanitizeDebugDetails(details = {}) {
-  const safe = {};
-  Object.entries(details || {}).forEach(([key, value]) => {
-    if (typeof value === 'string') {
-      safe[key] = value.length > 300 ? `${value.slice(0, 300)}…` : value;
-    } else if (Array.isArray(value)) {
-      safe[key] = value.slice(0, 30);
-    } else if (value && typeof value === 'object') {
-      safe[key] = JSON.parse(JSON.stringify(value));
-    } else {
-      safe[key] = value;
-    }
-  });
-  return safe;
-}
-
-async function recordDebugLog(event, details = {}) {
-  if (typeof chrome === 'undefined' || !chrome.storage?.local) return;
-
-  const entry = {
-    ts: new Date().toISOString(),
-    t: Math.round(performance.now()),
-    sessionId: debugSessionId,
-    event,
-    details: sanitizeDebugDetails(details)
-  };
-
-  debugLogWriteQueue = debugLogWriteQueue
-    .catch(() => {})
-    .then(async () => {
-      try {
-        const result = await chrome.storage.local.get({ [DEBUG_LOG_STORAGE_KEY]: [] });
-        const logs = Array.isArray(result[DEBUG_LOG_STORAGE_KEY])
-          ? result[DEBUG_LOG_STORAGE_KEY]
-          : [];
-        logs.push(entry);
-        const trimmed = logs.slice(-DEBUG_LOG_MAX_ENTRIES);
-        await chrome.storage.local.set({ [DEBUG_LOG_STORAGE_KEY]: trimmed });
-      } catch (error) {
-        console.warn('[DebugLog] Failed to persist debug log:', error);
-      }
-    });
-}
-
-function getDebugLogDetails(log) {
-  return log && typeof log.details === 'object' && log.details ? log.details : {};
-}
-
-function compactDebugValue(value, depth = 0) {
-  if (typeof value === 'string') {
-    return value.length > 180 ? `${value.slice(0, 180)}…` : value;
-  }
-  if (typeof value !== 'object' || value === null) {
-    return value;
-  }
-  if (Array.isArray(value)) {
-    const compact = value.slice(0, 8).map(item => compactDebugValue(item, depth + 1));
-    if (value.length > compact.length) {
-      compact.push(`... ${value.length - compact.length} more`);
-    }
-    return compact;
-  }
-  if (depth >= 2) {
-    const keys = Object.keys(value);
-    return keys.length ? `{${keys.slice(0, 8).join(',')}}` : {};
-  }
-
-  const compact = {};
-  Object.entries(value).forEach(([key, item]) => {
-    compact[key] = compactDebugValue(item, depth + 1);
-  });
-  return compact;
-}
-
-function compactDebugLog(log) {
-  return {
-    ts: log.ts,
-    t: log.t,
-    sessionId: log.sessionId,
-    event: log.event,
-    details: compactDebugValue(getDebugLogDetails(log))
-  };
-}
-
-function isDebugIssueEvent(event) {
-  return /error|failed|timeout|no-answer|empty|give-up|missing|aborted|fallback/i.test(event || '');
-}
-
-function isDebugKeyEvent(event) {
-  if (!event) return false;
-  return isDebugIssueEvent(event) ||
-    /^merge:(trigger-start|answers-extracted|prompt-built|reuse-panel|create-panel|auto-export|aborted)/.test(event) ||
-    /^merge-monitor:(start|timeout|all-complete|panel-complete|stop)/.test(event) ||
-    /^discussion:(start|round-start|prompt-built|send-results|round-answers-extracted|round-merge-answer-extracted|completed|stop)/.test(event) ||
-    /^discussion-wait:(start|all-complete|timeout)/.test(event) ||
-    /^discussion-start-gate:(start|new-answer-started|text-stable|timeout-fallback|overall-timeout-fallback|begin-discussion)/.test(event) ||
-    /^discussion-merge-wait:(start|stable-fallback-complete|completion-wait-ended)/.test(event) ||
-    /^markdown-export:/.test(event) ||
-    /^panel-injection:(failed|give-up|timeout)/.test(event);
-}
-
-function buildDebugEventCounts(logs) {
-  const counts = {};
-  logs.forEach(log => {
-    counts[log.event] = (counts[log.event] || 0) + 1;
-  });
-  return Object.entries(counts)
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, 40)
-    .map(([event, count]) => ({ event, count }));
-}
-
-function getDebugIssueSeverity(event) {
-  if (/error|failed|give-up/i.test(event || '')) return 'error';
-  if (/timeout|no-answer|empty|missing/i.test(event || '')) return 'warning';
-  return 'info';
-}
-
-function extractDebugIssues(logs) {
-  return logs
-    .filter(log => isDebugIssueEvent(log.event))
-    .slice(-DEBUG_LOG_ISSUE_LIMIT)
-    .map(log => ({
-      severity: getDebugIssueSeverity(log.event),
-      ...compactDebugLog(log)
-    }));
-}
-
-function summarizeDebugSessions(logs) {
-  const sessions = new Map();
-  logs.forEach(log => {
-    const sessionId = log.sessionId || 'unknown';
-    if (!sessions.has(sessionId)) {
-      sessions.set(sessionId, {
-        sessionId,
-        startTs: log.ts,
-        endTs: log.ts,
-        logCount: 0,
-        issueCount: 0,
-        exportStatus: null,
-        lastExportFile: null,
-        finalAnswerLength: null,
-        promptLengths: [],
-        providers: new Set(),
-        keyEvents: []
-      });
-    }
-
-    const session = sessions.get(sessionId);
-    const details = getDebugLogDetails(log);
-    session.endTs = log.ts;
-    session.logCount += 1;
-    if (isDebugIssueEvent(log.event)) session.issueCount += 1;
-    if (isDebugKeyEvent(log.event) && session.keyEvents.length < 30) {
-      session.keyEvents.push(log.event);
-    }
-    if (details.promptLength) session.promptLengths.push(details.promptLength);
-    if (details.answerLength || details.exportAnswerLength || details.finalAnswerLength) {
-      session.finalAnswerLength = details.exportAnswerLength || details.finalAnswerLength || details.answerLength;
-    }
-    if (Array.isArray(details.providers)) {
-      details.providers.forEach(provider => session.providers.add(String(provider)));
-    }
-    if (Array.isArray(details.results)) {
-      details.results.forEach(result => {
-        const providerId = result?.panel?.providerId;
-        if (providerId) session.providers.add(providerId);
-      });
-    }
-    if (log.event && log.event.startsWith('markdown-export:') &&
-        /success|failed|error|no-answer|start/.test(log.event)) {
-      session.exportStatus = log.event;
-      if (details.filePath) session.lastExportFile = details.filePath;
-    }
-  });
-
-  return Array.from(sessions.values()).map(session => ({
-    ...session,
-    providers: Array.from(session.providers),
-    promptLengths: session.promptLengths.slice(-5),
-    keyEvents: Array.from(new Set(session.keyEvents))
-  }));
-}
-
-function buildDebugAiPayload(logs) {
-  const currentSessionLogs = logs.filter(log => log.sessionId === debugSessionId);
-  const issueEvents = logs.filter(log => isDebugIssueEvent(log.event));
-  const keyEvents = logs
-    .filter(log => isDebugKeyEvent(log.event))
-    .slice(-DEBUG_LOG_KEY_EVENT_LIMIT)
-    .map(compactDebugLog);
-  const lastExport = [...logs].reverse().find(log => log.event && log.event.startsWith('markdown-export:'));
-
-  return {
-    exportedAt: new Date().toISOString(),
-    schemaVersion: 2,
-    format: 'ai-readable-debug-summary',
-    note: 'Read summary, issues, sessions, and keyEvents first. rawTail is only a short fallback; full raw logs are intentionally omitted to keep this file readable.',
-    currentSessionId: debugSessionId,
-    version: chrome.runtime?.getManifest?.().version || 'unknown',
-    summary: {
-      rawLogCount: logs.length,
-      currentSessionLogCount: currentSessionLogs.length,
-      firstLogAt: logs[0]?.ts || null,
-      lastLogAt: logs[logs.length - 1]?.ts || null,
-      sessionCount: new Set(logs.map(log => log.sessionId || 'unknown')).size,
-      issueCount: issueEvents.length,
-      keyEventCount: keyEvents.length,
-      rawTailCount: Math.min(logs.length, DEBUG_LOG_RAW_TAIL_ENTRIES),
-      lastExport: lastExport ? compactDebugLog(lastExport) : null,
-      eventCounts: buildDebugEventCounts(logs)
-    },
-    issues: extractDebugIssues(logs),
-    sessions: summarizeDebugSessions(logs),
-    keyEvents,
-    rawTail: logs.slice(-DEBUG_LOG_RAW_TAIL_ENTRIES).map(compactDebugLog)
-  };
-}
-
 function getThemeAwareProviderIcon(provider) {
   return getProviderIcon(provider);
 }
@@ -1383,11 +1146,6 @@ function handleProviderStatusMessage(event) {
     return;
   }
 
-  // Handle extraction debug results
-  if (data.type === 'EXTRACT_DEBUG_RESULT' && data.context === 'multi-panel-debug') {
-    return;
-  }
-
   if (data.context !== MULTI_PANEL_PROVIDER_STATUS_CONTEXT || !data.requestId) {
     return;
   }
@@ -1464,11 +1222,6 @@ function showClaudeEntryWarning(panel, data = {}) {
   if (text) text.textContent = t('claudeEntryWarning');
   warning.dataset.reason = data.reason || 'unknown';
 
-  recordDebugLog('claude-entry-warning:shown', {
-    panel: getPanelDebugInfo(panel),
-    reason: data.reason || 'unknown',
-    matchedText: data.matchedText || ''
-  });
 }
 
 async function getPendingMultiPanelAction() {
@@ -2056,12 +1809,6 @@ async function broadcastMessage(text, autoSubmit = true, mergeSessionId = null) 
 
     // Send to all panels (skip merge panels)
     const targetPanels = getNonMergePanels();
-    recordDebugLog('broadcast:start', {
-      autoSubmit: shouldAutoSubmit,
-      textLength: text.length,
-      mergeSessionId,
-      targetPanels: targetPanels.map(getPanelDebugInfo)
-    });
     const panelResults = [];
     for (const panel of targetPanels) {
       await ensurePanelVisibleBeforeAutoSubmit(panel, shouldAutoSubmit, 'broadcast');
@@ -2078,19 +1825,6 @@ async function broadcastMessage(text, autoSubmit = true, mergeSessionId = null) 
     const totalSuccessful = panelSuccessful;
     const totalCount = targetPanels.length;
     const failed = totalCount - totalSuccessful;
-    recordDebugLog('broadcast:result', {
-      autoSubmit: shouldAutoSubmit,
-      mergeSessionId,
-      totalCount,
-      totalSuccessful,
-      failed,
-      results: panelResults.map((result, index) => ({
-        panel: getPanelDebugInfo(targetPanels[index]),
-        status: result.status,
-        value: result.status === 'fulfilled' ? result.value : null,
-        reason: result.status === 'rejected' ? String(result.reason?.message || result.reason) : null
-      }))
-    });
 
     // Update status
     if (failed === 0) {
@@ -2122,9 +1856,6 @@ async function broadcastMessage(text, autoSubmit = true, mergeSessionId = null) 
     }
   } catch (error) {
     console.error('Error in broadcastMessage:', error);
-    recordDebugLog('broadcast:error', {
-      message: error?.message || String(error)
-    });
     statusEl.textContent = t('errorOccurred');
     statusEl.className = 'send-status error';
     setTimeout(() => {
@@ -2144,47 +1875,20 @@ function handlePanelInjectionResult(data) {
   pendingPanelInjections.delete(data.injectionRequestId);
 
   if (data.inputFound && data.injectSuccess) {
-    recordDebugLog('panel-injection:success', {
-      panel: getPanelDebugInfo(entry.panel),
-      autoSubmit: entry.autoSubmit,
-      recoveryAttempt: entry.recoveryAttempt,
-      mergeSessionId: entry.mergeSessionId,
-      inputFound: data.inputFound,
-      injectSuccess: data.injectSuccess
-    });
     entry.resolve(true);
     return;
   }
-  recordDebugLog('panel-injection:failed', {
-    panel: getPanelDebugInfo(entry.panel),
-    autoSubmit: entry.autoSubmit,
-    recoveryAttempt: entry.recoveryAttempt,
-    mergeSessionId: entry.mergeSessionId,
-    inputFound: data.inputFound,
-    injectSuccess: data.injectSuccess
-  });
   recoverFailedPanelInjection(entry);
 }
 
 function recoverFailedPanelInjection(entry) {
   const { panel } = entry;
   if (!AUTO_RECOVER_PROVIDERS.has(panel.providerId) || entry.recoveryAttempt >= 1) {
-    recordDebugLog('panel-injection:give-up', {
-      panel: getPanelDebugInfo(panel),
-      recoveryAttempt: entry.recoveryAttempt,
-      autoRecoverSupported: AUTO_RECOVER_PROVIDERS.has(panel.providerId),
-      mergeSessionId: entry.mergeSessionId
-    });
     entry.resolve(false);
     return;
   }
 
   console.warn('[MultiPanel] Retrying failed injection after reload:', panel.providerId);
-  recordDebugLog('panel-injection:retry-after-reload', {
-    panel: getPanelDebugInfo(panel),
-    recoveryAttempt: entry.recoveryAttempt + 1,
-    mergeSessionId: entry.mergeSessionId
-  });
   const iframe = panel.iframe;
   const retryTimeout = setTimeout(() => {
     iframe.removeEventListener('load', retryAfterLoad);
@@ -2203,36 +1907,15 @@ async function sendToPanel(panel, text, autoSubmit = true, requestId = null, rec
   return new Promise((resolve) => {
     try {
       if (!panel.iframe || !panel.iframe.contentWindow) {
-        recordDebugLog('panel-send:missing-iframe', {
-          panel: getPanelDebugInfo(panel),
-          autoSubmit,
-          recoveryAttempt,
-          mergeSessionId
-        });
         resolve(false);
         return;
       }
 
       const injectionRequestId = `inject-${panel.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      recordDebugLog('panel-send:start', {
-        panel: getPanelDebugInfo(panel),
-        autoSubmit,
-        textLength: text.length,
-        recoveryAttempt,
-        mergeSessionId,
-        injectionRequestId
-      });
       const timeoutId = setTimeout(() => {
         const entry = pendingPanelInjections.get(injectionRequestId);
         if (!entry) return;
         pendingPanelInjections.delete(injectionRequestId);
-        recordDebugLog('panel-injection:timeout', {
-          panel: getPanelDebugInfo(entry.panel),
-          autoSubmit: entry.autoSubmit,
-          recoveryAttempt: entry.recoveryAttempt,
-          mergeSessionId: entry.mergeSessionId,
-          injectionRequestId
-        });
         recoverFailedPanelInjection(entry);
       }, 6000);
       pendingPanelInjections.set(injectionRequestId, {
@@ -2260,13 +1943,6 @@ async function sendToPanel(panel, text, autoSubmit = true, requestId = null, rec
       });
     } catch (error) {
       console.error(`Error sending to ${panel.providerId}:`, error);
-      recordDebugLog('panel-send:error', {
-        panel: getPanelDebugInfo(panel),
-        autoSubmit,
-        recoveryAttempt,
-        mergeSessionId,
-        message: error?.message || String(error)
-      });
       resolve(false);
     }
   });
@@ -2285,12 +1961,6 @@ async function ensurePanelVisibleBeforeAutoSubmit(panel, autoSubmit, reason = 's
   const targetPage = getPanelPageIndex(panel);
   if (currentPanelPage === targetPage) return;
 
-  recordDebugLog('panel-send:activate-page', {
-    panel: getPanelDebugInfo(panel),
-    fromPage: currentPanelPage,
-    toPage: targetPage,
-    reason
-  });
   currentPanelPage = targetPage;
   renderCurrentPage();
   await sleep(500);
@@ -3025,21 +2695,6 @@ function handleExtractedAnswer(data) {
   }
 }
 
-// Debug extraction - call debugExtraction() from console
-window.debugExtraction = function() {
-  panels.forEach(panel => {
-    const hasIframe = !!panel.iframe;
-    const hasContentWindow = hasIframe && !!panel.iframe.contentWindow;
-    if (hasIframe && hasContentWindow) {
-      postToPanelIframe(panel, {
-        type: 'EXTRACT_DEBUG',
-        panelId: panel.id,
-        context: 'multi-panel'
-      });
-    }
-  });
-};
-
 // ===== Auto Merge / Fusion =====
 
 const MERGE_TARGET_URLS = {
@@ -3109,12 +2764,6 @@ function startMergeMonitor(mergeSessionId) {
   acquireExtractMode();
 
   const nonMergePanels = getNonMergePanels();
-  recordDebugLog('merge-monitor:start', {
-    mergeSessionId,
-    autoMergeEnabled: AUTO_MERGE_ENABLED,
-    mergeMaxWait: MERGE_MAX_WAIT,
-    targetPanels: nonMergePanels.map(getPanelDebugInfo)
-  });
   nonMergePanels.forEach(panel => {
     if (panel.iframe && panel.iframe.contentWindow) {
       postToPanelIframe(panel, {
@@ -3132,12 +2781,6 @@ function startMergeMonitor(mergeSessionId) {
     mergeTimeoutTimer = setTimeout(() => {
       if (!mergeIsActive || !AUTO_MERGE_ENABLED) return;
       lastMergeType = 'timeout';
-      recordDebugLog('merge-monitor:timeout', {
-        mergeSessionId,
-        completedCount: mergeCompletedPanels.size,
-        totalCount: getNonMergePanels().length,
-        completedPanelIds: Array.from(mergeCompletedPanels)
-      });
       stopMergeMonitor();
       triggerMerge();
     }, MERGE_MAX_WAIT);
@@ -3154,32 +2797,14 @@ function handleMergeCompletionDetected(data) {
   }
 
   if (!activeMergeSessionId || data.mergeSessionId !== activeMergeSessionId) {
-    recordDebugLog('completion:ignored-session-mismatch', {
-      provider: data.provider,
-      panelId: data.panelId,
-      incomingSessionId: data.mergeSessionId,
-      activeMergeSessionId
-    });
     return;
   }
 
   if (activeCompletionSessionGeneration !== completionSessionGeneration) {
-    recordDebugLog('completion:ignored-stale-generation', {
-      provider: data.provider,
-      panelId: data.panelId,
-      mergeSessionId: data.mergeSessionId,
-      activeCompletionSessionGeneration,
-      completionSessionGeneration
-    });
     return;
   }
 
   if (!mergeIsActive) {
-    recordDebugLog('completion:ignored-inactive', {
-      provider: data.provider,
-      panelId: data.panelId,
-      mergeSessionId: data.mergeSessionId
-    });
     return;
   }
 
@@ -3189,11 +2814,6 @@ function handleMergeCompletionDetected(data) {
     ? mergePanelIds.has(data.panelId)
     : !!panels.find(p => p.providerId === data.provider && mergePanelIds.has(p.id));
   if (isFromMergePanel) {
-    recordDebugLog('merge-panel:completion-detected', {
-      provider: data.provider,
-      panelId: data.panelId,
-      mergeSessionId: data.mergeSessionId
-    });
     window.postMessage({ type: 'MERGE_COMPLETE', answer: null, provider: data.provider }, '*');
     return;
   }
@@ -3204,11 +2824,6 @@ function handleMergeCompletionDetected(data) {
     : panels.find(p => p.providerId === data.provider && !isMergePanel(p));
   if (!panel) {
     console.warn('[Merge] No panel found for provider:', data.provider);
-    recordDebugLog('completion:no-panel-found', {
-      provider: data.provider,
-      panelId: data.panelId,
-      mergeSessionId: data.mergeSessionId
-    });
     return;
   }
 
@@ -3216,40 +2831,19 @@ function handleMergeCompletionDetected(data) {
 
   mergeCompletedPanels.add(panel.id);
   const nonMergeCount = getNonMergePanels().length;
-  recordDebugLog('merge-monitor:panel-complete', {
-    panel: getPanelDebugInfo(panel),
-    mergeSessionId: data.mergeSessionId,
-    completedCount: mergeCompletedPanels.size,
-    totalCount: nonMergeCount
-  });
 
   if (mergeCompletedPanels.size >= nonMergeCount) {
     if (!AUTO_MERGE_ENABLED) {
-      recordDebugLog('merge-monitor:all-complete-manual-mode', {
-        mergeSessionId: data.mergeSessionId,
-        totalCount: nonMergeCount
-      });
       stopMergeMonitor();
       return;
     }
     lastMergeType = 'auto';
-    recordDebugLog('merge-monitor:all-complete-auto-merge', {
-      mergeSessionId: data.mergeSessionId,
-      totalCount: nonMergeCount
-    });
     stopMergeMonitor();
     triggerMerge();
   }
 }
 
 function stopMergeMonitor() {
-  if (mergeIsActive || activeMergeSessionId) {
-    recordDebugLog('merge-monitor:stop', {
-      mergeSessionId: activeMergeSessionId,
-      completedCount: mergeCompletedPanels.size,
-      totalCount: getNonMergePanels().length
-    });
-  }
   mergeIsActive = false;
   activeMergeSessionId = null;
   activeCompletionSessionGeneration = 0;
@@ -3290,10 +2884,6 @@ function beginCompletionSession(mergeSessionId, generation = completionSessionGe
 
 function invalidateCompletionSessions(reason = 'reset') {
   completionSessionGeneration += 1;
-  recordDebugLog('completion-session:invalidate', {
-    reason,
-    completionSessionGeneration
-  });
   clearActiveCompletionSession();
 }
 
@@ -3413,24 +3003,10 @@ function sanitizeMergedAnswerForDiscussion(answer) {
 }
 
 async function triggerMerge() {
-  recordDebugLog('merge:trigger-start', {
-    lastMergeType,
-    selectedMergeTarget: selectedMergeTarget || 'deepseek'
-  });
   const answers = await extractAllAnswers();
   const validAnswers = answers.filter(a => a.answer && a.answer.trim().length > 0);
-  recordDebugLog('merge:answers-extracted', {
-    totalAnswers: answers.length,
-    validAnswers: validAnswers.length,
-    providers: answers.map(a => ({
-      providerName: a.providerName,
-      answerLength: String(a.answer || '').length,
-      hasAnswer: Boolean(a.answer && a.answer.trim())
-    }))
-  });
 
   if (validAnswers.length === 0) {
-    recordDebugLog('merge:aborted-no-valid-answers');
     return;
   }
 
@@ -3442,24 +3018,11 @@ async function triggerMerge() {
   const settings = await getSettings();
   const mergeMode = settings.mergeMode || 'merge';
   const discussRounds = DISCUSSION_ROUNDS;
-  recordDebugLog('merge:prompt-built', {
-    targetProvider,
-    mergeMode,
-    discussRounds,
-    promptLength: prompt.length,
-    questionLength: question.length,
-    sourceProviders: validAnswers.map(a => a.providerName)
-  });
 
   // 查找已有的融合面板（providerId 匹配 + 在 mergePanelIds 中）
   const existingPanel = panels.find(p => p.providerId === targetProvider && mergePanelIds.has(p.id));
 
   if (existingPanel) {
-    recordDebugLog('merge:reuse-panel', {
-      panel: getPanelDebugInfo(existingPanel),
-      targetProvider,
-      mergeMode
-    });
     // 导航到融合面板所在的页面
     const panelIndex = panels.indexOf(existingPanel);
     const panelsPerPage = LAYOUT_PANEL_COUNTS[currentLayout] || 3;
@@ -3529,18 +3092,11 @@ async function triggerMerge() {
 
     // 仅融合模式：融合完成后自动导出
     if (mergeMode !== 'merge+discuss') {
-      recordDebugLog('merge:auto-export-scheduled', {
-        panel: getPanelDebugInfo(existingPanel)
-      });
       autoExportToMarkdown(existingPanel);
     }
 
     // 如果是讨论模式，等待融合完成后开始讨论
     if (mergeMode === 'merge+discuss') {
-      recordDebugLog('discussion:start-after-existing-merge', {
-        panel: getPanelDebugInfo(existingPanel),
-        discussRounds
-      });
       startDiscussionAfterMerge(prompt, discussRounds, existingPanel).catch(e => {
         console.error('[Discussion] Error:', e);
         showToast(t('errorOccurred'));
@@ -3555,7 +3111,6 @@ async function triggerMerge() {
   const provider = getProviderById(targetProvider);
   if (!provider) {
     console.error('[Merge] Provider not found:', targetProvider);
-    recordDebugLog('merge:provider-not-found', { targetProvider });
     return;
   }
 
@@ -3643,12 +3198,6 @@ async function triggerMerge() {
   panelGrid.insertBefore(panelEl, panelGrid.firstChild);
   panelEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
   mergePanelIds.add(panelId);
-  recordDebugLog('merge:create-panel', {
-    panelId,
-    targetProvider,
-    mergeMode,
-    discussRounds
-  });
 
   // 添加到 panels 数组最前面
   panels.unshift({
@@ -3743,19 +3292,12 @@ async function triggerMerge() {
   // 仅融合模式：等待融合完成后自动导出
   if (mergeMode !== 'merge+discuss') {
     const newPanel = panels.find(p => p.id === panelId);
-    recordDebugLog('merge:auto-export-waiting-for-new-panel-completion', {
-      panel: getPanelDebugInfo(newPanel)
-    });
     autoExportToMarkdown(newPanel);
   }
 
   // 如果是讨论模式，等待融合完成后开始讨论
   if (mergeMode === 'merge+discuss') {
     const mergePanel = panels.find(p => p.id === panelId);
-    recordDebugLog('discussion:start-after-new-merge', {
-      panel: getPanelDebugInfo(mergePanel),
-      discussRounds
-    });
     startDiscussionAfterMerge(prompt, discussRounds, mergePanel).catch(e => {
       console.error('[Discussion] Error:', e);
       showToast(t('errorOccurred'));
@@ -3775,7 +3317,6 @@ function stopDiscussion(reason = 'user') {
   }
   invalidateCompletionSessions(`discussion-stop:${reason}`);
   if (wasActive) {
-    recordDebugLog('discussion:stop', { reason });
     hideDiscussionStatusBar();
     stopMergeMonitor();
   }
@@ -3820,10 +3361,6 @@ function waitForDiscussionPanelsCompletionWithAbort(targetPanels, signal, timeou
 
     const completedPanelIds = new Set();
     const targetPanelIds = new Set(targetPanels.map(p => p.id));
-    recordDebugLog('discussion-wait:start', {
-      timeoutMs: safeTimeoutMs,
-      targetPanels: targetPanels.map(getPanelDebugInfo)
-    });
 
     const handler = (event) => {
       if (event?.data?.type === 'COMPLETION_DETECTED' &&
@@ -3836,17 +3373,7 @@ function waitForDiscussionPanelsCompletionWithAbort(targetPanels, signal, timeou
           const match = targetPanels.find(p => p.providerId === provider);
           if (match) completedPanelIds.add(match.id);
         }
-        recordDebugLog('discussion-wait:panel-complete', {
-          provider: event?.data?.provider,
-          panelId: event?.data?.panelId,
-          completedCount: completedPanelIds.size,
-          totalCount: targetPanels.length
-        });
         if (completedPanelIds.size >= targetPanels.length) {
-          recordDebugLog('discussion-wait:all-complete', {
-            completedCount: completedPanelIds.size,
-            totalCount: targetPanels.length
-          });
           cleanup();
           resolve();
         }
@@ -3854,11 +3381,6 @@ function waitForDiscussionPanelsCompletionWithAbort(targetPanels, signal, timeou
     };
 
     const onAbort = () => {
-      recordDebugLog(abortEventName, {
-        completedCount: completedPanelIds.size,
-        totalCount: targetPanels.length,
-        completedPanelIds: Array.from(completedPanelIds)
-      });
       cleanup();
       resolve();
     };
@@ -3866,15 +3388,6 @@ function waitForDiscussionPanelsCompletionWithAbort(targetPanels, signal, timeou
 
     const timeout = setTimeout(() => {
       console.warn('[Discussion] Round completion timeout after', safeTimeoutMs, 'ms, proceeding with', completedPanelIds.size, '/', targetPanels.length, 'panels completed');
-      recordDebugLog('discussion-wait:timeout', {
-        timeoutMs: safeTimeoutMs,
-        completedCount: completedPanelIds.size,
-        totalCount: targetPanels.length,
-        completedPanelIds: Array.from(completedPanelIds),
-        missingPanels: targetPanels
-          .filter(panel => !completedPanelIds.has(panel.id))
-          .map(getPanelDebugInfo)
-      });
       cleanup();
       resolve();
     }, safeTimeoutMs);
@@ -3957,15 +3470,6 @@ async function waitForDiscussionStartGate(panel, signal, timeoutMs, baselineText
   let newAnswerStarted = false;
   let newAnswerStartedAt = 0;
 
-  recordDebugLog('discussion-start-gate:start', {
-    panel: getPanelDebugInfo(panel),
-    timeoutMs: activeTimeoutMs,
-    overallTimeoutMs,
-    pollMs: DISCUSSION_START_GATE_POLL_MS,
-    stableMs: DISCUSSION_START_GATE_STABLE_MS,
-    baselineLength: baselineNormalized.length,
-    hasBaseline: baselineNormalized.length > 0
-  });
 
   const completionHandler = (event) => {
     if (event?.data?.type !== 'MERGE_COMPLETE') return;
@@ -3983,12 +3487,6 @@ async function waitForDiscussionStartGate(panel, signal, timeoutMs, baselineText
         }
         const eventNormalized = normalizeAnswerForStability(eventAnswer);
 
-        recordDebugLog('discussion-start-gate:event-complete', {
-          panel: getPanelDebugInfo(panel),
-          elapsedMs: Date.now() - startedAt,
-          answerLength: String(eventAnswer || '').length,
-          baselineLength: baselineNormalized.length
-        });
 
         if (eventAnswer && eventAnswer.trim() && (!baselineNormalized || eventNormalized !== baselineNormalized)) {
           return {
@@ -3998,12 +3496,6 @@ async function waitForDiscussionStartGate(panel, signal, timeoutMs, baselineText
         }
 
         if (baselineNormalized && eventNormalized === baselineNormalized) {
-          recordDebugLog('discussion-start-gate:event-ignored-baseline', {
-            panel: getPanelDebugInfo(panel),
-            elapsedMs: Date.now() - startedAt,
-            answerLength: String(eventAnswer || '').length,
-            baselineLength: baselineNormalized.length
-          });
         }
 
         completedByEvent = false;
@@ -4018,11 +3510,6 @@ async function waitForDiscussionStartGate(panel, signal, timeoutMs, baselineText
 
         if (!firstSeenLogged) {
           firstSeenLogged = true;
-          recordDebugLog('discussion-start-gate:text-first-seen', {
-            panel: getPanelDebugInfo(panel),
-            elapsedMs: Date.now() - startedAt,
-            answerLength: currentAnswer.length
-          });
         }
 
         // 检测本轮新答案是否已开始（与 baseline 不同）
@@ -4036,12 +3523,6 @@ async function waitForDiscussionStartGate(panel, signal, timeoutMs, baselineText
             newAnswerStartedAt = Date.now();
             stableCandidate = '';
             stableSince = 0;
-            recordDebugLog('discussion-start-gate:new-answer-started', {
-              panel: getPanelDebugInfo(panel),
-              elapsedMs: Date.now() - startedAt,
-              answerLength: currentAnswer.length,
-              baselineLength: baselineNormalized.length
-            });
           }
         }
 
@@ -4049,18 +3530,7 @@ async function waitForDiscussionStartGate(panel, signal, timeoutMs, baselineText
           if (currentNormalized !== stableCandidate) {
             stableCandidate = currentNormalized;
             stableSince = Date.now();
-            recordDebugLog('discussion-start-gate:text-changed', {
-              panel: getPanelDebugInfo(panel),
-              elapsedMs: Date.now() - startedAt,
-              answerLength: currentAnswer.length
-            });
           } else if (Date.now() - stableSince >= DISCUSSION_START_GATE_STABLE_MS) {
-            recordDebugLog('discussion-start-gate:text-stable', {
-              panel: getPanelDebugInfo(panel),
-              elapsedMs: Date.now() - startedAt,
-              stableMs: Date.now() - stableSince,
-              answerLength: currentAnswer.length
-            });
             return {
               answer: currentAnswer,
               reason: 'text-stable'
@@ -4068,12 +3538,6 @@ async function waitForDiscussionStartGate(panel, signal, timeoutMs, baselineText
           }
 
           if (newAnswerStartedAt && Date.now() - newAnswerStartedAt >= activeTimeoutMs) {
-            recordDebugLog('discussion-start-gate:timeout-fallback', {
-              panel: getPanelDebugInfo(panel),
-              elapsedMs: Date.now() - startedAt,
-              activeElapsedMs: Date.now() - newAnswerStartedAt,
-              answerLength: currentAnswer.length
-            });
             return {
               answer: currentAnswer,
               reason: 'timeout-fallback'
@@ -4086,12 +3550,6 @@ async function waitForDiscussionStartGate(panel, signal, timeoutMs, baselineText
     }
 
     if (latestNormalized && newAnswerStarted) {
-      recordDebugLog('discussion-start-gate:overall-timeout-fallback', {
-        panel: getPanelDebugInfo(panel),
-        elapsedMs: Date.now() - startedAt,
-        activeElapsedMs: newAnswerStartedAt ? Date.now() - newAnswerStartedAt : 0,
-        answerLength: latestAnswer.length
-      });
       return {
         answer: latestAnswer,
         reason: 'overall-timeout-fallback'
@@ -4099,21 +3557,12 @@ async function waitForDiscussionStartGate(panel, signal, timeoutMs, baselineText
     }
 
     if (latestNormalized && baselineNormalized && latestNormalized === baselineNormalized) {
-      recordDebugLog('discussion-start-gate:timeout-baseline-only', {
-        panel: getPanelDebugInfo(panel),
-        elapsedMs: Date.now() - startedAt,
-        baselineLength: baselineNormalized.length
-      });
       return {
         answer: '',
         reason: 'timeout-baseline-only'
       };
     }
 
-    recordDebugLog('discussion-start-gate:empty-answer', {
-      panel: getPanelDebugInfo(panel),
-      elapsedMs: Date.now() - startedAt
-    });
     return {
       answer: '',
       reason: 'empty-answer'
@@ -4147,12 +3596,6 @@ async function waitForDiscussionMergeCompletionWithFallback(panel, signal, timeo
 
   let stableCandidate = '';
   let stableSince = 0;
-  recordDebugLog('discussion-merge-wait:start', {
-    panel: getPanelDebugInfo(panel),
-    timeoutMs: safeTimeoutMs,
-    previousAnswerLength: String(previousAnswer || '').length,
-    baselineLength: baselineNormalized.length
-  });
 
   try {
     while (!signal.aborted && !completionResolved && Date.now() - startedAt < safeTimeoutMs) {
@@ -4172,20 +3615,10 @@ async function waitForDiscussionMergeCompletionWithFallback(panel, signal, timeo
       if (currentNormalized !== stableCandidate) {
         stableCandidate = currentNormalized;
         stableSince = Date.now();
-        recordDebugLog('discussion-merge-wait:answer-changed', {
-          panel: getPanelDebugInfo(panel),
-          answerLength: currentAnswer.length,
-          baselineLength: baselineNormalized.length
-        });
         continue;
       }
 
       if (Date.now() - stableSince >= 8000) {
-        recordDebugLog('discussion-merge-wait:stable-fallback-complete', {
-          panel: getPanelDebugInfo(panel),
-          stableMs: Date.now() - stableSince,
-          answerLength: currentAnswer.length
-        });
         localController.abort();
         await completionWait;
         return;
@@ -4193,10 +3626,6 @@ async function waitForDiscussionMergeCompletionWithFallback(panel, signal, timeo
     }
 
     await completionWait;
-    recordDebugLog('discussion-merge-wait:completion-wait-ended', {
-      panel: getPanelDebugInfo(panel),
-      completionResolved
-    });
   } finally {
     signal.removeEventListener('abort', onExternalAbort);
   }
@@ -4224,20 +3653,10 @@ async function waitForFinalMergeAnswerBeforeExport(panel, signal, timeoutMs) {
     const provider = event?.data?.provider;
     if ((panelId && panelId === panel.id) || (!panelId && provider === panel.providerId)) {
       completionEventSeen = true;
-      recordDebugLog('markdown-export:final-merge-completion-event', {
-        panel: getPanelDebugInfo(panel),
-        provider,
-        panelId
-      });
     }
   };
 
   window.addEventListener('message', completionHandler);
-  recordDebugLog('markdown-export:final-merge-wait:start', {
-    panel: getPanelDebugInfo(panel),
-    timeoutMs: safeTimeoutMs,
-    stableMs: DISCUSSION_FINAL_EXPORT_STABLE_MS
-  });
 
   try {
     while (!signal.aborted && Date.now() - startedAt < safeTimeoutMs) {
@@ -4254,32 +3673,16 @@ async function waitForFinalMergeAnswerBeforeExport(panel, signal, timeoutMs) {
       if (currentNormalized !== stableCandidate) {
         stableCandidate = currentNormalized;
         stableSince = Date.now();
-        recordDebugLog('markdown-export:final-merge-wait:answer-changed', {
-          panel: getPanelDebugInfo(panel),
-          answerLength: currentAnswer.length
-        });
         continue;
       }
 
       const stableMs = Date.now() - stableSince;
       if ((completionEventSeen && stableMs >= DISCUSSION_START_GATE_POLL_MS) ||
           stableMs >= DISCUSSION_FINAL_EXPORT_STABLE_MS) {
-        recordDebugLog('markdown-export:final-merge-wait:complete', {
-          panel: getPanelDebugInfo(panel),
-          answerLength: currentAnswer.length,
-          stableMs,
-          completionEventSeen
-        });
         return currentAnswer;
       }
     }
 
-    recordDebugLog('markdown-export:final-merge-wait:timeout', {
-      panel: getPanelDebugInfo(panel),
-      answerLength: latestAnswer.length,
-      timeoutMs: safeTimeoutMs,
-      completionEventSeen
-    });
     return latestAnswer;
   } finally {
     window.removeEventListener('message', completionHandler);
@@ -4291,12 +3694,6 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
   if (totalRounds <= 0) return;
   totalRounds = DISCUSSION_ROUNDS;
   const discussionWaitMs = getCurrentMergeMaxWait();
-  recordDebugLog('discussion:start', {
-    totalRounds,
-    discussionWaitMs,
-    mergePanel: getPanelDebugInfo(mergePanel),
-    mergedPromptLength: String(mergedPrompt || '').length
-  });
 
   discussionAbortController = new AbortController();
   discussionActive = true;
@@ -4319,16 +3716,12 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
     const initialGateResult = await waitForDiscussionStartGate(mergePanel, signal, discussionWaitMs, baselineAnswer);
 
     if (signal.aborted) {
-      recordDebugLog('discussion:aborted-before-initial-merge-extract');
       return;
     }
 
     let mergedAnswer = initialGateResult.answer || '';
     if (!mergedAnswer) {
       console.warn('[Discussion] Merge answer is empty, using raw answers as fallback');
-      recordDebugLog('discussion:initial-merge-answer-empty-fallback', {
-        gateReason: initialGateResult.reason
-      });
       const fallbackAnswers = await extractAllAnswers();
       mergedAnswer = fallbackAnswers
         .filter(a => a.answer && a.answer.trim())
@@ -4337,10 +3730,6 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
       if (!mergedAnswer) mergedAnswer = mergedPrompt;
     }
 
-    recordDebugLog('discussion-start-gate:begin-discussion', {
-      reason: initialGateResult.reason,
-      answerLength: mergedAnswer.length
-    });
 
     // 提取标题和评分后再清理；cleanAnswer 会移除末尾的模型评分和标题行。
     const extractedTitle = markdownExtractTitle(mergedAnswer);
@@ -4378,23 +3767,12 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
       if (signal.aborted) break;
 
       updateDiscussionProgress(round, totalRounds);
-      recordDebugLog('discussion:round-start', {
-        round,
-        totalRounds,
-        mergedAnswerLength: mergedAnswer.length
-      });
 
       // 清理融合答案中无意义的孤立符号行，避免发给各 AI 讨论时浪费上下文
       const cleanMergedAnswer = sanitizeMergedAnswerForDiscussion(mergedAnswer);
 
       // 构造讨论提示词
       const discussPrompt = buildDiscussPrompt(question, cleanMergedAnswer);
-      recordDebugLog('discussion:prompt-built', {
-        round,
-        totalRounds,
-        cleanMergedAnswerLength: cleanMergedAnswer.length,
-        discussPromptLength: discussPrompt.length
-      });
 
       // 向每个非融合面板发送 MONITOR_COMPLETION + INJECT_TEXT
       const currentNonMergePanels = getNonMergePanels();
@@ -4409,13 +3787,6 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
       }
 
       const settledDiscussionSends = discussionSendResults;
-      recordDebugLog('discussion:send-results', {
-        round,
-        results: settledDiscussionSends.map(result => ({
-          panel: getPanelDebugInfo(result.panel),
-          success: result.success
-        }))
-      });
       settledDiscussionSends
         .filter(result => !result.success)
         .forEach(result => {
@@ -4430,20 +3801,9 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
       // 收集本轮答案
       const roundAnswers = await extractAllAnswers();
       const validRoundAnswers = roundAnswers.filter(a => a.answer && a.answer.trim().length > 0);
-      recordDebugLog('discussion:round-answers-extracted', {
-        round,
-        totalAnswers: roundAnswers.length,
-        validAnswers: validRoundAnswers.length,
-        providers: roundAnswers.map(a => ({
-          providerName: a.providerName,
-          answerLength: String(a.answer || '').length,
-          hasAnswer: Boolean(a.answer && a.answer.trim())
-        }))
-      });
 
       if (validRoundAnswers.length === 0) {
         console.warn('[Discussion] No valid answers in round', round, ', stopping discussion');
-        recordDebugLog('discussion:stop-no-valid-round-answers', { round });
         break;
       }
 
@@ -4462,11 +3822,6 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
         const previousMergedAnswer = mergedAnswer;
         const roundSessionId = `discussion-merge-${round}-${Date.now()}`;
         if (signal.aborted || discussionGeneration !== completionSessionGeneration) {
-          recordDebugLog('discussion:skip-stale-merge-session', {
-            round,
-            discussionGeneration,
-            completionSessionGeneration
-          });
           break;
         }
         beginCompletionSession(roundSessionId, discussionGeneration);
@@ -4504,22 +3859,12 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
           discussionScores = extractScores(newMergedAnswer) || discussionScores;
           lastDiscussionTitle = newExtractedTitle || generateFallbackTitle();
           mergedAnswer = markdownCleanAnswer(newMergedAnswer, newExtractedTitle);
-          recordDebugLog('discussion:round-merge-answer-extracted', {
-            round,
-            mergePanel: getPanelDebugInfo(mergePanelCurrent),
-            rawAnswerLength: newMergedAnswer.length,
-            cleanedAnswerLength: mergedAnswer.length
-          });
         }
       }
     }
 
     if (!signal.aborted) {
       hideDiscussionStatusBar();
-      recordDebugLog('discussion:completed', {
-        totalRounds,
-        finalAnswerLength: mergedAnswer.length
-      });
     }
 
     // 讨论完成，导出（如果 auto 模式）
@@ -4540,32 +3885,12 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
           lastDiscussionTitle = latestTitle || lastDiscussionTitle || generateFallbackTitle();
           exportAnswer = markdownCleanAnswer(latestVisibleAnswer, latestTitle);
         }
-        recordDebugLog('markdown-export:discussion-final-answer-resolved', {
-          panel: getPanelDebugInfo(finalMergePanel),
-          cachedAnswerLength: mergedAnswer.length,
-          latestVisibleAnswerLength: latestVisibleAnswer.length,
-          exportAnswerLength: exportAnswer.length,
-          usedLatestVisibleAnswer: Boolean(latestVisibleAnswer && latestVisibleAnswer.trim())
-        });
       } else if (exportAnswer) {
-        recordDebugLog('markdown-export:discussion-final-answer-resolved', {
-          panel: getPanelDebugInfo(finalMergePanel),
-          cachedAnswerLength: mergedAnswer.length,
-          latestVisibleAnswerLength: 0,
-          exportAnswerLength: exportAnswer.length,
-          usedLatestVisibleAnswer: false
-        });
       } else {
-        recordDebugLog('markdown-export:discussion-final-answer-no-panel', {
-          cachedAnswerLength: mergedAnswer.length
-        });
       }
 
       if (!exportAnswer && mergedAnswer) {
         exportAnswer = mergedAnswer;
-        recordDebugLog('markdown-export:discussion-final-answer-fallback-cached', {
-          cachedAnswerLength: mergedAnswer.length
-        });
       }
 
       await saveMergeScoresIfPresent(finalMergePanel, lastSentQuestion || '', discussionScores);
@@ -4574,11 +3899,6 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
       if (exportMode === 'auto' && exportAnswer) {
         setMarkdownExportFeedback(true);
         showToast(t('obsidianExporting'), { type: 'info', duration: 1800 });
-        recordDebugLog('markdown-export:discussion-auto-start', {
-          answerLength: exportAnswer.length,
-          providers: providersSnapshot,
-          title: lastDiscussionTitle
-        });
         try {
           const result = await exportToMarkdown({
             question: lastSentQuestion || '',
@@ -4590,21 +3910,12 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
           });
 
           if (result.success) {
-            recordDebugLog('markdown-export:discussion-auto-success', {
-              filePath: result.filePath
-            });
             showToast(t('obsidianExportSuccess', result.filePath), { type: 'success', duration: 3600 });
           } else {
-            recordDebugLog('markdown-export:discussion-auto-failed', {
-              error: result.error || 'Unknown error'
-            });
             showToast(t('obsidianExportFailed', result.error || 'Unknown error'), { type: 'error', duration: 4200 });
           }
         } catch (e) {
           console.warn('[Discussion] Markdown export failed:', e);
-          recordDebugLog('markdown-export:discussion-auto-error', {
-            message: e?.message || String(e)
-          });
           showToast(t('obsidianExportFailed', e?.message || 'Unknown error'), { type: 'error', duration: 4200 });
         } finally {
           setMarkdownExportFeedback(false);
@@ -4613,9 +3924,6 @@ async function startDiscussionAfterMerge(mergedPrompt, totalRounds, mergePanel) 
     }
   } catch (e) {
     console.error('[AIChatMerge] Discussion error:', e);
-    recordDebugLog('discussion:error', {
-      message: e?.message || String(e)
-    });
   } finally {
     discussionActive = false;
     discussionAbortController = null;
@@ -5347,16 +4655,12 @@ async function saveMergeScoresIfPresent(panel, question, scores) {
 async function handleManualExport() {
   const mergePanel = panels.find(p => mergePanelIds.has(p.id));
   if (!mergePanel) {
-    recordDebugLog('markdown-export:manual-no-merge-panel');
     showToast(t('obsidianExportFailed', '请先进行融合操作'));
     return;
   }
 
   const answer = await extractSinglePanelAnswer(mergePanel);
   if (!answer) {
-    recordDebugLog('markdown-export:manual-no-answer', {
-      panel: getPanelDebugInfo(mergePanel)
-    });
     showToast(t('obsidianExportFailed', 'No answer found'));
     return;
   }
@@ -5364,12 +4668,6 @@ async function handleManualExport() {
   const exportData = mergePanel.exportData || {};
   setMarkdownExportFeedback(true);
   showToast(t('obsidianExporting'), { type: 'info', duration: 1800 });
-  recordDebugLog('markdown-export:manual-start', {
-    panel: getPanelDebugInfo(mergePanel),
-    answerLength: answer.length,
-    providers: exportData.providers || [],
-    mode: exportData.mode || 'merge'
-  });
 
   try {
     const scores = extractScores(answer);
@@ -5383,21 +4681,12 @@ async function handleManualExport() {
     });
 
     if (result.success) {
-      recordDebugLog('markdown-export:manual-success', {
-        filePath: result.filePath
-      });
       showToast(t('obsidianExportSuccess', result.filePath), { type: 'success', duration: 3600 });
     } else {
-      recordDebugLog('markdown-export:manual-failed', {
-        error: result.error || 'Unknown error'
-      });
       showToast(t('obsidianExportFailed', result.error || 'Unknown error'), { type: 'error', duration: 4200 });
     }
   } catch (error) {
     console.warn('[Markdown] Manual export failed:', error);
-    recordDebugLog('markdown-export:manual-error', {
-      message: error?.message || String(error)
-    });
     showToast(t('obsidianExportFailed', error?.message || 'Unknown error'), { type: 'error', duration: 4200 });
   } finally {
     setMarkdownExportFeedback(false);
@@ -5417,12 +4706,6 @@ async function autoExportToMarkdown(mergePanel) {
   const exportRunId = ++autoExportRunId;
 
   const exportData = mergePanel.exportData || {};
-  recordDebugLog('markdown-export:auto-wait-final-answer', {
-    panel: getPanelDebugInfo(mergePanel),
-    providers: exportData.providers || [],
-    mode: exportData.mode || 'merge',
-    exportRunId
-  });
 
   const answer = await waitForFinalMergeAnswerBeforeExport(
     mergePanel,
@@ -5431,19 +4714,10 @@ async function autoExportToMarkdown(mergePanel) {
   );
 
   if (exportWaitController.signal.aborted || exportRunId !== autoExportRunId) {
-    recordDebugLog('markdown-export:auto-cancelled-stale-run', {
-      panel: getPanelDebugInfo(mergePanel),
-      exportRunId,
-      currentExportRunId: autoExportRunId
-    });
     return;
   }
 
   if (!answer) {
-    recordDebugLog('markdown-export:auto-no-answer', {
-      panel: getPanelDebugInfo(mergePanel),
-      exportRunId
-    });
     if (autoExportWaitController === exportWaitController) {
       autoExportWaitController = null;
     }
@@ -5453,29 +4727,13 @@ async function autoExportToMarkdown(mergePanel) {
 
   setMarkdownExportFeedback(true);
   showToast(t('obsidianExporting'), { type: 'info', duration: 1800 });
-  recordDebugLog('markdown-export:auto-start', {
-    panel: getPanelDebugInfo(mergePanel),
-    answerLength: answer.length,
-    providers: exportData.providers || [],
-    mode: exportData.mode || 'merge',
-    exportRunId
-  });
 
   try {
     if (exportRunId !== autoExportRunId) {
-      recordDebugLog('markdown-export:auto-skip-stale-before-write', {
-        panel: getPanelDebugInfo(mergePanel),
-        exportRunId,
-        currentExportRunId: autoExportRunId
-      });
       return;
     }
 
     if (autoExportWriteInProgress) {
-      recordDebugLog('markdown-export:auto-skip-write-in-progress', {
-        panel: getPanelDebugInfo(mergePanel),
-        exportRunId
-      });
       return;
     }
 
@@ -5491,21 +4749,12 @@ async function autoExportToMarkdown(mergePanel) {
     });
 
     if (result.success) {
-      recordDebugLog('markdown-export:auto-success', {
-        filePath: result.filePath
-      });
       showToast(t('obsidianExportSuccess', result.filePath), { type: 'success', duration: 3600 });
     } else {
-      recordDebugLog('markdown-export:auto-failed', {
-        error: result.error || 'Unknown error'
-      });
       showToast(t('obsidianExportFailed', result.error || 'Unknown error'), { type: 'error', duration: 4200 });
     }
   } catch (error) {
     console.warn('[Markdown] Auto export failed:', error);
-    recordDebugLog('markdown-export:auto-error', {
-      message: error?.message || String(error)
-    });
     showToast(t('obsidianExportFailed', error?.message || 'Unknown error'), { type: 'error', duration: 4200 });
   } finally {
     autoExportWriteInProgress = false;
