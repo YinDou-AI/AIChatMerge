@@ -164,9 +164,6 @@ const I18N = {
     obsidianExporting: '正在导出 Markdown...',
     obsidianExportSuccess: '已导出 Markdown: $1',
     obsidianExportFailed: '导出 Markdown 失败: $1',
-    debugDownloadLogs: '下载调试日志',
-    debugLogsDownloaded: '调试日志已下载',
-    debugLogsEmpty: '暂无调试日志',
     discussionProgress: '讨论中',
     discussionProgressInitial: '讨论中',
     stopDiscussion: '停止讨论',
@@ -285,9 +282,6 @@ const I18N = {
     obsidianExporting: 'Exporting Markdown...',
     obsidianExportSuccess: 'Exported Markdown: $1',
     obsidianExportFailed: 'Markdown export failed: $1',
-    debugDownloadLogs: 'Download debug logs',
-    debugLogsDownloaded: 'Debug logs downloaded',
-    debugLogsEmpty: 'No debug logs yet',
     discussionProgress: 'Discussing',
     discussionProgressInitial: 'Discussing',
     stopDiscussion: 'Stop Discussion',
@@ -597,42 +591,6 @@ function buildDebugAiPayload(logs) {
     rawTail: logs.slice(-DEBUG_LOG_RAW_TAIL_ENTRIES).map(compactDebugLog)
   };
 }
-
-async function downloadDebugLogs() {
-  try {
-    await debugLogWriteQueue.catch(() => {});
-    const result = await chrome.storage.local.get({ [DEBUG_LOG_STORAGE_KEY]: [] });
-    const logs = Array.isArray(result[DEBUG_LOG_STORAGE_KEY])
-      ? result[DEBUG_LOG_STORAGE_KEY]
-      : [];
-    if (logs.length === 0) {
-      showToast(t('debugLogsEmpty'));
-      return;
-    }
-
-    const payload = buildDebugAiPayload(logs);
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-    a.href = url;
-    a.download = `aichatmerge-debug-${stamp}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast(t('debugLogsDownloaded'));
-  } catch (error) {
-    console.warn('[DebugLog] Failed to download debug logs:', error);
-    showToast(t('errorOccurred'));
-  }
-}
-
-window.clearAIChatMergeDebugLogs = async function() {
-  if (typeof chrome === 'undefined' || !chrome.storage?.local) return;
-  await chrome.storage.local.set({ [DEBUG_LOG_STORAGE_KEY]: [] });
-  showToast('Debug logs cleared');
-};
 
 function getThemeAwareProviderIcon(provider) {
   return getProviderIcon(provider);
@@ -4709,11 +4667,6 @@ function setupEventListeners() {
 
   // Markdown export button
   document.getElementById('obsidian-export-btn').addEventListener('click', handleManualExport);
-
-  const debugLogBtn = document.getElementById('debug-log-btn');
-  if (debugLogBtn) {
-    debugLogBtn.addEventListener('click', downloadDebugLogs);
-  }
 
   // New Chat button
   const newChatBtn = document.getElementById('new-chat-btn');
