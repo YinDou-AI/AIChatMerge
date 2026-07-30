@@ -1,5 +1,13 @@
 // T074: Internationalization (i18n) utility module
 // Provides helper functions for Chrome i18n API
+//
+// SCOPE: Used by extension pages that run in the Chrome extension context
+// (options, popup, background) where chrome.i18n API is available.
+// Reads translations from _locales/*/messages.json.
+//
+// For the multi-panel page (runs inside an iframe / content script context
+// where chrome.i18n is NOT available), use aichatmerge-panel/modules/i18n.js
+// instead — it has its own embedded zh/en dictionary.
 
 // Translation cache for custom language override
 let translationCache = null;

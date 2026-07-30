@@ -3,6 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import zlib from 'node:zlib';
+import { execFileSync } from 'node:child_process';
 import {
   assertPackageEntries,
   PACKAGE_EXCLUDED_PREFIXES,
@@ -133,6 +134,79 @@ async function createZipFromDirectory(sourceDir, zipPath) {
   return files.map(file => file.zipPath);
 }
 
+async function assertFormalReleaseStaging(stagingDir) {
+  const readStagingText = relativePath =>
+    fs.readFile(path.join(stagingDir, relativePath), 'utf8');
+
+  const [flags, diagnosticConfig, logger, contentBundle, panelHtml, optionsHtml] = await Promise.all([
+    readStagingText('aichatmerge-panel/modules/build-flags.js'),
+    readStagingText('modules/diagnostic-config.js'),
+    readStagingText('aichatmerge-panel/modules/debug-log.js'),
+    readStagingText('content-scripts/text-injection-all-providers.js'),
+    readStagingText('aichatmerge-panel/multi-panel.html'),
+    readStagingText('options/options.html')
+  ]);
+
+  const requiredMarkers = [
+    [flags, 'export const DEBUG_LOGGING_ENABLED = false;', 'panel logging flag'],
+    [flags, 'export const DEBUG_EXPORT_ENABLED = false;', 'debug export flag'],
+    [diagnosticConfig, 'export const ENABLE_CONTENT_SCRIPT_DIAGNOSTICS = false;', 'content diagnostics flag'],
+    [contentBundle, 'INJECT_TEXT_RESULT', 'injection result protocol'],
+    [contentBundle, 'SUBMIT_TEXT_RESULT', 'submission result protocol']
+  ];
+  for (const [source, marker, label] of requiredMarkers) {
+    if (!source.includes(marker)) {
+      throw new Error(`Formal release validation failed: missing ${label}`);
+    }
+  }
+
+  const forbiddenLoggerMarkers = ['chrome.storage', 'chrome.downloads', 'Blob', 'setTimeout'];
+  for (const marker of forbiddenLoggerMarkers) {
+    if (logger.includes(marker)) {
+      throw new Error(`Formal release validation failed: release logger contains ${marker}`);
+    }
+  }
+
+  const forbiddenBundleMarkers = [
+    'INJECTION_DIAGNOSTIC',
+    'COMPLETION_DIAGNOSTIC',
+    'CONTENT_SCRIPT_READY'
+  ];
+  for (const marker of forbiddenBundleMarkers) {
+    if (contentBundle.includes(marker)) {
+      throw new Error(`Formal release validation failed: content bundle contains ${marker}`);
+    }
+  }
+
+  const forbiddenUiMarkers = [
+    [panelHtml, 'debug-log-btn'],
+    [optionsHtml, 'debug-auto-download-logs-toggle'],
+    [panelHtml, 'DEBUG_ONLY_START'],
+    [optionsHtml, 'DEBUG_ONLY_START']
+  ];
+  for (const [source, marker] of forbiddenUiMarkers) {
+    if (source.includes(marker)) {
+      throw new Error(`Formal release validation failed: debug UI contains ${marker}`);
+    }
+  }
+
+  const removedDebugPaths = [
+    'aichatmerge-panel/modules/debug-log.release.js',
+    'aichatmerge-panel/modules/debug-log-utils.js',
+    'aichatmerge-panel/modules/debug-verdict.js',
+    'aichatmerge-panel/modules/self-test-driver.js',
+    'content-scripts/src'
+  ];
+  for (const relativePath of removedDebugPaths) {
+    try {
+      await fs.access(path.join(stagingDir, relativePath));
+      throw new Error(`Formal release validation failed: debug path remains: ${relativePath}`);
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw error;
+    }
+  }
+}
+
 async function main() {
   const repoRoot = process.cwd();
   const options = resolveCliOptions();
@@ -160,12 +234,87 @@ async function main() {
     });
   }
 
+  // 正式版打包：关闭日志录制、导出和自巡检。源码中的精确开关写法
+  // 是发布防呆契约，任一开关未成功替换都拒绝打包。
+  const buildFlagsPath = path.join(stagingDir, 'aichatmerge-panel', 'modules', 'build-flags.js');
+  const buildFlagsSource = await fs.readFile(buildFlagsPath, 'utf8');
+  const releaseBuildFlags = buildFlagsSource
+    .replace(
+      'export const DEBUG_LOGGING_ENABLED = true;',
+      'export const DEBUG_LOGGING_ENABLED = false;'
+    )
+    .replace(
+    'export const DEBUG_EXPORT_ENABLED = true;',
+    'export const DEBUG_EXPORT_ENABLED = false;'
+  );
+  if (
+    !releaseBuildFlags.includes('export const DEBUG_LOGGING_ENABLED = false;') ||
+    !releaseBuildFlags.includes('export const DEBUG_EXPORT_ENABLED = false;')
+  ) {
+    throw new Error('build-flags.js is missing a release diagnostics flag; refusing to package');
+  }
+  await fs.writeFile(buildFlagsPath, releaseBuildFlags);
+
+  // Replace the development logger with a stable no-op facade. Business modules
+  // keep the same imports while the release package contains no persistence,
+  // download, analysis, listener, or self-test implementation.
+  const panelModulesDir = path.join(stagingDir, 'aichatmerge-panel', 'modules');
+  await fs.copyFile(
+    path.join(panelModulesDir, 'debug-log.release.js'),
+    path.join(panelModulesDir, 'debug-log.js')
+  );
+
+  // Content scripts are already bundled in the repository, so changing only the
+  // source flag would be ineffective. Flip the staging source and rebuild the
+  // formal bundle before content-scripts/src is excluded from the zip.
+  const diagnosticConfigPath = path.join(stagingDir, 'modules', 'diagnostic-config.js');
+  const diagnosticConfigSource = await fs.readFile(diagnosticConfigPath, 'utf8');
+  const releaseDiagnosticConfig = diagnosticConfigSource.replace(
+    'export const ENABLE_CONTENT_SCRIPT_DIAGNOSTICS = true;',
+    'export const ENABLE_CONTENT_SCRIPT_DIAGNOSTICS = false;'
+  );
+  if (releaseDiagnosticConfig === diagnosticConfigSource) {
+    throw new Error('diagnostic-config.js is missing the content diagnostics flag; refusing to package');
+  }
+  await fs.writeFile(diagnosticConfigPath, releaseDiagnosticConfig);
+
+  // Debug controls stay visible in the development source but are physically
+  // removed from formal HTML. Markers make the removal reviewable and prevent
+  // brittle matching against translated labels or surrounding layout.
+  for (const relativePath of ['aichatmerge-panel/multi-panel.html', 'options/options.html']) {
+    const htmlPath = path.join(stagingDir, relativePath);
+    const htmlSource = await fs.readFile(htmlPath, 'utf8');
+    const releaseHtml = htmlSource.replace(
+      /[ \t]*<!-- DEBUG_ONLY_START -->[\s\S]*?<!-- DEBUG_ONLY_END -->[ \t]*\r?\n?/g,
+      ''
+    );
+    if (releaseHtml === htmlSource) {
+      throw new Error(`${relativePath} is missing a DEBUG_ONLY block; refusing to package`);
+    }
+    await fs.writeFile(htmlPath, releaseHtml);
+  }
+
+  const esbuildCliPath = path.join(repoRoot, 'node_modules', 'esbuild', 'bin', 'esbuild');
+  execFileSync(process.execPath, [
+    esbuildCliPath,
+    path.join(stagingDir, 'content-scripts', 'src', 'text-injection-entry.js'),
+    '--bundle',
+    '--format=iife',
+    '--minify-syntax',
+    `--outfile=${path.join(stagingDir, 'content-scripts', 'text-injection-all-providers.js')}`
+  ], {
+    cwd: repoRoot,
+    stdio: 'inherit'
+  });
+
   for (const excludedPath of PACKAGE_EXCLUDED_PREFIXES) {
     await fs.rm(path.join(stagingDir, excludedPath), {
       recursive: true,
       force: true
     });
   }
+
+  await assertFormalReleaseStaging(stagingDir);
 
   const zipEntries = await createZipFromDirectory(stagingDir, releaseZipPath);
   await fs.copyFile(releaseZipPath, cwsZipPath);

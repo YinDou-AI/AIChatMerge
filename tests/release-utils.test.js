@@ -6,6 +6,7 @@ import {
   assertVersionStateConsistency,
   buildChangelogSection,
   compareVersions,
+  getNpmInvocation,
   normalizeZipEntries,
   parseChangelogEntries,
   prependChangelogSection,
@@ -13,6 +14,17 @@ import {
 } from '../scripts/release-utils.js';
 
 describe('release utils', () => {
+  it('selects a shell-free platform-specific npm invocation', () => {
+    expect(getNpmInvocation('win32', 'C:\\Program Files\\nodejs\\node.exe')).toEqual({
+      command: 'C:\\Program Files\\nodejs\\node.exe',
+      argsPrefix: ['C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js']
+    });
+    expect(getNpmInvocation('linux', '/usr/bin/node')).toEqual({
+      command: 'npm',
+      argsPrefix: []
+    });
+  });
+
   it('compares semver values correctly', () => {
     expect(compareVersions('1.1.0', '1.1.1')).toBe(-1);
     expect(compareVersions('1.1.1', '1.1.1')).toBe(0);
@@ -70,18 +82,18 @@ describe('release utils', () => {
         { js: ['content-scripts/a.js', 'content-scripts/b.js'] }
       ],
       web_accessible_resources: [
-        { resources: ['data/version-info.json', 'aichatmerge-panel/multi-panel.html'] }
+        { resources: ['data/version-info.json', 'multi-panel/multi-panel.html'] }
       ]
     };
 
-    expect(readManifestReferencedPaths(manifest).sort()).toEqual([
+    expect(readManifestReferencedPaths(manifest)).toEqual([
       'background/service-worker.js',
       'content-scripts/a.js',
       'content-scripts/b.js',
       'data/version-info.json',
-      'aichatmerge-panel/multi-panel.html',
+      'multi-panel/multi-panel.html',
       'options/options.html'
-    ].sort());
+    ]);
   });
 
   it('normalizes zip entry output', () => {

@@ -3,7 +3,7 @@
     "message": "AI融合助手"
   },
   "extensionDescription": {
-    "message": "并排比较 AI 聊天机器人。在一个窗口中使用 DeepSeek、Kimi、ChatGPT、Claude。"
+    "message": "并排使用多个 AI 聊天服务：统一提问、比较并融合回答，再通过多模型讨论复核和完善最终答案。"
   },
   "commandOpenSidebar": {
     "message": "打开 AIChatMerge"
@@ -280,6 +280,15 @@
   },
   "descAbout2": {
     "message": "采用隐私优先架构构建，所有数据本地存储。"
+  },
+  "linkGitHubProject": {
+    "message": "GitHub 项目主页"
+  },
+  "linkGitHubIssues": {
+    "message": "反馈问题与建议"
+  },
+  "descGitHubSupport": {
+    "message": "如果 AIChatMerge 对您有帮助，欢迎在 GitHub 点亮 Star 并分享给朋友。"
   },
   "msgThemeUpdated": {
     "message": "主题已更新"
@@ -997,5 +1006,14 @@
   },
   "descExportInitialMerge": {
     "message": "讨论模式下是否额外导出初始融合结果"
+  },
+  "labelDebugAutoDownloadLogs": {
+    "message": "自动下载调试日志（测试用）"
+  },
+  "descDebugAutoDownloadLogs": {
+    "message": "开启后，在关键完成、失败或超时事件后自动下载 AI 可读日志。正式发布版请保持关闭。"
+  },
+  "msgDebugAutoDownloadLogsUpdated": {
+    "message": "自动下载调试日志设置已更新"
   }
 }

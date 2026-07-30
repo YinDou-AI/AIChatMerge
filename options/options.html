@@ -157,10 +157,10 @@
         <div class="setting-item">
           <div class="setting-info">
             <div class="setting-label" data-i18n="labelExportScoreHistory">导出评分历史</div>
-            <div class="setting-description" data-i18n="descExportScoreHistory">将所有评分记录导出为 CSV 文件</div>
+            <div class="setting-description" data-i18n="descExportScoreHistory">将所有评分记录导出为CSV文件</div>
           </div>
           <div class="setting-control">
-            <button class="btn btn-secondary" id="export-score-history-btn" type="button" data-i18n="btnExportCsv">导出 CSV</button>
+            <button class="btn btn-secondary" id="export-score-history-btn" data-i18n="btnExportCsv">导出CSV</button>
           </div>
         </div>
 
@@ -170,7 +170,7 @@
             <div class="setting-description" data-i18n="descClearScoreHistory">删除所有已保存的评分记录</div>
           </div>
           <div class="setting-control">
-            <button class="btn btn-danger" id="clear-score-history-btn" type="button" data-i18n="btnClearScoreHistory">清空</button>
+            <button class="btn btn-danger" id="clear-score-history-btn" data-i18n="btnClear">清空</button>
           </div>
         </div>
       </section>
@@ -180,8 +180,8 @@
         <h2 class="section-title" data-i18n="sectionAdvancedSettings">高级设置</h2>
 
         <details id="claude-entry-settings">
-          <summary data-i18n="claudeCustomEntryTitle">Claude 备用页面网址（高级）</summary>
-          <div class="setting-description" style="margin: 12px 0;" data-i18n="claudeCustomEntryDescription">入口异常时填写已验证的备用页面网址。留空则使用默认入口</div>
+          <summary data-i18n="claudeCustomEntryTitle">Claude 自定义页面网址（高级）</summary>
+          <div class="setting-description" style="margin: 12px 0;" data-i18n="claudeCustomEntryDescription">Claude 默认入口异常时使用。可填已验证的完整页面网址，例如 https://claude.ai/new。留空则使用默认入口</div>
           <div class="setting-control" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <input id="claude-custom-entry-url" type="url" inputmode="url" autocomplete="off"
               data-i18n-placeholder="claudeCustomEntryPlaceholder" placeholder="https://claude.ai/new" style="min-width: min(100%, 420px); flex: 1;">
@@ -189,8 +189,25 @@
             <button class="btn btn-secondary" id="reset-claude-entry-url" type="button" data-i18n="claudeRestoreDefault">恢复默认入口</button>
           </div>
           <p id="claude-entry-url-status" class="setting-description" style="margin-top: 10px;"></p>
-          <p class="setting-description" style="margin-top: 8px; color: #b45309;" data-i18n="claudeCustomEntryWarning">备用网址可能进入已有对话，更换账号后可能失效，不建议分享。页面异常时清空即可恢复默认入口</p>
+          <p class="setting-description" style="margin-top: 8px; color: #b45309;" data-i18n="claudeCustomEntryWarning">可能进入已有对话，更换账号后可能失效，不建议分享。页面异常时清空即可恢复默认入口</p>
         </details>
+
+        <!-- DEBUG_ONLY_START -->
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelDebugAutoDownloadLogs">自动下载调试日志（测试用）</div>
+            <div class="setting-description" data-i18n="descDebugAutoDownloadLogs">
+              开启后，在关键完成、失败或超时事件后自动下载 AI 可读日志。正式发布版请保持关闭。
+            </div>
+          </div>
+          <div class="setting-control">
+            <label class="switch">
+              <input type="checkbox" id="debug-auto-download-logs-toggle" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        <!-- DEBUG_ONLY_END -->
 
         <div class="setting-item">
           <div class="setting-info">
@@ -466,6 +483,21 @@
           </p>
           <p style="font-size: 12px; color: #999;" data-i18n="descAbout2">
             采用隐私优先架构，所有数据本地存储。
+          </p>
+          <div class="project-links">
+            <a class="project-link project-link-primary"
+               href="https://github.com/YinDou-AI/AIChatMerge"
+               target="_blank"
+               rel="noopener noreferrer"
+               data-i18n="linkGitHubProject">GitHub 项目主页</a>
+            <a class="project-link"
+               href="https://github.com/YinDou-AI/AIChatMerge/issues"
+               target="_blank"
+               rel="noopener noreferrer"
+               data-i18n="linkGitHubIssues">反馈问题与建议</a>
+          </div>
+          <p class="project-support" data-i18n="descGitHubSupport">
+            如果 AIChatMerge 对您有帮助，欢迎在 GitHub 点亮 Star 并分享给朋友。
           </p>
         </div>
       </section>

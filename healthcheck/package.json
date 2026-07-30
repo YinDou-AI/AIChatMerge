@@ -1,0 +1,15 @@
+{
+  "name": "aichatmerge-selector-healthcheck",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node selector-healthcheck.js",
+    "check:headed": "node selector-healthcheck.js --headed",
+    "baseline": "node selector-healthcheck.js --baseline",
+    "report": "node selector-healthcheck.js --report"
+  },
+  "dependencies": {
+    "playwright": "^1.58.1"
+  }
+}

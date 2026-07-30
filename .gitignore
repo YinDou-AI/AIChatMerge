@@ -95,3 +95,12 @@ assets/logo-refined/
 assets/logo-rembg-noring/
 assets/store-screenshots/
 assets/store/icon-backup-*/
+
+# 自动化巡检产物（驱动脚本 profile、导出的日志与判定结果）
+runs/
+
+# Selector health-check outputs (may contain authenticated page content)
+healthcheck/data/baseline.json
+healthcheck/data/latest.json
+healthcheck/data/report.json
+healthcheck/data/snapshots/

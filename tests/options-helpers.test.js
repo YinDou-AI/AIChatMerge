@@ -24,14 +24,24 @@ describe('options-helpers module', () => {
       expect(getCurrentBrowserLanguage()).toBe('zh_CN');
     });
 
-    it('should return zh_CN for zh-TW', () => {
+    it('should return zh_TW for zh-TW', () => {
       Object.defineProperty(navigator, 'language', {
         value: 'zh-TW',
         writable: true,
         configurable: true
       });
 
-      expect(getCurrentBrowserLanguage()).toBe('zh_CN');
+      expect(getCurrentBrowserLanguage()).toBe('zh_TW');
+    });
+
+    it('should return zh_TW for zh-Hant', () => {
+      Object.defineProperty(navigator, 'language', {
+        value: 'zh-Hant',
+        writable: true,
+        configurable: true
+      });
+
+      expect(getCurrentBrowserLanguage()).toBe('zh_TW');
     });
 
     it('should return en for English', () => {

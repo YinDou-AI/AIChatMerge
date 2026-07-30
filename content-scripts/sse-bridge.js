@@ -59,8 +59,33 @@
     return 'unknown';
   }
 
+  // Completion policy is deliberately per-provider. `content` means an
+  // explicit protocol final frame was parsed; transport close events are never
+  // enough to merge because a network interruption or sub-stream can close
+  // while visible text is still arriving. An empty list uses DOM monitoring.
+  const SSE_COMPLETION_POLICY = {
+    deepseek: ['content'],
+    doubao: ['content'],
+    // Qianwen can emit event:complete / [DONE] for an intermediate stream
+    // before its final visible segment (such as the summary) is rendered.
+    // Keep SSE text for extraction, but confirm completion from the DOM.
+    qianwen: [],
+    yuanbao: ['content'],
+    wenxin: ['content'],
+    zhipu: [],
+    // Kimi can emit finish_reason: stop at the end of an intermediate
+    // reasoning/search sub-stream. Its visible answer may continue after
+    // that frame, so only the DOM stability path may complete a Kimi panel.
+    kimi: [],
+    chatgpt: ['content'],
+    claude: ['content'],
+    gemini: [],
+    grok: [],
+    metaso: []
+  };
+
   function acceptsSseCompletion(provider, layer) {
-    return window.ACM_SSE_COMPLETION_POLICY?.accepts(provider, layer) === true;
+    return (SSE_COMPLETION_POLICY[provider] || []).includes(layer);
   }
 
   // ===== 监听SSE完成消息，转发到parent（multi-panel） =====

@@ -429,8 +429,9 @@ select:focus {
   color: var(--text);
 }
 
-/* Danger Zone - ensure all buttons have same width */
-.section .btn-danger {
+/* Ensure all section buttons have consistent width */
+.section .btn-danger,
+.section .btn-secondary {
   min-width: 80px;
 }
 
@@ -610,6 +611,53 @@ select:focus {
 
 .version-download a:hover {
   text-decoration: underline;
+}
+
+.project-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.project-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.2s, color 0.2s, background-color 0.2s;
+}
+
+.project-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.project-link-primary {
+  border-color: var(--accent);
+  color: #fff;
+  background: var(--accent);
+}
+
+.project-link-primary:hover {
+  color: #fff;
+  filter: brightness(1.08);
+}
+
+.project-support {
+  margin: 12px 0 0;
+  color: var(--text-faint);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .update-status {

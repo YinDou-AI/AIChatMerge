@@ -1,7 +1,6 @@
 import { notifyMessage } from '../modules/messaging.js';
 import { t, initializeLanguage } from '../modules/i18n.js';
 import { migrateEnabledProvidersOnUpdate } from '../modules/provider-defaults.js';
-import { DEFAULT_SOURCE_URL_PLACEMENT } from '../modules/settings.js';
 
 // Install event - setup context menus
 const DEFAULT_SHORTCUT_SETTING = { keyboardShortcutEnabled: true };
@@ -13,6 +12,54 @@ const PAGE_EXTRACTOR_SCRIPTS = [
   'libs/Readability.js',
   'content-scripts/page-content-extractor.js'
 ];
+const PROVIDER_CONTENT_SCRIPT_RECOVERY = {
+  wenxin: {
+    origins: new Set(['https://chat.baidu.com', 'https://wenxin.baidu.com']),
+    files: ['content-scripts/text-injection-all-providers.js']
+  }
+};
+
+export async function recoverProviderContentScript(message, sender) {
+  const config = PROVIDER_CONTENT_SCRIPT_RECOVERY[message?.providerId];
+  const tabId = sender?.tab?.id;
+  if (!config || !Number.isInteger(tabId)) {
+    return { success: false, reason: config ? 'missing-tab-id' : 'unsupported-provider' };
+  }
+
+  // webNavigation.getAllFrames() does not report the embedded Wenxin document
+  // reliably in an extension tab. Probe all accessible frames through the
+  // scripting API instead; the probe only reads location.origin and lets the
+  // returned InjectionResult provide the current frameId.
+  const frameProbeResults = await chrome.scripting.executeScript({
+    target: { tabId, allFrames: true },
+    func: () => window.location.origin
+  });
+  const frameIds = (frameProbeResults || [])
+    .filter(result => config.origins.has(result.result))
+    .map(result => result.frameId);
+
+  if (frameIds.length === 0) {
+    return { success: false, reason: 'provider-frame-not-found' };
+  }
+
+  await chrome.scripting.executeScript({
+    target: { tabId, frameIds },
+    files: config.files
+  });
+  return { success: true, frameCount: frameIds.length };
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.action !== 'recoverProviderContentScript') return false;
+  recoverProviderContentScript(message, sender)
+    .then(sendResponse)
+    .catch(error => sendResponse({
+      success: false,
+      reason: 'execute-failed',
+      message: error?.message || String(error)
+    }));
+  return true;
+});
 
 async function loadShortcutSetting() {
   try {
@@ -145,14 +192,18 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     createContextMenus();
   }
 
-  // 新增：监听 openMode 变化
-  if (namespace === 'sync' && changes.openMode) {
-    openMode = changes.openMode.newValue || 'tab';
+  if (namespace === 'sync') {
+    if (changes.openMode) {
+      openMode = changes.openMode.newValue || 'tab';
+    }
+    if (changes.keyboardShortcutEnabled) {
+      keyboardShortcutEnabled = changes.keyboardShortcutEnabled.newValue !== false;
+    }
   }
 });
 
 async function formatSelectedTextWithSource(info) {
-  const settings = await chrome.storage.sync.get({ sourceUrlPlacement: DEFAULT_SOURCE_URL_PLACEMENT });
+  const settings = await chrome.storage.sync.get({ sourceUrlPlacement: 'none' });
   const placement = settings.sourceUrlPlacement;
 
   if (placement === 'none') {
@@ -236,21 +287,18 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 });
 
 // Handle action clicks (toolbar button) - opens Multi-Panel
-chrome.action.onClicked.addListener(async (tab) => {
+chrome.action.onClicked.addListener(async () => {
   await openMultiPanel();
-});
-
-chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace !== 'sync') return;
-
-  if (changes.keyboardShortcutEnabled) {
-    keyboardShortcutEnabled = changes.keyboardShortcutEnabled.newValue !== false;
-  }
 });
 
 // Listen for keyboard shortcuts - simplified for Multi-Panel mode
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (!keyboardShortcutEnabled) {
+    return;
+  }
+
+  if (command === 'open-aichatmerge') {
+    await openMultiPanel();
     return;
   }
 
@@ -268,5 +316,8 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
         // Multi-Panel may not be ready yet, ignore error
       });
     }, 500);
+  } else if (command === 'toggle-focus') {
+    // In Multi-Panel mode, toggle-focus just opens/focuses the Multi-Panel
+    await openMultiPanel();
   }
 });

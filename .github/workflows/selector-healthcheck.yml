@@ -1,0 +1,96 @@
+# AIChatMerge Selector Health Check - GitHub Actions
+# 云端基础检测（无法登录，检测页面可达性和结构变化）
+# 精确的登录态检测由本地 CDP 模式完成
+name: Selector Health Check
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # 北京时间 10:00
+  workflow_dispatch:
+
+jobs:
+  check-selectors:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: |
+          cd healthcheck
+          npm ci
+          npx playwright install chromium --with-deps
+
+      - name: Run health check (no-login mode)
+        id: check
+        continue-on-error: true
+        run: |
+          cd healthcheck
+          node selector-healthcheck-cloud.js 2>&1 | tee ../output.txt
+
+      - name: Detect changes
+        id: changes
+        run: |
+          if grep -q "__CHANGES_DETECTED__" output.txt; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Issue on changes
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('healthcheck/data/report.json', 'utf-8'));
+
+            let body = `## 🔴 AIChatMerge 网页变化检测报告\n\n`;
+            body += `**检测时间:** ${report.timestamp}\n`;
+            body += `**检测方式:** 云端 (无登录态，仅检测页面可达性和 HTML 结构)\n\n`;
+
+            for (const r of report.results) {
+              const icon = r.reachable ? '✅' : '❌';
+              body += `### ${icon} ${r.provider}\n`;
+              body += `- 可达: ${r.reachable ? '是' : '否'}\n`;
+              if (r.redirected) body += `- 重定向到: ${r.redirectedTo}\n`;
+              body += `- HTML 大小: ${r.htmlLength} bytes\n`;
+              if (r.structureChanged) {
+                body += `- ⚠️ 页面结构变化: +${r.classesAdded}/-${r.classesRemoved} (${r.changePercent}%)\n`;
+              }
+              body += '\n';
+            }
+
+            body += `\n> ⚠️ 此报告为云端检测（无登录态），无法检测聊天界面选择器。\n`;
+            body += `> 精确检测请在本地运行: \`cd healthcheck && node selector-healthcheck.js\`\n\n`;
+            body += `---\n*GitHub Actions 自动生成*`;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🔴 网页变化检测 - ${new Date().toISOString().slice(0, 10)}`,
+              body: body,
+              labels: ['selector-healthcheck']
+            });
+
+      - name: Commit updated cloud baseline
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add healthcheck/data/baseline-cloud.json
+          git diff --staged --quiet || git commit -m "chore: update selector snapshots [skip ci]"
+          git push || true
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: healthcheck-report
+          path: healthcheck/data/report.json
+          retention-days: 30

@@ -90,7 +90,7 @@ export function buildScoreHistoryCsv(history) {
 
 function downloadCsv(fileName, csv) {
   return new Promise((resolve, reject) => {
-    const blob = new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' });
+    const blob = new Blob([`﻿${csv}`], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const cleanup = () => setTimeout(() => URL.revokeObjectURL(url), 1000);
 
@@ -98,7 +98,7 @@ function downloadCsv(fileName, csv) {
       chrome.downloads.download({
         url,
         filename: fileName,
-        saveAs: true,
+        saveAs: false,
         conflictAction: 'uniquify'
       }, (downloadId) => {
         const error = chrome.runtime?.lastError;

@@ -24,6 +24,12 @@ global.chrome = {
     },
     lastError: null,
   },
+  scripting: {
+    executeScript: vi.fn(() => Promise.resolve([])),
+  },
+  webNavigation: {
+    getAllFrames: vi.fn(() => Promise.resolve([])),
+  },
   storage: {
     sync: {
       get: vi.fn((keys) => Promise.resolve(typeof keys === 'object' ? keys : {})),

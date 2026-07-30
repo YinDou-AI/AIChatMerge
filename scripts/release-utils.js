@@ -28,9 +28,10 @@ export const PACKAGE_INCLUDE_PATHS = [
   'aichatmerge-panel',
   'options',
   'rules',
+  'sse-detect.js',
   'LICENSE',
-  'manifest.json',
-  'sse-detect.js'
+  'THIRD_PARTY_NOTICES.md',
+  'manifest.json'
 ];
 
 export const PACKAGE_EXCLUDED_PREFIXES = [
@@ -38,14 +39,38 @@ export const PACKAGE_EXCLUDED_PREFIXES = [
   'dist/',
   'test-results/',
   'docs/',
+  'content-scripts/src/',
   'assets/screenshots/',
   '.github/',
   'scripts/',
   '_metadata/',
   'icons/ICON_GUIDE.md',
   'data/prompt-libraries/Generate_a_Basic_Prompt_Library.md',
-  'data/prompt-libraries/transform-libraries.js'
+  'data/prompt-libraries/transform-libraries.js',
+  'aichatmerge-panel/modules/debug-log.release.js',
+  'aichatmerge-panel/modules/debug-log-utils.js',
+  'aichatmerge-panel/modules/debug-verdict.js',
+  'aichatmerge-panel/modules/self-test-driver.js'
 ];
+
+export function getNpmInvocation(
+  platform = process.platform,
+  nodeExecutable = process.execPath
+) {
+  if (platform === 'win32') {
+    return {
+      command: nodeExecutable,
+      argsPrefix: [
+        path.join(path.dirname(nodeExecutable), 'node_modules', 'npm', 'bin', 'npm-cli.js')
+      ]
+    };
+  }
+
+  return {
+    command: 'npm',
+    argsPrefix: []
+  };
+}
 
 function getArgValue(argv, flagName) {
   const directIndex = argv.indexOf(flagName);

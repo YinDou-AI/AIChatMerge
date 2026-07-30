@@ -27,7 +27,7 @@ const LAYOUT_PANEL_COUNTS = {
   '4x2': 8
 };
 
-// Copied from aichatmerge-panel/multi-panel.js (not exported there)
+// Copied from multi-panel/multi-panel.js (not exported there)
 function getAutoAdjustedLayout(currentLayout, newPanelCount) {
   // 只处理 1xN 布局
   const match = currentLayout.match(/^1x(\d)$/);
@@ -55,7 +55,7 @@ function getAutoAdjustedLayout(currentLayout, newPanelCount) {
   return null; // 已达上限，无法自动调整
 }
 
-// Copied from aichatmerge-panel/multi-panel.js (not exported there)
+// Copied from multi-panel/multi-panel.js (not exported there)
 function getAutoShrunkLayout(currentLayout, newPanelCount) {
   if (currentLayout === '4x2' && newPanelCount === 7) {
     return '1x7';

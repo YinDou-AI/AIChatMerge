@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
   "short_name": "AIChatMerge",
-  "version": "1.0.1",
-  "description": "Compare AI responses side by side, merge useful answers, manage prompts, and export results.",
+  "version": "1.0.2",
+  "description": "__MSG_extensionDescription__",
   "default_locale": "en",
   "permissions": [
     "storage",
@@ -24,6 +24,7 @@
     "*://qianwen.com/*",
     "*://chatglm.cn/*",
     "*://chat.baidu.com/*",
+    "*://wenxin.baidu.com/*",
     "*://yuanbao.tencent.com/*",
     "*://metaso.cn/*",
     "*://chatgpt.com/*",
@@ -46,7 +47,7 @@
     "default_title": "__MSG_actionDefaultTitle__"
   },
   "commands": {
-    "_execute_action": {
+    "open-aichatmerge": {
       "suggested_key": {
         "default": "Ctrl+Shift+E",
         "mac": "Command+Shift+E"
@@ -109,7 +110,8 @@
     },
     {
       "matches": [
-        "https://chat.baidu.com/*"
+        "https://chat.baidu.com/*",
+        "https://wenxin.baidu.com/*"
       ],
       "js": [
         "content-scripts/provider-detector.js",
@@ -224,7 +226,9 @@
       "all_frames": true
     },
     {
-      "matches": ["https://chatgpt.com/*"],
+      "matches": [
+        "https://chatgpt.com/*"
+      ],
       "js": [
         "content-scripts/provider-detector.js",
         "content-scripts/sse-completion-policy.js",
@@ -241,7 +245,9 @@
       "all_frames": true
     },
     {
-      "matches": ["https://gemini.google.com/*"],
+      "matches": [
+        "https://gemini.google.com/*"
+      ],
       "js": [
         "content-scripts/provider-detector.js",
         "content-scripts/sse-completion-policy.js",
@@ -258,7 +264,9 @@
       "all_frames": true
     },
     {
-      "matches": ["https://claude.ai/*"],
+      "matches": [
+        "https://claude.ai/*"
+      ],
       "js": [
         "content-scripts/provider-detector.js",
         "content-scripts/sse-completion-policy.js",
@@ -275,7 +283,9 @@
       "all_frames": true
     },
     {
-      "matches": ["https://grok.com/*"],
+      "matches": [
+        "https://grok.com/*"
+      ],
       "js": [
         "content-scripts/provider-detector.js",
         "content-scripts/sse-completion-policy.js",
@@ -318,6 +328,7 @@
         "*://qianwen.com/*",
         "*://chatglm.cn/*",
         "*://chat.baidu.com/*",
+        "*://wenxin.baidu.com/*",
         "*://yuanbao.tencent.com/*",
         "*://metaso.cn/*",
         "*://chatgpt.com/*",

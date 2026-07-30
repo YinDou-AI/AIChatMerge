@@ -16,6 +16,10 @@ function markVisible(element) {
     configurable: true,
     get: () => document.body,
   });
+  // ä¸¥æ ¼æ¨¡å¼ä¼æ£æ¥æé®å¯è§æ§ï¼å«éé¶å°ºå¯¸ï¼ï¼happy-dom é»è®¤ rect å¨é¶
+  element.getBoundingClientRect = () => ({
+    top: 10, left: 10, right: 42, bottom: 42, width: 32, height: 32,
+  });
 }
 
 function dispatchMultiPanelMessage(payload) {
@@ -129,6 +133,29 @@ describe('doubao content script integration', () => {
     expect(editor.value).toBe('');
     expect(inputSpy).toHaveBeenCalled();
     expect(changeSpy).toHaveBeenCalled();
+  });
+
+  it('cancels queued auto-submit when a new chat message arrives', async () => {
+    const { sendButton, newChatButton } = createDoubaoComposerDom();
+    const sendClickSpy = vi.fn();
+    sendButton.addEventListener('click', sendClickSpy);
+
+    dispatchMultiPanelMessage({
+      type: 'INJECT_TEXT',
+      text: 'queued message should not send',
+      autoSubmit: true,
+      context: 'multi-panel',
+    });
+
+    dispatchMultiPanelMessage({
+      type: 'NEW_CHAT',
+      context: 'multi-panel',
+    });
+
+    await wait(1200);
+
+    expect(newChatButton).toBeTruthy();
+    expect(sendClickSpy).not.toHaveBeenCalled();
   });
 
   // Image upload was removed from the unified panel in v4.

@@ -1,0 +1,21 @@
+{
+  "status": "failed",
+  "failedStage": "transport",
+  "rootCause": "provider-transport-timeout",
+  "meaning": "provider iframe 里的 content script 没有响应注入请求（页面里没有注入脚本，或注入的是旧版本）",
+  "suggestedChecks": [
+    "确认 chrome://extensions 里重新加载的是预期目录（比较日志中的 expectedBuildId）",
+    "确认 manifest content_scripts.matches 覆盖 provider 的实际域名（比较 targetOrigin 与实际站点）",
+    "打开 provider iframe 的控制台查看 content script 是否报错"
+  ],
+  "evidence": [
+    "panel-injection:timeout provider=wenxin status=timeout readySeen=false"
+  ],
+  "intentChecked": false,
+  "intentExpectationMet": null,
+  "logCount": 1,
+  "sourceFile": "fail.json",
+  "exportedAt": "2026-07-20T17:22:39.510Z",
+  "extensionVersion": "unknown",
+  "judgedAt": "2026-07-20T17:22:39.644Z"
+}

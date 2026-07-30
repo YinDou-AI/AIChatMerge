@@ -3,7 +3,7 @@
     "message": "AIChatMerge"
   },
   "extensionDescription": {
-    "message": "Compare AI responses side by side, merge useful answers, manage prompts, and export results."
+    "message": "Use AI chats side by side: send one prompt, compare and merge responses, then refine the result through multi-model discussion."
   },
   "commandOpenSidebar": {
     "message": "Open AIChatMerge"
@@ -403,6 +403,15 @@
   },
   "descAbout2": {
     "message": "Built with privacy-first architecture. All data stored locally."
+  },
+  "linkGitHubProject": {
+    "message": "View on GitHub"
+  },
+  "linkGitHubIssues": {
+    "message": "Feedback & Issues"
+  },
+  "descGitHubSupport": {
+    "message": "If AIChatMerge helps you, please star it on GitHub and share it with others."
   },
   "msgThemeUpdated": {
     "message": "Theme updated"
@@ -997,5 +1006,14 @@
   },
   "descExportInitialMerge": {
     "message": "Export initial merge result separately in discussion mode"
+  },
+  "labelDebugAutoDownloadLogs": {
+    "message": "Auto-download debug logs (testing)"
+  },
+  "descDebugAutoDownloadLogs": {
+    "message": "When enabled, AI-readable logs are downloaded after key completion, failure, or timeout events. Keep this off for release builds."
+  },
+  "msgDebugAutoDownloadLogsUpdated": {
+    "message": "Debug log auto-download setting updated"
   }
 }

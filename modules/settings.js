@@ -30,6 +30,7 @@ const DEFAULT_SETTINGS = {
   sourceUrlPlacement: DEFAULT_SOURCE_URL_PLACEMENT,
   mergeMode: 'merge',        // 'merge'（仅融合）或 'merge+discuss'（融合后讨论）
   discussRounds: 1,          // Legacy compatibility; discussion mode now runs one review round
+  debugAutoDownloadLogs: true, // 调试版默认开启自动导出；正式版被 DEBUG_EXPORT_ENABLED 闸死，此默认值无效
   // Markdown 导出设置
   markdownExportPath: DEFAULT_MARKDOWN_EXPORT_PATH,
   markdownExportMode: 'auto',

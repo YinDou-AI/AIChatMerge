@@ -21,7 +21,7 @@
         for (let i = elements.length - 1; i >= 0; i--) {
           const el = elements[i];
           if (!utils.isVisibleElement || utils.isVisibleElement(el)) {
-            const text = utils.extractText ? utils.extractText(el) : (el.textContent || '').trim();
+            const text = (el.textContent || '').trim();
             if (text.length > 10) {
               return text;
             }

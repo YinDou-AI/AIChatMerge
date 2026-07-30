@@ -27,6 +27,19 @@ function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+async function waitForStatusCall(postMessageSpy, type, expectedCount, timeoutMs = 1500) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const calls = getProviderStatusCalls(postMessageSpy, type);
+    if (calls.length === expectedCount) {
+      return calls;
+    }
+    await wait(25);
+  }
+
+  return getProviderStatusCalls(postMessageSpy, type);
+}
+
 function createChatgptComposerDom({ includeSendButton = true, includeStopButton = false } = {}) {
   document.body.innerHTML = `
     <form data-type="unified-composer">
@@ -123,9 +136,8 @@ describe('chatgpt content script provider status', () => {
     );
     await wait(50);
     getStopButton()?.remove();
-    await wait(1000);
 
-    const idleCalls = getProviderStatusCalls(postMessageSpy, 'ACM_PROVIDER_IDLE');
+    const idleCalls = await waitForStatusCall(postMessageSpy, 'ACM_PROVIDER_IDLE', 1);
     expect(idleCalls).toHaveLength(1);
     expect(idleCalls[0]).toMatchObject({
       requestId: 'req-idle',
@@ -155,9 +167,8 @@ describe('chatgpt content script provider status', () => {
     expect(getProviderStatusCalls(postMessageSpy, 'ACM_PROVIDER_IDLE')).toHaveLength(0);
 
     getStopButton()?.remove();
-    await wait(1000);
 
-    expect(getProviderStatusCalls(postMessageSpy, 'ACM_PROVIDER_IDLE')).toHaveLength(1);
+    expect(await waitForStatusCall(postMessageSpy, 'ACM_PROVIDER_IDLE', 1)).toHaveLength(1);
   });
 
   it('stops tracking when busy is never observed within 2 seconds', async () => {

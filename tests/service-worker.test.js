@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { migrateEnabledProvidersOnUpdate } from '../modules/provider-defaults.js';
 
 /**
@@ -171,6 +172,27 @@ describe('service-worker', () => {
     });
   });
 
+  describe('Keyboard command contract', () => {
+    it('uses a regular command so the setting can control the shortcut independently from toolbar clicks', () => {
+      const manifest = JSON.parse(
+        readFileSync('manifest.json', 'utf8')
+      );
+      const serviceWorkerSource = readFileSync(
+        'background/service-worker.js',
+        'utf8'
+      );
+
+      expect(manifest.commands._execute_action).toBeUndefined();
+      expect(manifest.commands['open-aichatmerge']).toMatchObject({
+        suggested_key: {
+          default: 'Ctrl+Shift+E',
+          mac: 'Command+Shift+E'
+        }
+      });
+      expect(serviceWorkerSource).toContain("command === 'open-aichatmerge'");
+    });
+  });
+
   describe('Error Handling', () => {
     // MOCK WIRING: Verifies that the mock rejects as configured.
     // service-worker.js's loadShortcutSetting has its own try/catch around
@@ -190,6 +212,43 @@ describe('service-worker', () => {
       chrome.contextMenus.removeAll = vi.fn(() => Promise.reject(new Error('Context menu error')));
 
       await expect(chrome.contextMenus.removeAll()).rejects.toThrow();
+    });
+  });
+
+  // MOCK WIRING: These tests verify that fetch() can be mocked and returns
+  // expected shapes.  They do NOT test any logic from service-worker.js
+  // because the GitHub version-check code (inside chrome.runtime.onInstalled)
+  // cannot be isolated without importing the non-exported function.
+  describe('GitHub API Version Check', () => {
+    it('should fetch latest commit information', async () => {
+      global.fetch = vi.fn(() => Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          sha: 'abc123def456',
+          commit: {
+            committer: { date: '2025-10-19T00:00:00Z' },
+            message: 'Update feature'
+          }
+        })
+      }));
+
+      const response = await fetch('https://api.github.com/repos/Manho/AIChatMerge/commits/main');
+      const data = await response.json();
+
+      expect(data.sha).toBe('abc123def456');
+      expect(data.commit.message).toBe('Update feature');
+    });
+
+    it('should handle GitHub API errors', async () => {
+      global.fetch = vi.fn(() => Promise.resolve({
+        ok: false,
+        status: 404
+      }));
+
+      const response = await fetch('https://api.github.com/repos/Manho/AIChatMerge/commits/main');
+
+      expect(response.ok).toBe(false);
+      expect(response.status).toBe(404);
     });
   });
 

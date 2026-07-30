@@ -182,5 +182,20 @@
       "urlFilter": "https://yuanbao.tencent.com/*",
       "resourceTypes": ["sub_frame"]
     }
+  },
+  {
+    "id": 14,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://wenxin.baidu.com/*",
+      "resourceTypes": ["sub_frame"]
+    }
   }
 ]

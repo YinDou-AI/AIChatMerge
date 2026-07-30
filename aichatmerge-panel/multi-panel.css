@@ -1041,7 +1041,6 @@ body {
 }
 
 .prompt-favorite-icon {
-  order: 0;
   flex-shrink: 0;
   width: 24px;
   height: 24px;
@@ -1067,7 +1066,6 @@ body {
 }
 
 .prompt-delete-icon {
-  order: 3;
   flex-shrink: 0;
   width: 24px;
   height: 24px;
@@ -1077,7 +1075,7 @@ body {
   font-size: 14px;
   color: #999;
   cursor: pointer;
-  opacity: 0;
+  opacity: 0.5;
   transition: opacity 0.2s, color 0.2s;
 }
 
@@ -1089,8 +1087,79 @@ body {
   color: #f44336;
 }
 
+.prompt-row-action-btn {
+  flex-shrink: 0;
+  min-width: 48px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.prompt-row-action-btn:hover {
+  border-color: #1976d2;
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.prompt-delete-btn:hover {
+  border-color: #f44336;
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.prompt-delete-confirm {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 55%;
+  padding: 4px 6px;
+  border: 1px solid #ffb74d;
+  border-radius: 6px;
+  background: #fff8e1;
+}
+
+.prompt-delete-confirm-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #8a5a00;
+  font-size: 12px;
+}
+
+.prompt-delete-confirm-btn,
+.prompt-delete-cancel-btn {
+  flex-shrink: 0;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.prompt-delete-confirm-btn {
+  border: 1px solid #f44336;
+  background: #f44336;
+  color: #fff;
+}
+
+.prompt-delete-cancel-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
 .prompt-item-content {
-  order: 1;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -1277,6 +1346,25 @@ body {
   gap: 12px;
   padding: 16px 20px;
   border-top: 1px solid var(--border);
+}
+
+.btn-danger {
+  padding: 8px 16px;
+  border: 1px solid #ef5350;
+  border-radius: 6px;
+  background: #fff5f5;
+  color: #d32f2f;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.btn-danger:hover {
+  border-color: #d32f2f;
+  background: #ffebee;
+  color: #b71c1c;
 }
 
 .btn-primary {

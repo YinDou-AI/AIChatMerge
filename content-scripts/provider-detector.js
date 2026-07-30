@@ -29,7 +29,7 @@
    * 修复说明（对比旧版）:
    * - 'google' 改为 'gemini'，仅匹配 gemini.google.com，避免误匹配其他 google 页面
    * - 'kimi' 的 moonshot 改为 moonshot.cn，避免 moonshot-test.com 误匹配
-   * - 'wenxin' 移除短串 'wenxin'，仅保留 chat.baidu.com
+   * - 'wenxin' 移除短串 'wenxin'，保留 chat.baidu.com 并补充当前域名 wenxin.baidu.com
    * - 'yuanbao' 移除短串 'yuanbao'，仅保留 yuanbao.tencent.com
    */
   const PROVIDER_PATTERNS = [
@@ -80,7 +80,7 @@
     },
     {
       name: 'wenxin',
-      hostPatterns: ['chat.baidu.com'],
+      hostPatterns: ['chat.baidu.com', 'wenxin.baidu.com'],
       excludePaths: null
     },
     {

@@ -1,6 +1,6 @@
 {
   "name": "aichatmerge",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Compare AI chatbots side-by-side",
   "author": "zhoukailang",
   "license": "MIT",
@@ -21,11 +21,14 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "test:ui": "vitest --ui",
-    "build:content": "esbuild content-scripts/src/text-injection-entry.js --bundle --format=iife --outfile=content-scripts/text-injection-all-providers.js"
+    "build:content": "esbuild content-scripts/src/text-injection-entry.js --bundle --format=iife --outfile=content-scripts/text-injection-all-providers.js",
+    "check:daily": "node scripts/drive-daily-check.js",
+    "check:judge": "node scripts/judge-debug-log.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.1",
     "@vitest/ui": "^3.2.4",
+    "esbuild": "^0.25.11",
     "happy-dom": "^20.0.2",
     "vitest": "^3.2.4",
     "web-ext": "^9.0.0"

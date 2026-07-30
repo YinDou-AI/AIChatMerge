@@ -3,11 +3,15 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const injector = readFileSync(
-  resolve(process.cwd(), 'content-scripts/text-injection-all-providers.js'),
+  resolve(process.cwd(), 'content-scripts/src/providers/completion-monitor.js'),
   'utf8'
 );
-const extractor = readFileSync(
-  resolve(process.cwd(), 'content-scripts/answer-extractor-gemini.js'),
+const completionConstants = readFileSync(
+  resolve(process.cwd(), 'content-scripts/src/providers/completion-constants.js'),
+  'utf8'
+);
+const answerSelectors = readFileSync(
+  resolve(process.cwd(), 'content-scripts/src/providers/answer-selectors.js'),
   'utf8'
 );
 
@@ -18,14 +22,12 @@ describe('Gemini completion configuration', () => {
   });
 
   it('recognizes Gemini model-response containers for monitoring and extraction', () => {
-    expect(injector).toContain("'model-response .markdown-main-panel'");
-    expect(injector).toContain("'model-response'");
-    expect(extractor).toContain("'model-response .markdown-main-panel'");
-    expect(extractor).toContain("'model-response'");
+    expect(answerSelectors).toContain("'model-response .markdown-main-panel'");
+    expect(answerSelectors).toContain("'model-response'");
   });
 
   it('recognizes localized Gemini stop controls', () => {
-    expect(injector).toContain("'button[aria-label*=\"停止\"]'");
-    expect(injector).toContain("'button[mattooltip*=\"停止\"]'");
+    expect(completionConstants).toContain("'button[aria-label*=\"停止\"]'");
+    expect(completionConstants).toContain("'button[mattooltip*=\"停止\"]'");
   });
 });

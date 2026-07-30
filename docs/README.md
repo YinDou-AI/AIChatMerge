@@ -6,6 +6,7 @@ This directory contains documentation and assets for the Chrome Web Store submis
 
 - `cws-store-listing.md` - Chrome Web Store 商店详情文案
 - `index.html` - 隐私政策在线页面（GitHub Pages 用）
+- `provider-interface-auto-diagnosis-and-repair.md` - 第三方 AI 页面发送故障的自动诊断、受控修复、临时日志管理及正式版清理方案
 
 ## GitHub Pages Setup
 

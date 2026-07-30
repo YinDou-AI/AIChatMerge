@@ -8,6 +8,7 @@ import {
   assertVersionStateConsistency,
   buildChangelogSection,
   formatDryRunPlan,
+  getNpmInvocation,
   getShortHeadCommitHash,
   getUtcDateStamp,
   getVersionState,
@@ -57,7 +58,13 @@ async function main() {
     return;
   }
 
-  execFileSync('npm', ['version', options.version, '--no-git-tag-version'], {
+  const npmInvocation = getNpmInvocation();
+  execFileSync(npmInvocation.command, [
+    ...npmInvocation.argsPrefix,
+    'version',
+    options.version,
+    '--no-git-tag-version'
+  ], {
     cwd: repoRoot,
     stdio: 'inherit'
   });

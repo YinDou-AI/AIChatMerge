@@ -79,11 +79,14 @@ function findProviderInput() {
   }
 
   // Wenxin (Baidu)
-  if (host.includes('chat.baidu.com')) {
-    return document.querySelector('div[data-slate-editor="true"]') ||
+  if (host.includes('chat.baidu.com') || host.includes('wenxin.baidu.com')) {
+    return document.querySelector('#chat-textarea') ||
+           document.querySelector('.ci-textarea') ||
+           document.querySelector('div[data-slate-editor="true"]') ||
            document.querySelector('div[contenteditable="true"][data-slate-editor]') ||
            document.querySelector('textarea[placeholder*="输入"]') ||
-           document.querySelector('textarea[placeholder*="提问"]');
+           document.querySelector('textarea[placeholder*="提问"]') ||
+           document.querySelector('textarea');
   }
 
   // Yuanbao (Tencent)

@@ -37,7 +37,12 @@ async function ensureDb() {
       db = null;
     }
   }
-  await initPromptDB();
+  try {
+    await initPromptDB();
+  } catch (err) {
+    console.error('[PromptManager] ensureDb: re-init failed:', err);
+    throw err;
+  }
 }
 
 // T069: Input sanitization helpers
@@ -141,7 +146,7 @@ export async function savePrompt(promptData) {
   const prompt = {
     title: sanitizeString(promptData.title || 'Untitled Prompt', MAX_TITLE_LENGTH),
     content: sanitizeString(promptData.content, MAX_CONTENT_LENGTH),
-    category: sanitizeString(promptData.category || 'General', MAX_CATEGORY_LENGTH),
+    category: sanitizeString(promptData.category || '', MAX_CATEGORY_LENGTH),
     tags: Array.isArray(promptData.tags)
       ? promptData.tags.slice(0, MAX_TAGS_COUNT).map(tag => sanitizeString(tag, MAX_TAG_LENGTH)).filter(t => t)
       : [],
@@ -162,34 +167,59 @@ export async function savePrompt(promptData) {
   });
 }
 
-// 设置默认提示词（同时取消其他默认）
+// 设置默认提示词（同时取消其他默认）— 单事务，无 TOCTOU 竞态
 export async function setDefaultPrompt(promptId) {
   await ensureDb();
 
-  // 先取消所有默认提示词
-  const allPrompts = await getAllPrompts();
-  for (const prompt of allPrompts) {
-    if (prompt.isDefault && prompt.id !== promptId) {
-      await updatePrompt(prompt.id, { isDefault: false });
-    }
-  }
+  return runWithRetry(() => new Promise((resolve, reject) => {
+    const transaction = db.transaction([PROMPTS_STORE], 'readwrite');
+    const store = transaction.objectStore(PROMPTS_STORE);
+    const cursorRequest = store.openCursor();
 
-  // 设置新的默认提示词
-  await updatePrompt(promptId, { isDefault: true });
-  return true;
+    cursorRequest.onsuccess = () => {
+      const cursor = cursorRequest.result;
+      if (!cursor) {
+        resolve(true);
+        return;
+      }
+
+      const prompt = cursor.value;
+      if (prompt.id === promptId) {
+        if (!prompt.isDefault) cursor.update({ ...prompt, isDefault: true });
+      } else if (prompt.isDefault) {
+        cursor.update({ ...prompt, isDefault: false });
+      }
+      cursor.continue();
+    };
+
+    cursorRequest.onerror = () => reject(cursorRequest.error);
+  }));
 }
 
-// 清除所有默认提示词
+// 清除所有默认提示词 — 单事务，无 TOCTOU 竞态
 export async function clearDefaultPrompt() {
   await ensureDb();
 
-  const allPrompts = await getAllPrompts();
-  for (const prompt of allPrompts) {
-    if (prompt.isDefault) {
-      await updatePrompt(prompt.id, { isDefault: false });
-    }
-  }
-  return true;
+  return runWithRetry(() => new Promise((resolve, reject) => {
+    const transaction = db.transaction([PROMPTS_STORE], 'readwrite');
+    const store = transaction.objectStore(PROMPTS_STORE);
+    const cursorRequest = store.openCursor();
+
+    cursorRequest.onsuccess = () => {
+      const cursor = cursorRequest.result;
+      if (!cursor) {
+        resolve(true);
+        return;
+      }
+
+      if (cursor.value.isDefault) {
+        cursor.update({ ...cursor.value, isDefault: false });
+      }
+      cursor.continue();
+    };
+
+    cursorRequest.onerror = () => reject(cursorRequest.error);
+  }));
 }
 
 // T031: Get prompt by ID
@@ -420,13 +450,13 @@ export async function importDefaultLibrary(libraryData) {
   // Get all existing prompts for deduplication check
   const allPrompts = await getAllPrompts();
   const existingTitles = new Set(
-    allPrompts.map(p => p.title.toLowerCase().trim())
+    allPrompts.map(p => String(p.title || '').toLowerCase().trim())
   );
 
   for (const promptData of libraryData.prompts) {
     try {
       // Check if already imported by title
-      const titleKey = promptData.title.toLowerCase().trim();
+      const titleKey = String(promptData.title || '').toLowerCase().trim();
       if (existingTitles.has(titleKey)) {
         results.skipped++;
         continue;
@@ -450,4 +480,6 @@ export async function importDefaultLibrary(libraryData) {
 }
 
 // Initialize DB on module load
-initPromptDB().catch(console.error);
+initPromptDB().catch(err => {
+  console.error('[PromptManager] DB init failed on module load:', err);
+});

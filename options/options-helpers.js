@@ -5,12 +5,14 @@
 
 /**
  * Get browser's current language in our supported format
- * @returns {'zh_CN' | 'en'}
+ * @returns {'zh_CN' | 'zh_TW' | 'en'}
  */
 export function getCurrentBrowserLanguage() {
   const browserLang = navigator.language || navigator.userLanguage || 'en';
-  // Map browser language codes to our supported locales
   if (browserLang.startsWith('zh')) {
+    if (browserLang === 'zh-TW' || browserLang === 'zh-Hant' || browserLang.startsWith('zh-TW')) {
+      return 'zh_TW';
+    }
     return 'zh_CN';
   }
   return 'en';
@@ -56,7 +58,7 @@ export function getPromptGuidePath(locale) {
 
 /**
  * Format Claude custom entry URL for display
- * @param {string} url - The custom entry URL
+ * @param {string} url - The Claude custom entry URL
  * @returns {string} Formatted display string
  */
 export function formatClaudeEntryUrlForDisplay(url) {
@@ -73,6 +75,7 @@ export function formatClaudeEntryUrlForDisplay(url) {
 }
 
 /**
+ * Get default prompt library path based on language
  * Get default prompt library path based on language
  * @param {string} language - Language code (e.g., 'zh_CN', 'en')
  * @returns {string}

@@ -6,10 +6,16 @@ import { DEFAULT_MARKDOWN_EXPORT_PATH } from './settings.js';
 
 const NATURAL_TITLE_RE = /(?:^|\n)[ \t]*(?:标题|Title)\s*[:：]\s*(.+?)[ \t]*(?=\n|$)/gi;
 const NATURAL_TITLE_RE_GLOBAL = /(?:^|\n)[ \t]*(?:标题|Title)\s*[:：]\s*.+?[ \t]*(?=\n|$)/gi;
+// Some provider DOMs render the "标题" label in a separate node that is
+// omitted during extraction, leaving only "：标题内容" on the first line.
+// Keep this fallback anchored to the first line so body punctuation is never
+// interpreted as a document title.
+const ORPHAN_FIRST_LINE_TITLE_RE = /^[ \t]*[:：]\s*(.{1,30}?)[ \t]*(?=\n|$)/;
 const NATURAL_SCORES_RE = /(?:^|\n)[ \t]*(?:模型评分|评分|Model scores?|Scores?)\s*[:：]\s*(.+?)[ \t]*(?=\n|$)/gi;
 const NATURAL_SCORES_RE_GLOBAL = /(?:^|\n)[ \t]*(?:模型评分|评分|Model scores?|Scores?)\s*[:：]\s*.+?[ \t]*(?=\n|$)/gi;
 const CODE_BLOCK_RE = /```[\s\S]*?```/g;
 const INLINE_CODE_RE = /`[^`]+`/g;
+const GENERATED_FALLBACK_TITLE_RE = /^AI融合-\d{4}-\d{2}-\d{2}-\d{6}$/;
 
 function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -23,15 +29,15 @@ export function extractScores(answer) {
 
   const scoreText = matches[matches.length - 1][1];
   const scores = [];
-  const pairRe = /^\s*([^:=：＝,，;；\n|]+?)\s*[:：=＝]\s*(10|[1-9])(?:\s*分)?\s*$/;
+  const pairRe = /^\s*([^:=：＝,，;；\n|]+?)\s*[:：=＝]\s*(10(?:\.0+)?|[0-9](?:\.\d+)?)(?:\s*分)?\s*$/;
   for (const part of scoreText.split(/[,，;；、|]+/)) {
     const match = part.match(pairRe);
     if (!match) continue;
     const model = match[1]
       .replace(/^[\s\-*•·、]+/, '')
       .trim();
-    const score = Number.parseInt(match[2], 10);
-    if (model && Number.isFinite(score)) {
+    const score = Number.parseFloat(match[2]);
+    if (model && Number.isFinite(score) && score >= 0 && score <= 10) {
       scores.push({ model, score });
     }
   }
@@ -62,8 +68,18 @@ export function extractTitle(answer) {
 
   const naturalTitleMatches = [...withoutCode.matchAll(NATURAL_TITLE_RE)];
   if (naturalTitleMatches.length > 0) {
-    const last = naturalTitleMatches[naturalTitleMatches.length - 1];
-    const extracted = last[1].replace(/^["“”'‘’]+|["“”'‘’]+$/g, '').trim();
+    // The output contract places the title on the first line. Prefer the first
+    // standalone title while retaining support for older trailing-title files.
+    const first = naturalTitleMatches[0];
+    const extracted = first[1].replace(/^["“”'‘’]+|["“”'‘’]+$/g, '').trim();
+    if (extracted) return extracted;
+  }
+
+  const orphanFirstLineTitle = withoutCode.match(ORPHAN_FIRST_LINE_TITLE_RE);
+  if (orphanFirstLineTitle) {
+    const extracted = orphanFirstLineTitle[1]
+      .replace(/^["“”'‘’]+|["“”'‘’]+$/g, '')
+      .trim();
     if (extracted) return extracted;
   }
 
@@ -71,6 +87,24 @@ export function extractTitle(answer) {
   if (headingMatch) {
     const extracted = headingMatch[1].trim();
     if (extracted) return extracted;
+  }
+
+  return null;
+}
+
+export function isGeneratedFallbackTitle(title) {
+  return GENERATED_FALLBACK_TITLE_RE.test(String(title || '').trim());
+}
+
+export function resolveExportTitle(data = {}) {
+  const explicitTitle = String(data.title || '').trim();
+  if (explicitTitle && !isGeneratedFallbackTitle(explicitTitle)) {
+    return explicitTitle;
+  }
+
+  const extractedTitle = extractTitle(data.answer);
+  if (extractedTitle && !isGeneratedFallbackTitle(extractedTitle)) {
+    return extractedTitle;
   }
 
   return null;
@@ -84,6 +118,7 @@ export function cleanAnswer(answer, extractedTitle) {
     .replace(/\n{3,}/g, '\n\n');
 
   if (extractedTitle) {
+    cleaned = cleaned.replace(ORPHAN_FIRST_LINE_TITLE_RE, '');
     cleaned = cleaned.replace(new RegExp(`^#\\s+${escapeRegExp(extractedTitle)}\\s*$`, 'm'), '');
     cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
   }
@@ -266,7 +301,7 @@ export async function exportToMarkdown(data) {
     const config = {
       exportPath
     };
-    const title = data.title || extractTitle(data.answer);
+    const title = resolveExportTitle(data);
     const scores = data.scores || null;
     const markdown = buildMarkdown(data, config, title, false, scores);
     const filePath = buildFilePath(title, config, data.mode);
