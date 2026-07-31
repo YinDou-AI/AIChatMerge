@@ -360,7 +360,7 @@ grep 验证 `markdown-export:` 前缀在 `discussion-runner.js` 和 `discussion-
 `docs/README.md` 已创建，包含：
 
 - AI 阅读顺序（三步主文档）
-- 历史/过程文档标记（`check-progress/`、`superpowers/plans/`、`superpowers/specs/` 均标注为”不代表当前代码状态”）
+- 过期的检查过程与实现计划已从公开仓库移除
 - 文档分类（主入口文档 / 方法论文档 / 专题分析 / 对外文案）
 - 明确声明历史文档仅用于追溯上下文，不用于判断当前行为
 
@@ -454,7 +454,7 @@ grep 验证 `markdown-export:` 前缀在 `discussion-runner.js` 和 `discussion-
 
 - AI 阅读顺序（`CLAUDE.md` -> `code-structure.md` -> `repair-spec-2026-07-05.md`）
 - 历史/过程文档明确标记为”不代表当前代码状态”
-- 各子目录类型标注（`check-progress/` = 历史检查过程，`superpowers/plans/` = 历史计划，`superpowers/specs/` = 历史设计草案）
+- 过期的检查过程与实现计划已从公开仓库移除
 - 文档分类表（主入口文档 / 方法论文档 / 专题分析 / 对外文案）
 
 ---
@@ -513,7 +513,7 @@ grep 验证 `markdown-export:` 前缀在 `discussion-runner.js` 和 `discussion-
 | 活跃模块仍依赖兼容层 | `panel-ui-bindings.js` / `panel-lifecycle.js` / `send-pipeline.js` 等 | import 路径 | **已修复** — 活跃业务模块已直接依赖领域模块，入口文件 multi-panel.js 仍通过兼容层导入（遗留引用） |
 | 导出状态边界不稳 | `merge-engine.js` / `markdown-export.js` | auto export state | **已拆分** — 状态在 `markdown-export.js`，merge-engine 仅 re-export |
 | 文档过度声明 | `docs/code-structure.md` | 第七节兼容层说明 | **已校准** — 措辞精确区分活跃业务模块与入口文件的兼容层依赖 |
-| 历史文档干扰 | `docs/README.md` / `docs/check-progress/` / `docs/superpowers/` | 文档入口说明 | **已修复** — `docs/README.md` 已标记历史文档为参考，不作当前事实 |
+| 历史文档干扰 | `docs/README.md` | 文档入口说明 | **已修复** — 过期检查过程与实现计划已从公开仓库移除 |
 | 新日志前缀未进 debug 摘要 | `aichatmerge-panel/modules/debug-log.js` | `isDebugKeyEvent()` 等 | 已同步关键识别，继续补更大范围摘要校验 |
 
 ---
