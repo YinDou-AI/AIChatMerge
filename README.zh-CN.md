@@ -14,11 +14,17 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.0.2-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/languages-2-brightgreen.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Chrome-114+-4285F4.svg" alt="Chrome">
   <img src="https://img.shields.io/badge/Edge-114+-0078D7.svg" alt="Edge">
+</p>
+
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/ai%E8%9E%8D%E5%90%88%E5%8A%A9%E6%89%8B/fkhmpepdhehapcbnlkagopedadpfajdi"><strong>Chrome 应用商店安装</strong></a>
+  ·
+  <a href="https://microsoftedge.microsoft.com/addons/detail/aichatmerge/gdbicmnjcjhklggjfkgbnbcaloenggli"><strong>Microsoft Edge 商店安装</strong></a>
 </p>
 
 ---
@@ -102,6 +108,11 @@
 ---
 
 ## 安装
+
+推荐从官方浏览器商店安装，可自动接收后续更新：
+
+- [Chrome 应用商店](https://chromewebstore.google.com/detail/ai%E8%9E%8D%E5%90%88%E5%8A%A9%E6%89%8B/fkhmpepdhehapcbnlkagopedadpfajdi)
+- [Microsoft Edge 外接程序商店](https://microsoftedge.microsoft.com/addons/detail/aichatmerge/gdbicmnjcjhklggjfkgbnbcaloenggli)
 
 <details>
 <summary><strong>手动安装</strong></summary>
