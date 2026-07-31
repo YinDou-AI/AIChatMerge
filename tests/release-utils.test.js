@@ -14,7 +14,7 @@ import {
 } from '../scripts/release-utils.js';
 
 describe('release utils', () => {
-  it('selects a shell-free platform-specific npm invocation', () => {
+  it('selects a shell-free platform-specific npm invocation independent of the host OS', () => {
     expect(getNpmInvocation('win32', 'C:\\Program Files\\nodejs\\node.exe')).toEqual({
       command: 'C:\\Program Files\\nodejs\\node.exe',
       argsPrefix: ['C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js']

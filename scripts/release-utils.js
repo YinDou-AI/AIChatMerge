@@ -61,7 +61,13 @@ export function getNpmInvocation(
     return {
       command: nodeExecutable,
       argsPrefix: [
-        path.join(path.dirname(nodeExecutable), 'node_modules', 'npm', 'bin', 'npm-cli.js')
+        path.win32.join(
+          path.win32.dirname(nodeExecutable),
+          'node_modules',
+          'npm',
+          'bin',
+          'npm-cli.js'
+        )
       ]
     };
   }
