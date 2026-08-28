@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>File Input Bug Fix Test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 40px; max-width: 600px; margin: 0 auto; }
+    .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+    button { padding: 12px 24px; font-size: 16px; cursor: pointer; }
+    #result { margin: 15px 0; font-weight: bold; }
+    .success { color: #4caf50; }
+    .error { color: #f44336; }
+    #log { 
+      background: #f5f5f5; 
+      padding: 15px; 
+      border-radius: 4px; 
+      font-family: monospace; 
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    h1 { color: #333; }
+  </style>
+</head>
+<body>
+  <h1>🧪 File Input Bug Fix Test</h1>
+  
+  <div class="section">
+    <h2>Test: Can we import the same file twice?</h2>
+    <p>This tests the fix for the bug where second import of the same file would fail.</p>
+    
+    <button id="test-btn">Select Test File</button>
+    <input type="file" id="file-input" accept=".json" style="display:none">
+    
+    <div id="result">Waiting for test...</div>
+  </div>
+
+  <div class="section">
+    <h2>Event Log</h2>
+    <div id="log">Ready to test...</div>
+  </div>
+
+  <script>
+    const btn = document.getElementById('test-btn');
+    const fileInput = document.getElementById('file-input');
+    const result = document.getElementById('result');
+    const log = document.getElementById('log');
+    let importCount = 0;
+
+    function addLog(msg) {
+      const time = new Date().toLocaleTimeString();
+      log.textContent += `\n${time}: ${msg}`;
+      console.log(`${time}: ${msg}`);
+    }
+
+    // THE FIX: Reset input value BEFORE opening file dialog
+    btn.addEventListener('click', () => {
+      addLog('Button clicked');
+      addLog(`Current input value: "${fileInput.value}"`);
+      
+      // This is the fix! Clear before opening
+      fileInput.value = '';
+      addLog('Reset input value to empty string');
+      
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      
+      if (!file) {
+        addLog('CHANGE event fired but no file selected');
+        result.innerHTML = '<span class="error">No file selected</span>';
+        return;
+      }
+      
+      importCount++;
+      addLog(`CHANGE event fired - Import #${importCount}, file: "${file.name}"`);
+      
+      // Read and parse the file
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          addLog(`File parsed successfully: ${data.length} items`);
+          
+          result.innerHTML = `<span class="success">✅ Import #${importCount} successful! (${data.length} prompts)</span>`;
+          
+          if (importCount >= 2) {
+            result.innerHTML += '<br><span class="success">🎉 BUG FIX VERIFIED!</span>';
+            addLog('🎉🎉🎉 BUG FIX VERIFIED - Same file imported twice! 🎉🎉🎉');
+          }
+        } catch (err) {
+          addLog(`Parse error: ${err.message}`);
+          result.innerHTML = `<span class="error">❌ Parse error: ${err.message}</span>`;
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    addLog('Test page initialized. Click "Select Test File" to begin.');
+  </script>
+</body>
+</html>

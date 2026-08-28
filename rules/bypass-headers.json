@@ -1,0 +1,201 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://chat.deepseek.com/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 2,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://www.doubao.com/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 3,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://www.qianwen.com/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 4,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://chatglm.cn/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 5,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://chat.baidu.com/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 7,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://metaso.cn/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 8,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://www.kimi.com/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 9,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://chatgpt.com/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 10,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://gemini.google.com/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 11,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://claude.ai/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 12,
+    "priority": 2,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" },
+        { "header": "X-Content-Type-Options", "operation": "remove" },
+        { "header": "Cross-Origin-Opener-Policy", "operation": "remove" },
+        { "header": "Cross-Origin-Embedder-Policy", "operation": "remove" },
+        { "header": "Cross-Origin-Resource-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://grok.com/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 13,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://yuanbao.tencent.com/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 14,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "X-Frame-Options", "operation": "remove" },
+        { "header": "Content-Security-Policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://wenxin.baidu.com/*",
+      "resourceTypes": ["sub_frame"]
+    }
+  }
+]

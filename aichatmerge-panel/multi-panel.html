@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIChatMerge - AI Comparison</title>
+  <!-- 立即应用主题和i18n，避免白色闪烁和中英文同时显示 -->
+  <script src="multi-panel-preload.js"></script>
+  <link rel="stylesheet" href="multi-panel.css">
+</head>
+<body data-theme="auto">
+  <div id="app">
+    <!-- Main Content Area -->
+    <div id="main-content">
+      <button id="scroll-left-btn" class="panel-scroll-arrow panel-scroll-left" data-i18n-title="prevPage">
+        <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="chevron_left"></span>
+      </button>
+      <!-- Panel Grid Container -->
+      <div id="panel-grid" class="layout-1x3">
+        <!-- Panels will be dynamically generated -->
+      </div>
+      <button id="scroll-right-btn" class="panel-scroll-arrow panel-scroll-right" data-i18n-title="nextPage">
+        <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="chevron_right"></span>
+      </button>
+    </div>
+
+    <!-- Bottom Input Bar -->
+    <footer id="input-bar">
+      <div class="input-container">
+        <button id="prompt-library-btn" class="input-btn" data-i18n-title="promptLibrary">
+          <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="auto_awesome"></span>
+        </button>
+        <div class="input-wrapper">
+          <div id="image-preview-container" class="image-preview-container" style="display: none;"></div>
+          <!-- 默认提示词提示条 -->
+          <div id="default-prompt-bar" class="default-prompt-bar" style="display: none;">
+            <span class="default-prompt-icon">📌</span>
+            <span class="default-prompt-text">
+              <span data-i18n="defaultPromptEnabled">已启用</span>：
+              <span id="default-prompt-title"></span>
+            </span>
+            <button id="skip-default-prompt-btn" class="skip-default-prompt-btn" data-i18n="skipDefaultPrompt" title="本次发送不使用">跳过</button>
+          </div>
+          <textarea id="unified-input" data-i18n-placeholder="inputPlaceholder" rows="1"></textarea>
+        </div>
+        <!-- Discussion Status Bar -->
+        <div id="discussion-status-bar" class="discussion-status-bar" style="display: none;">
+          <span id="discussion-progress-text" class="discussion-progress-text"></span>
+          <button id="stop-discussion-btn" class="stop-discussion-btn">
+            <span data-i18n="stopDiscussion">停止讨论</span>
+          </button>
+        </div>
+        <div class="input-actions">
+          <span id="send-status" class="send-status"></span>
+          <!-- Send All Button -->
+          <button id="send-all-btn" class="send-btn" data-i18n-title="sendToAllAI">
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="send"></span>
+          </button>
+          <!-- Merge Button -->
+          <button id="merge-btn" class="merge-btn" data-i18n-title="mergeTooltip">
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="call_merge"></span>
+          </button>
+          <!-- Merge Target AI Select -->
+          <button id="merge-target-btn" class="merge-select" data-i18n-title="mergeTargetAI">
+            <span id="merge-target-label">DeepSeek</span>
+            <span class="material-symbols-outlined notranslate" style="font-size:16px;" translate="no" aria-hidden="true" data-icon="expand_more"></span>
+          </button>
+          <!-- Add Panel Button -->
+          <button id="add-panel-btn" class="bottom-action-btn" data-i18n-title="addPanel">
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="add"></span>
+          </button>
+          <!-- Toolbar action buttons (moved from header) -->
+          <button id="new-chat-btn" class="bottom-action-btn" data-i18n-title="newChat">
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="add_comment"></span>
+          </button>
+          <!-- Export Markdown Button -->
+          <button id="obsidian-export-btn" class="bottom-action-btn" data-i18n-title="obsidianExport">
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="upload_file"></span>
+          </button>
+          <button id="layout-btn" class="bottom-action-btn" data-i18n-title="layout">
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="grid_view"></span>
+          </button>
+          <button id="toggle-open-mode-btn" class="bottom-action-btn" data-i18n-title="switchToPopupMode">
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="open_in_new"></span>
+          </button>
+          <button id="settings-btn" class="bottom-action-btn" data-i18n-title="settings">
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="settings"></span>
+          </button>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Layout Selector Modal -->
+    <div id="layout-modal" class="modal" style="display: none;">
+      <div class="modal-content modal-small">
+        <div class="modal-header">
+          <h3 data-i18n="selectLayout">选择布局</h3>
+          <button class="close-btn" id="close-layout-modal">
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="close"></span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="layout-options">
+            <button class="layout-option" data-layout="1x1" data-i18n-title="singlePanel">
+              <div class="layout-preview layout-1x1-preview">
+                <div></div>
+              </div>
+              <span>1x1</span>
+            </button>
+            <button class="layout-option" data-layout="1x2" data-i18n-title="twoPanels">
+              <div class="layout-preview layout-1x2-preview">
+                <div></div><div></div>
+              </div>
+              <span>1x2</span>
+            </button>
+            <button class="layout-option" data-layout="1x3" data-i18n-title="threePanels">
+              <div class="layout-preview layout-1x3-preview">
+                <div></div><div></div><div></div>
+              </div>
+              <span>1x3</span>
+            </button>
+            <button class="layout-option" data-layout="1x4" data-i18n-title="fourPanels">
+              <div class="layout-preview layout-1x4-preview">
+                <div></div><div></div><div></div><div></div>
+              </div>
+              <span>1x4</span>
+            </button>
+            <button class="layout-option" data-layout="1x5" data-i18n-title="fivePanels">
+              <div class="layout-preview layout-1x5-preview">
+                <div></div><div></div><div></div><div></div><div></div>
+              </div>
+              <span>1x5</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompt Library Modal -->
+    <div id="prompt-modal" class="modal" style="display: none;">
+      <div class="modal-content modal-large">
+        <div class="modal-header">
+          <h3 data-i18n="promptLibraryTitle">提示词库</h3>
+          <div class="modal-header-actions">
+            <button id="new-prompt-btn" class="header-action-btn" data-i18n-title="newPrompt">
+              <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="add"></span>
+            </button>
+            <button class="close-btn" id="close-prompt-modal">
+              <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="close"></span>
+            </button>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="prompt-filters">
+            <div class="prompt-search-wrapper">
+              <input type="text" id="prompt-search" data-i18n-placeholder="searchPrompts">
+            </div>
+            <div class="prompt-filter-buttons">
+              <select id="prompt-category-filter">
+                <option value="" data-i18n="allCategories">所有分类</option>
+              </select>
+              <button id="prompt-favorites-btn" class="filter-btn" data-i18n-title="showFavoritesOnly">
+                <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="star"></span>
+              </button>
+              <button id="prompt-recent-btn" class="filter-btn active" data-i18n-title="recentUsed">
+                <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="schedule"></span>
+              </button>
+            </div>
+          </div>
+          <div id="prompt-list-modal">
+            <!-- Prompts will be dynamically rendered -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompt Editor Modal (新增/编辑提示词) -->
+    <div id="prompt-editor-modal" class="modal" style="display: none;">
+      <div class="modal-content modal-large">
+        <div class="modal-header">
+          <h3 id="prompt-editor-title" data-i18n="newPromptTitle">新建提示词</h3>
+          <button class="close-btn" id="close-prompt-editor">
+            <span class="material-symbols-outlined notranslate" translate="no" aria-hidden="true" data-icon="close"></span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="prompt-title-input" data-i18n="title">标题</label>
+            <input type="text" id="prompt-title-input" data-i18n-placeholder="titlePlaceholder">
+          </div>
+          <div class="form-group">
+            <label for="prompt-content-input" data-i18n="content">内容</label>
+            <textarea id="prompt-content-input" rows="8" data-i18n-placeholder="contentPlaceholder"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="prompt-category-input" data-i18n="category">分类</label>
+            <input type="text" id="prompt-category-input" data-i18n-placeholder="categoryPlaceholder">
+          </div>
+          <label class="checkbox-row">
+            <input type="checkbox" id="prompt-default-checkbox">
+            <span data-i18n="setDefaultPrompt">设为默认</span>
+          </label>
+        </div>
+        <div class="modal-footer">
+          <button id="delete-prompt-btn" class="btn-danger" style="margin-right: auto; display: none;" data-i18n="delete">删除</button>
+          <button id="cancel-prompt-editor" class="btn-secondary" data-i18n="cancel">取消</button>
+          <button id="save-prompt-btn" class="btn-primary" data-i18n="save">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="multi-panel.js"></script>
+</body>
+</html>

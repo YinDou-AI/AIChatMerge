@@ -1,0 +1,1010 @@
+{
+  "extensionName": {
+    "message": "AIChatMerge"
+  },
+  "extensionDescription": {
+    "message": "Use AI chats side by side: send one prompt, compare and merge responses, then refine the result through multi-model discussion."
+  },
+  "commandOpenSidebar": {
+    "message": "Open AIChatMerge"
+  },
+  "commandOpenAIChatMerge": {
+    "message": "Open AIChatMerge"
+  },
+  "commandOpenPromptLibrary": {
+    "message": "Open Prompt Library"
+  },
+  "sectionMultiPanel": {
+    "message": "Multi-Panel Comparison"
+  },
+  "descMultiPanel": {
+    "message": "Compare responses from multiple AI chatbots side by side in one window"
+  },
+  "labelOpenMultiPanel": {
+    "message": "Open Multi-Panel View"
+  },
+  "descOpenMultiPanel": {
+    "message": "Launch the multi-panel comparison interface in a new tab (Cmd/Ctrl+Shift+M)"
+  },
+  "btnOpenMultiPanel": {
+    "message": "Open Multi-Panel"
+  },
+  "labelOpenMode": {
+    "message": "Open Mode"
+  },
+  "descOpenMode": {
+    "message": "Choose how to open AIChatMerge when clicking the icon or using shortcuts"
+  },
+  "optionTabMode": {
+    "message": "Tab (New Tab)"
+  },
+  "optionPopupMode": {
+    "message": "Popup Window"
+  },
+  "switchToTabMode": {
+    "message": "Tab Mode"
+  },
+  "switchToTabModeTitle": {
+    "message": "Switch to Tab Mode"
+  },
+  "switchToPopupMode": {
+    "message": "Popup Mode"
+  },
+  "switchToPopupModeTitle": {
+    "message": "Switch to Popup Mode"
+  },
+  "msgOpenModeUpdated": {
+    "message": "Open mode updated"
+  },
+  "sectionScoreData": {
+    "message": "Score Data"
+  },
+  "labelExportScoreHistory": {
+    "message": "Export Score History"
+  },
+  "descExportScoreHistory": {
+    "message": "Export all score records as a CSV file"
+  },
+  "btnExportCsv": {
+    "message": "Export CSV"
+  },
+  "labelClearScoreHistory": {
+    "message": "Clear Score History"
+  },
+  "descClearScoreHistory": {
+    "message": "Delete all saved score records"
+  },
+  "btnClearScoreHistory": {
+    "message": "Clear"
+  },
+  "msgScoreExportEmpty": {
+    "message": "No scores to export yet"
+  },
+  "msgScoreExported": {
+    "message": "Exported $1 score records"
+  },
+  "msgScoreExportFailed": {
+    "message": "Score export failed: $1"
+  },
+  "msgConfirmClearScoreHistory": {
+    "message": "Clear all score records? This cannot be undone."
+  },
+  "msgScoreHistoryCleared": {
+    "message": "Score records cleared"
+  },
+  "msgScoreClearFailed": {
+    "message": "Failed to clear scores: $1"
+  },
+  "sectionAdvancedSettings": {
+    "message": "Advanced Settings"
+  },
+  "claudeCustomEntryTitle": {
+    "message": "Claude Fallback Page URL (Advanced)"
+  },
+  "claudeCustomEntryDescription": {
+    "message": "Claude uses the new-chat page by default. Only enter a verified fallback page URL if the default entry still fails. Leave blank to use the default entry"
+  },
+  "claudeCustomEntryPlaceholder": {
+    "message": "https://claude.ai/new"
+  },
+  "claudeRestoreDefault": {
+    "message": "Restore Default Entry"
+  },
+  "claudeCustomEntryWarning": {
+    "message": "A fallback URL may open an existing conversation, may stop working after account changes, and should not be shared. Clear it to restore the default entry"
+  },
+  "claudeEntryDefaultStatus": {
+    "message": "Using the default new-chat page"
+  },
+  "claudeEntryCustomStatus": {
+    "message": "Using fallback entry: $1"
+  },
+  "claudeEntryUrlValid": {
+    "message": "URL format is valid. Reopen the Claude panel to apply it"
+  },
+  "claudeEntrySaved": {
+    "message": "Claude entry saved, reopen the Claude panel to apply it"
+  },
+  "claudeEntryRestored": {
+    "message": "Claude default entry restored"
+  },
+  "msgLayoutUpdated": {
+    "message": "Layout updated"
+  },
+  "labelDefaultLayout": {
+    "message": "Default Layout"
+  },
+  "descDefaultLayout": {
+    "message": "Choose the default panel arrangement"
+  },
+  "actionDefaultTitle": {
+    "message": "Open AIChatMerge"
+  },
+  "settingsTitle": {
+    "message": "Settings: AIChatMerge"
+  },
+  "settingsSubtitle": {
+    "message": "Customize your multi-AI comparison experience"
+  },
+  "sectionAppearance": {
+    "message": "Appearance"
+  },
+  "labelTheme": {
+    "message": "Theme"
+  },
+  "descTheme": {
+    "message": "Choose your preferred color scheme"
+  },
+  "themeAuto": {
+    "message": "Auto (System)"
+  },
+  "themeLight": {
+    "message": "Light"
+  },
+  "themeDark": {
+    "message": "Dark"
+  },
+  "labelLanguage": {
+    "message": "Language"
+  },
+  "descLanguage": {
+    "message": "Choose your preferred interface language"
+  },
+  "langEnglish": {
+    "message": "English"
+  },
+  "langSimplifiedChinese": {
+    "message": "简体中文 (Simplified Chinese)"
+  },
+  "langTraditionalChinese": {
+    "message": "繁體中文 (Traditional Chinese)"
+  },
+  "langKorean": {
+    "message": "한국어 (Korean)"
+  },
+  "langJapanese": {
+    "message": "日本語 (Japanese)"
+  },
+  "langSpanish": {
+    "message": "Español (Spanish)"
+  },
+  "langFrench": {
+    "message": "Français (French)"
+  },
+  "langGerman": {
+    "message": "Deutsch (German)"
+  },
+  "langItalian": {
+    "message": "Italiano (Italian)"
+  },
+  "langRussian": {
+    "message": "Русский (Russian)"
+  },
+  "msgLanguageUpdated": {
+    "message": "Language updated successfully"
+  },
+  "sectionProviders": {
+    "message": "AI Providers"
+  },
+  "labelEnabledProviders": {
+    "message": "Enabled Providers"
+  },
+  "descEnabledProviders": {
+    "message": "Select which AI providers appear in AIChatMerge"
+  },
+  "sectionKeyboardShortcuts": {
+    "message": "Keyboard Shortcuts"
+  },
+  "sectionKeyboard": {
+    "message": "Keyboard"
+  },
+  "labelEnableShortcut": {
+    "message": "Enable Keyboard Shortcut"
+  },
+  "descEnableShortcut": {
+    "message": "Toggle the global shortcut that opens AIChatMerge from anywhere in the browser."
+  },
+  "labelDefaultShortcuts": {
+    "message": "Default Shortcuts"
+  },
+  "descDefaultShortcuts": {
+    "message": "Command+Shift+E (Ctrl+Shift+E on Windows/Linux) opens AIChatMerge.<br>Command+Shift+L (Ctrl+Shift+L on Windows/Linux) opens Prompt Library.<br>After installing, confirm or set shortcuts in chrome://extensions/shortcuts."
+  },
+  "btnOpenShortcuts": {
+    "message": "Open Shortcuts"
+  },
+  "labelEdgeConfirm": {
+    "message": "Confirm in Microsoft Edge"
+  },
+  "descEdgeConfirm": {
+    "message": "Edge requires you to confirm the shortcut once. Click configure to jump straight to the Edge shortcuts page."
+  },
+  "btnConfigureEdge": {
+    "message": "Configure in Edge"
+  },
+  "labelSourceUrlPlacement": {
+    "message": "Source URL Placement"
+  },
+  "descSourceUrlPlacement": {
+    "message": "Choose where to place the source URL when sending selected text or page content to AI providers"
+  },
+  "urlPlacementEnd": {
+    "message": "At end (after content)"
+  },
+  "urlPlacementBeginning": {
+    "message": "At beginning (before content)"
+  },
+  "urlPlacementNone": {
+    "message": "Don't include URL"
+  },
+  "sectionEnterBehavior": {
+    "message": "Enter Key Behavior"
+  },
+  "descEnterBehavior1": {
+    "message": "Customize how Enter and modifier keys work when typing in AI provider input fields."
+  },
+  "descEnterBehavior2": {
+    "message": "<strong>Applies to:</strong> supported AI providers."
+  },
+  "labelEnableEnterCustomization": {
+    "message": "Enable Enter Key Customization"
+  },
+  "descEnableEnterCustomization": {
+    "message": "When enabled, modifies Enter key behavior across all supported AI providers"
+  },
+  "labelPreset": {
+    "message": "Preset"
+  },
+  "descPreset": {
+    "message": "Choose a common key combination pattern"
+  },
+  "presetDefault": {
+    "message": "Default (Enter=Send, Shift+Enter=Newline)"
+  },
+  "presetSwapped": {
+    "message": "Swapped (Enter=Newline, Shift+Enter=Send)"
+  },
+  "presetSlack": {
+    "message": "Slack-style (Enter=Send, Ctrl+Enter=Newline)"
+  },
+  "presetDiscord": {
+    "message": "Discord-style (Enter=Newline, Ctrl+Enter=Send)"
+  },
+  "presetCustom": {
+    "message": "Custom"
+  },
+  "labelInsertNewline": {
+    "message": "Insert Newline"
+  },
+  "labelSendMessage": {
+    "message": "Send Message"
+  },
+  "sectionPromptLibrary": {
+    "message": "Prompt Library"
+  },
+  "descPromptLibrary": {
+    "message": "Import curated meta-prompts for AI workflows, research, coding, and analysis"
+  },
+  "labelDefaultLibrary": {
+    "message": "Default Prompt Library"
+  },
+  "descDefaultLibrary": {
+    "message": "Meta-prompts for prompt refinement, planning, coding, testing, research, writing, and more. Includes variables support for dynamic templates."
+  },
+  "btnImportDefault": {
+    "message": "Import Default Prompts"
+  },
+  "btnImportCustom": {
+    "message": "Import Custom Prompts"
+  },
+  "descCustomPromptGuide": {
+    "message": "Need help formatting custom prompts? Open the guide or download a JSON template."
+  },
+  "btnOpenPromptGuide": {
+    "message": "Open Guide"
+  },
+  "btnDownloadPromptTemplate": {
+    "message": "Download Template"
+  },
+  "msgPromptGuideTip": {
+    "message": "Tip: Open the Prompt Library guide or download the JSON template from Settings > Prompt Library."
+  },
+  "noteCustomImport": {
+    "message": "Before importing custom prompts, please read: <code style=\"background: #f5f5f5; padding: 2px 6px; border-radius: 3px;\">data/prompt-libraries/Generate_a_Basic_Prompt_Library.md</code>"
+  },
+  "sectionDataManagement": {
+    "message": "Data Management"
+  },
+  "statPrompts": {
+    "message": "Prompts"
+  },
+  "statStorage": {
+    "message": "Storage Used"
+  },
+  "labelExport": {
+    "message": "Export Data"
+  },
+  "descExport": {
+    "message": "Download all prompts and settings as JSON"
+  },
+  "btnExport": {
+    "message": "Export"
+  },
+  "labelImport": {
+    "message": "Import Data"
+  },
+  "descImport": {
+    "message": "Restore prompts and settings from JSON file"
+  },
+  "btnImport": {
+    "message": "Import"
+  },
+  "sectionDangerZone": {
+    "message": "Danger Zone"
+  },
+  "descDangerZone": {
+    "message": "These actions cannot be undone. Use with caution."
+  },
+  "labelClearPrompts": {
+    "message": "Clear Prompts"
+  },
+  "descClearPrompts": {
+    "message": "Delete all prompts from your library"
+  },
+  "labelResetSettings": {
+    "message": "Reset Settings"
+  },
+  "descResetSettings": {
+    "message": "Reset all settings to defaults"
+  },
+  "btnClear": {
+    "message": "Clear"
+  },
+  "btnReset": {
+    "message": "Reset"
+  },
+  "sectionAbout": {
+    "message": "About"
+  },
+  "labelVersion": {
+    "message": "Version $1"
+  },
+  "labelBuild": {
+    "message": "Build"
+  },
+  "btnCheckUpdates": {
+    "message": "Check for Updates"
+  },
+  "linkDownloadLatest": {
+    "message": "Download Latest Version"
+  },
+  "descAbout1": {
+    "message": "AIChatMerge lets you compare multiple AI chatbots side-by-side in one window."
+  },
+  "descAbout2": {
+    "message": "Built with privacy-first architecture. All data stored locally."
+  },
+  "linkGitHubProject": {
+    "message": "View on GitHub"
+  },
+  "linkGitHubIssues": {
+    "message": "Feedback & Issues"
+  },
+  "descGitHubSupport": {
+    "message": "If AIChatMerge helps you, please star it on GitHub and share it with others."
+  },
+  "msgThemeUpdated": {
+    "message": "Theme updated"
+  },
+  "msgProviderUpdated": {
+    "message": "Default provider updated"
+  },
+  "msgProviderSettingsUpdated": {
+    "message": "Provider settings updated"
+  },
+  "msgShortcutEnabled": {
+    "message": "Keyboard shortcut enabled"
+  },
+  "msgShortcutDisabled": {
+    "message": "Keyboard shortcut disabled"
+  },
+  "msgSourceUrlPlacementUpdated": {
+    "message": "Source URL placement updated"
+  },
+  "msgEnterCustomizationEnabled": {
+    "message": "Enter key customization enabled"
+  },
+  "msgEnterCustomizationDisabled": {
+    "message": "Enter key customization disabled"
+  },
+  "msgPresetChanged": {
+    "message": "Preset changed to: $PRESET$",
+    "placeholders": {
+      "preset": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgCustomKeyMappingSaved": {
+    "message": "Custom key mapping saved"
+  },
+  "msgDataExported": {
+    "message": "Data exported successfully"
+  },
+  "msgDataImported": {
+    "message": "Data imported successfully"
+  },
+  "msgDataImportedWithCount": {
+    "message": "Imported $COUNT$ prompts",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgDataImportedDetails": {
+    "message": "Data imported successfully — $DETAILS$.",
+    "placeholders": {
+      "details": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgPromptsImported": {
+    "message": "Successfully imported $COUNT$ prompts",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgPromptsImportedWithSkipped": {
+    "message": "Successfully imported $IMPORTED$ prompts ($SKIPPED$ already existed)",
+    "placeholders": {
+      "imported": {
+        "content": "$1"
+      },
+      "skipped": {
+        "content": "$2"
+      }
+    }
+  },
+  "msgPromptsAlreadyExist": {
+    "message": "All prompts already exist in your library"
+  },
+  "msgAlreadyImported": {
+    "message": "Already Imported"
+  },
+  "msgCustomPromptsImported": {
+    "message": "Successfully imported $IMPORTED$ custom prompts; skipped $SKIPPED$ existing prompts",
+    "placeholders": {
+      "imported": {
+        "content": "$1"
+      },
+      "skipped": {
+        "content": "$2"
+      }
+    }
+  },
+  "msgPromptsCleared": {
+    "message": "All prompts have been deleted"
+  },
+  "msgSettingsReset": {
+    "message": "All settings have been reset to defaults"
+  },
+  "msgUpdateAvailable": {
+    "message": "Update available - click Download Latest Version link"
+  },
+  "msgUpToDate": {
+    "message": "You are up to date!"
+  },
+  "msgCheckingUpdates": {
+    "message": "Checking..."
+  },
+  "msgUpdateCheckFailed": {
+    "message": "Failed to check for updates"
+  },
+  "msgVersionUnknown": {
+    "message": "Version unknown"
+  },
+  "msgCommitHashUnavailable": {
+    "message": "Commit hash unavailable"
+  },
+  "msgBuildInfo": {
+    "message": "Build: $HASH$ ($DATE$)",
+    "placeholders": {
+      "hash": {
+        "content": "$1"
+      },
+      "date": {
+        "content": "$2"
+      }
+    }
+  },
+  "msgUpdateStatusAvailable": {
+    "message": "<strong>Update available!</strong><br>Latest version: $LATEST$<br>Current version: $CURRENT$",
+    "placeholders": {
+      "latest": {
+        "content": "$1"
+      },
+      "current": {
+        "content": "$2"
+      }
+    }
+  },
+  "msgUpdateStatusCurrent": {
+    "message": "You have the latest version!"
+  },
+  "msgUpdateStatusError": {
+    "message": "Failed to check for updates"
+  },
+  "errAtLeastOneProvider": {
+    "message": "At least one provider must be enabled"
+  },
+  "errExportFailed": {
+    "message": "Failed to export data"
+  },
+  "errImportFailed": {
+    "message": "Failed to import data. Please check the file format."
+  },
+  "errClearPromptsFailed": {
+    "message": "Failed to clear prompts"
+  },
+  "errResetSettingsFailed": {
+    "message": "Failed to reset settings"
+  },
+  "errImportDefaultLibrary": {
+    "message": "Failed to import default library"
+  },
+  "errImportCustomLibrary": {
+    "message": "Failed to import custom prompts"
+  },
+  "errInvalidFormat": {
+    "message": "Invalid format: File must contain a JSON array of prompts"
+  },
+  "errInvalidPromptStructure": {
+    "message": "Invalid prompt structure - see alert for details"
+  },
+  "errInvalidJSON": {
+    "message": "Invalid JSON file format"
+  },
+  "errValidationErrors": {
+    "message": "$COUNT$ prompts have validation errors",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "confirmImportData": {
+    "message": "Import data from $DATE$?\n\nThis will add:\n- $PROMPTS$ prompts\n- $CONVERSATIONS$ conversations\n- Settings configuration\n\nExisting data will be preserved unless duplicates are found.",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      },
+      "prompts": {
+        "content": "$2"
+      },
+      "conversations": {
+        "content": "$3"
+      }
+    }
+  },
+  "confirmClearPrompts": {
+    "message": "Are you sure you want to delete ALL prompts?\n\nThis will permanently delete all prompts from your library.\n\nThis action CANNOT be undone!"
+  },
+  "confirmResetSettings": {
+    "message": "Are you sure you want to reset ALL settings to defaults?\n\nThis will reset:\n- Theme settings\n- Default provider\n- Keyboard shortcuts\n- All other preferences\n\nYour prompts will NOT be affected.\n\nThis action CANNOT be undone!"
+  },
+  "contextMenuSendTo": {
+    "message": "Send to AIChatMerge"
+  },
+  "sidebarPromptGenie": {
+    "message": "Prompt Genie"
+  },
+  "sidebarEditingPrompt": {
+    "message": "Editing Prompt"
+  },
+  "placeholderSearch": {
+    "message": "Search..."
+  },
+  "placeholderSearchConversations": {
+    "message": "Search conversations..."
+  },
+  "placeholderSearchPrompts": {
+    "message": "Search prompts..."
+  },
+  "btnSave": {
+    "message": "Save"
+  },
+  "btnCancel": {
+    "message": "Cancel"
+  },
+  "btnClose": {
+    "message": "Close"
+  },
+  "btnDelete": {
+    "message": "Delete"
+  },
+  "btnEdit": {
+    "message": "Edit"
+  },
+  "btnCopy": {
+    "message": "Copy"
+  },
+  "tooltipSaveNew": {
+    "message": "Save as new prompt"
+  },
+  "tooltipCopyClipboard": {
+    "message": "Copy to clipboard"
+  },
+  "tooltipClear": {
+    "message": "Clear"
+  },
+  "tooltipSelectProvider": {
+    "message": "Select provider"
+  },
+  "tooltipSendProvider": {
+    "message": "Send to selected provider"
+  },
+  "tooltipFilterProvider": {
+    "message": "Filter by provider"
+  },
+  "tooltipShowSearchTips": {
+    "message": "Show search tips"
+  },
+  "tooltipShowFavorites": {
+    "message": "Show favorites only"
+  },
+  "tooltipFilterCategory": {
+    "message": "Filter by category"
+  },
+  "tooltipRecentlyUsed": {
+    "message": "Recently Used"
+  },
+  "tooltipMostUsed": {
+    "message": "Most Used"
+  },
+  "tooltipAlphabetical": {
+    "message": "A-Z"
+  },
+  "tooltipNewestFirst": {
+    "message": "Newest First"
+  },
+  "tooltipToggleSection": {
+    "message": "Toggle section"
+  },
+  "tooltipCopyContent": {
+    "message": "Copy content"
+  },
+  "tooltipInsertBeginning": {
+    "message": "Insert at beginning"
+  },
+  "tooltipInsertEnd": {
+    "message": "Insert at end"
+  },
+  "tooltipReplaceAll": {
+    "message": "Replace all"
+  },
+  "labelAllProviders": {
+    "message": "All Providers"
+  },
+  "labelAllCategories": {
+    "message": "All Categories"
+  },
+  "labelRecentlyUsed": {
+    "message": "Recently Used"
+  },
+  "labelTopFavorites": {
+    "message": "Top Favorites"
+  },
+  "loadingText": {
+    "message": "Loading..."
+  },
+  "optionsPageTitle": {
+    "message": "AIChatMerge - Settings"
+  },
+  "headerSettingsTitle": {
+    "message": "Settings"
+  },
+  "headerSettingsSubtitle": {
+    "message": "Customize your multi-AI comparison experience"
+  },
+  "labelEnableKeyboardShortcut": {
+    "message": "Enable Keyboard Shortcut"
+  },
+  "descEnableKeyboardShortcut": {
+    "message": "Toggle the global shortcut that opens AIChatMerge from anywhere in the browser."
+  },
+  "labelEdgeShortcutHelper": {
+    "message": "Confirm in Microsoft Edge"
+  },
+  "descEdgeShortcutHelper": {
+    "message": "Edge requires you to confirm the shortcut once. Click configure to jump straight to the Edge shortcuts page."
+  },
+  "labelEnableEnterCustom": {
+    "message": "Enable Enter Key Customization"
+  },
+  "descEnableEnterCustom": {
+    "message": "When enabled, modifies Enter key behavior across all supported AI providers"
+  },
+  "keyShift": {
+    "message": "Shift"
+  },
+  "keyCtrl": {
+    "message": "Ctrl"
+  },
+  "keyAlt": {
+    "message": "Alt"
+  },
+  "keyMeta": {
+    "message": "⌘/Win"
+  },
+  "keyPlusEnter": {
+    "message": "+ Enter"
+  },
+  "labelDefaultPromptLibrary": {
+    "message": "Default Prompt Library"
+  },
+  "descDefaultPromptLibrary": {
+    "message": "Meta-prompts for prompt refinement, planning, coding, testing, research, writing, and more. Includes variables support for dynamic templates."
+  },
+  "statStorageUsed": {
+    "message": "Storage Used"
+  },
+  "labelExportData": {
+    "message": "Export Data"
+  },
+  "descExportData": {
+    "message": "Download all prompts and settings as JSON"
+  },
+  "labelImportData": {
+    "message": "Import Data"
+  },
+  "descImportData": {
+    "message": "Restore prompts and settings from JSON file"
+  },
+  "labelLoading": {
+    "message": "Loading..."
+  },
+  "msgAllPromptsExist": {
+    "message": "All prompts already exist"
+  },
+  "msgChecking": {
+    "message": "Checking..."
+  },
+  "msgCheckUpdatesFailed": {
+    "message": "Failed to check for updates"
+  },
+  "msgClearHistoryFailed": {
+    "message": "Failed to clear history"
+  },
+  "msgClearPromptsFailed": {
+    "message": "Failed to clear prompts"
+  },
+  "msgCustomImportFailed": {
+    "message": "Failed to import custom prompts"
+  },
+  "msgDataExportFailed": {
+    "message": "Failed to export data"
+  },
+  "msgDataImportFailed": {
+    "message": "Failed to import data"
+  },
+  "msgDefaultImportFailed": {
+    "message": "Failed to import default prompts"
+  },
+  "msgDefaultProviderUpdated": {
+    "message": "Default provider updated"
+  },
+  "msgEnterCustomDisabled": {
+    "message": "Enter key customization disabled"
+  },
+  "msgEnterCustomEnabled": {
+    "message": "Enter key customization enabled"
+  },
+  "msgImported": {
+    "message": "Imported"
+  },
+  "msgImporting": {
+    "message": "Importing..."
+  },
+  "msgInvalidFormat": {
+    "message": "Invalid format"
+  },
+  "msgInvalidJSON": {
+    "message": "Invalid JSON"
+  },
+  "msgInvalidPromptFormat": {
+    "message": "Invalid prompt format"
+  },
+  "msgInvalidPromptStructure": {
+    "message": "Invalid prompt structure"
+  },
+  "msgJSONParseError": {
+    "message": "JSON parse error"
+  },
+  "msgLatestVersion": {
+    "message": "Latest version"
+  },
+  "msgOneProviderRequired": {
+    "message": "At least one provider is required"
+  },
+  "msgResetSettingsFailed": {
+    "message": "Failed to reset settings"
+  },
+  "msgUnknownCount": {
+    "message": "Unknown count"
+  },
+  "msgDefaultPromptsImported": {
+    "message": "Imported $IMPORTED$ default prompts; skipped $SKIPPED$ existing prompts",
+    "placeholders": {
+      "imported": {
+        "content": "$1"
+      },
+      "skipped": {
+        "content": "$2"
+      }
+    }
+  },
+  "msgConversationsImported": {
+    "message": "Conversations imported"
+  },
+  "msgPromptsCount": {
+    "message": "$COUNT$ prompts",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "errVersionInfoFailed": {
+    "message": "Failed to load version info"
+  },
+  "errGitHubFetchFailed": {
+    "message": "Failed to fetch latest commit from GitHub"
+  },
+  "dlgDuplicateTitle": {
+    "message": "Conversation Already Saved"
+  },
+  "dlgDuplicateDesc": {
+    "message": "This conversation was previously saved:"
+  },
+  "dlgDuplicateSaved": {
+    "message": "Saved: $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "dlgDuplicateQuestion": {
+    "message": "Do you want to overwrite it with the current version?"
+  },
+  "btnOverwrite": {
+    "message": "Overwrite"
+  },
+  "errExtensionAPI": {
+    "message": "Extension API not available. Try reloading the page."
+  },
+  "errExtensionReloaded": {
+    "message": "Extension was reloaded. Please reload this page and try saving again."
+  },
+  "errSaveFailed": {
+    "message": "Failed to save: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "errExtractFailed": {
+    "message": "Failed to extract conversation: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "labelMergeTimeout": {
+    "message": "Merge Wait Time"
+  },
+  "descMergeTimeout": {
+    "message": "Choose the maximum automatic merge wait time."
+  },
+  "mergeTimeoutTooltip": {
+    "message": "Timeout triggered. Adjust wait time in settings."
+  },
+  "msgMergeTimeoutUpdated": {
+    "message": "Merge wait mode updated"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "labelMergeMode": {
+    "message": "Merge Mode"
+  },
+  "descMergeMode": {
+    "message": "Choose whether to discuss after merging"
+  },
+  "optionMergeOnly": {
+    "message": "Merge Only"
+  },
+  "optionMergeAndDiscuss": {
+    "message": "Merge & Discuss"
+  },
+  "optionManualMerge": {
+    "message": "Manual Merge"
+  },
+  "stopDiscussion": {
+    "message": "Stop Discussion"
+  },
+  "discussionProgress": {
+    "message": "Discussing"
+  },
+  "msgDiscussionStopped": {
+    "message": "Discussion stopped"
+  },
+  "msgMergeModeUpdated": {
+    "message": "Merge mode updated"
+  },
+  "obsidianExport": {
+    "message": "Export Markdown"
+  },
+  "obsidianExportSuccess": {
+    "message": "Exported to $1"
+  },
+  "obsidianExportFailed": {
+    "message": "Export failed: $1"
+  },
+  "sectionObsidianExport": {
+    "message": "Markdown Export"
+  },
+  "btnToggleVisibility": {
+    "message": "Show/Hide"
+  },
+  "labelObsidianStoragePath": {
+    "message": "Export Folder"
+  },
+  "descMarkdownExportPath": {
+    "message": "Saved to a subfolder inside your browser's default Downloads folder, for example: Downloads/AIChatMerge/raw/"
+  },
+  "placeholderObsidianStoragePath": {
+    "message": "AIChatMerge/raw"
+  },
+  "labelObsidianExportMode": {
+    "message": "Export Mode"
+  },
+  "obsidianExportAuto": {
+    "message": "Auto Export"
+  },
+  "obsidianExportManual": {
+    "message": "Manual Only"
+  },
+  "labelExportInitialMerge": {
+    "message": "Export Initial Merge"
+  },
+  "descExportInitialMerge": {
+    "message": "Export initial merge result separately in discussion mode"
+  }
+}

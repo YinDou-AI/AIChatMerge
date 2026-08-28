@@ -1,0 +1,344 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extensionName__",
+  "short_name": "AIChatMerge",
+  "version": "1.0.3",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "downloads",
+    "activeTab",
+    "scripting",
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess"
+  ],
+  "host_permissions": [
+    "*://chat.deepseek.com/*",
+    "*://www.kimi.com/*",
+    "*://kimi.com/*",
+    "*://www.doubao.com/*",
+    "*://doubao.com/*",
+    "*://www.qianwen.com/*",
+    "*://qianwen.com/*",
+    "*://chatglm.cn/*",
+    "*://chat.baidu.com/*",
+    "*://wenxin.baidu.com/*",
+    "*://yuanbao.tencent.com/*",
+    "*://metaso.cn/*",
+    "*://chatgpt.com/*",
+    "*://gemini.google.com/*",
+    "*://claude.ai/*",
+    "*://grok.com/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "options_page": "options/options.html",
+  "action": {
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    },
+    "default_title": "__MSG_actionDefaultTitle__"
+  },
+  "commands": {
+    "open-aichatmerge": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E",
+        "mac": "Command+Shift+E"
+      },
+      "description": "__MSG_commandOpenAIChatMerge__"
+    },
+    "open-prompt-library": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      },
+      "description": "__MSG_commandOpenPromptLibrary__"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.qianwen.com/*",
+        "https://qianwen.com/*"
+      ],
+      "js": [
+        "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-qianwen.js",
+        "content-scripts/answer-extractor-qianwen.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://chatglm.cn/*"
+      ],
+      "js": [
+        "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-zhipu.js",
+        "content-scripts/answer-extractor-zhipu.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://chat.baidu.com/*",
+        "https://wenxin.baidu.com/*"
+      ],
+      "js": [
+        "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-wenxin.js",
+        "content-scripts/answer-extractor-wenxin.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://yuanbao.tencent.com/*"
+      ],
+      "js": [
+        "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-yuanbao.js",
+        "content-scripts/answer-extractor-yuanbao.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://metaso.cn/*"
+      ],
+      "js": [
+        "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-metaso.js",
+        "content-scripts/answer-extractor-metaso.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://chat.deepseek.com/*"
+      ],
+      "js": [
+        "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-deepseek.js",
+        "content-scripts/answer-extractor-deepseek.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://www.kimi.com/*",
+        "https://kimi.com/*"
+      ],
+      "js": [
+        "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-kimi.js",
+        "content-scripts/answer-extractor-kimi.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://www.doubao.com/*",
+        "https://doubao.com/*"
+      ],
+      "js": [
+        "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-doubao.js",
+        "content-scripts/answer-extractor-doubao.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://chatgpt.com/*"
+      ],
+      "js": [
+        "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-chatgpt.js",
+        "content-scripts/answer-extractor-chatgpt.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://gemini.google.com/*"
+      ],
+      "js": [
+        "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-gemini.js",
+        "content-scripts/answer-extractor-gemini.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://claude.ai/*"
+      ],
+      "js": [
+        "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/enter-behavior-claude.js",
+        "content-scripts/answer-extractor-claude.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://grok.com/*"
+      ],
+      "js": [
+        "content-scripts/provider-detector.js",
+        "content-scripts/sse-completion-policy.js",
+        "content-scripts/sse-bridge.js",
+        "content-scripts/button-finder-utils.js",
+        "content-scripts/send-button-finder.js",
+        "content-scripts/enter-behavior-utils.js",
+        "content-scripts/answer-extractor-grok.js",
+        "content-scripts/text-injection-all-providers.js",
+        "content-scripts/focus-toggle.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "bypass_headers",
+        "enabled": true,
+        "path": "rules/bypass-headers.json"
+      }
+    ]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "aichatmerge-panel/multi-panel.html",
+        "aichatmerge-panel/multi-panel.js",
+        "aichatmerge-panel/multi-panel.css",
+        "sse-detect.js"
+      ],
+      "matches": [
+        "*://chat.deepseek.com/*",
+        "*://www.kimi.com/*",
+        "*://kimi.com/*",
+        "*://www.doubao.com/*",
+        "*://doubao.com/*",
+        "*://www.qianwen.com/*",
+        "*://qianwen.com/*",
+        "*://chatglm.cn/*",
+        "*://chat.baidu.com/*",
+        "*://wenxin.baidu.com/*",
+        "*://yuanbao.tencent.com/*",
+        "*://metaso.cn/*",
+        "*://chatgpt.com/*",
+        "*://gemini.google.com/*",
+        "*://claude.ai/*",
+        "*://grok.com/*"
+      ]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

@@ -1,0 +1,107 @@
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if you add build tools later)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build outputs (if you add a build process)
+dist/
+build/
+*.zip
+
+# Local release/upload staging
+_codex_release_work/
+UPLOAD_EDGE_ASSETS/
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+*.stackdump
+
+# Environment files
+.env
+.env.local
+.env.*
+!.env.example
+
+# Extension packaging
+*.crx
+*.pem
+*.key
+*.pfx
+*.p12
+_metadata/
+
+# Test files
+coverage/
+.nyc_output/
+test-screenshot-*.png
+debug-screenshot.png
+screenshot*.png
+test-results/
+
+# Local planning artifacts
+task_plan.md
+findings.md
+progress.md
+AIChatMerge改造方案.md
+.trash/
+
+# User data (don't commit personal data)
+user-data/
+test-profiles/
+
+# Development tools
+.claude/
+CLAUDE.md
+.specify/
+specs/
+.codex/
+AGENTS.md
+web-ext-artifacts/
+
+# Auto Claude data directory
+.auto-claude/
+
+# Auto Claude generated files
+.auto-claude-security.json
+.auto-claude-status
+.claude_settings.json
+.worktrees/
+.security-key
+logs/security/
+
+# Review reports
+.reviews/
+TRANSLATION_REVIEW_SUMMARY.md
+VERIFICATION_REPORT.md
+
+# Generated design drafts
+assets/cat-cutouts/
+assets/logo-cutout-noring/
+assets/logo-redesign/
+assets/logo-refined/
+assets/logo-rembg-noring/
+assets/store-screenshots/
+assets/store/icon-backup-*/
+
+# 自动化巡检产物（驱动脚本 profile、导出的日志与判定结果）
+runs/
+
+# Selector health-check outputs (may contain authenticated page content)
+healthcheck/data/baseline.json
+healthcheck/data/latest.json
+healthcheck/data/report.json
+healthcheck/data/snapshots/

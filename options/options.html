@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="optionsPageTitle">AIChatMerge - 设置</title>
+  <script src="options-preload.js"></script>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1 data-i18n="headerSettingsTitle">设置</h1>
+    </header>
+
+    <div class="content">
+      <!-- Status Messages -->
+      <div id="status-success" class="status-message status-success"></div>
+      <div id="status-error" class="status-message status-error"></div>
+
+      <!-- Toast Notifications -->
+      <div id="toast-container" class="toast-container"></div>
+
+      <!-- T051: Theme Settings -->
+      <section class="section">
+        <h2 class="section-title" data-i18n="sectionAppearance">外观</h2>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelTheme">主题</div>
+            <div class="setting-description" data-i18n="descTheme">选择您偏好的配色方案</div>
+          </div>
+          <div class="setting-control">
+            <select id="theme-select">
+              <option value="auto" data-i18n="themeAuto">跟随系统</option>
+              <option value="light" data-i18n="themeLight">浅色</option>
+              <option value="dark" data-i18n="themeDark">深色</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelLanguage">语言</div>
+            <div class="setting-description" data-i18n="descLanguage">选择您偏好的界面语言</div>
+          </div>
+          <div class="setting-control">
+            <select id="language-select">
+              <option value="en" data-i18n="langEnglish">English</option>
+              <option value="zh_CN" data-i18n="langSimplifiedChinese">简体中文 (Simplified Chinese)</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Multi-Panel Settings -->
+      <section class="section">
+        <h2 class="section-title" data-i18n="sectionMultiPanel">多面板</h2>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelOpenMode">打开模式</div>
+            <div class="setting-description" data-i18n="descOpenMode">
+              选择 AIChatMerge 的打开方式：新标签页或弹窗。
+            </div>
+          </div>
+          <div class="setting-control">
+            <select id="open-mode-select" class="setting-select">
+              <option value="tab" data-i18n="optionTabMode">标签页模式</option>
+              <option value="popup" data-i18n="optionPopupMode">弹窗模式</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelMergeTimeout">融合等待方式</div>
+            <div class="setting-description" data-i18n="descMergeTimeout">
+              选择自动融合的最长等待时间。
+            </div>
+          </div>
+          <div class="setting-control">
+            <select id="merge-timeout-select" class="setting-select">
+              <option value="30000">30 秒</option>
+              <option value="60000">60 秒</option>
+              <option value="90000">90 秒</option>
+              <option value="120000">120 秒</option>
+              <option value="180000">180 秒</option>
+              <option value="240000">240 秒</option>
+              <option value="300000">300 秒</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelMergeMode">融合模式</div>
+            <div class="setting-description" data-i18n="descMergeMode">
+              选择融合后是否进行多轮讨论
+            </div>
+          </div>
+          <div class="setting-control">
+            <select id="merge-mode-select" class="setting-select">
+              <option value="merge" data-i18n="optionMergeOnly">仅融合</option>
+              <option value="merge+discuss" data-i18n="optionMergeAndDiscuss">融合后讨论</option>
+              <option value="manual" data-i18n="optionManualMerge">不自动融合</option>
+            </select>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Markdown Export Settings -->
+      <section class="section">
+        <h2 class="section-title" data-i18n="sectionObsidianExport">Markdown 导出</h2>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelObsidianStoragePath">导出文件夹</div>
+            <div class="setting-description" data-i18n="descMarkdownExportPath">保存到浏览器默认下载目录下的子文件夹，例如：下载目录/AIChatMerge/raw/</div>
+          </div>
+          <div class="setting-control">
+            <input type="text" id="markdown-export-path" data-i18n-placeholder="placeholderObsidianStoragePath" placeholder="AIChatMerge/raw">
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelObsidianExportMode">导出模式</div>
+          </div>
+          <div class="setting-control">
+            <select id="markdown-export-mode">
+              <option value="auto" data-i18n="obsidianExportAuto">自动导出</option>
+              <option value="manual" data-i18n="obsidianExportManual">仅手动</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-item" id="export-initial-merge-item" style="display: none;">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelExportInitialMerge">导出初始融合</div>
+            <div class="setting-description" data-i18n="descExportInitialMerge">讨论模式下是否额外导出初始融合结果</div>
+          </div>
+          <div class="setting-control">
+            <select id="export-initial-merge-select">
+              <option value="true">是</option>
+              <option value="false">否</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Score Data Settings -->
+      <section class="section">
+        <h2 class="section-title" data-i18n="sectionScoreData">评分数据</h2>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelExportScoreHistory">导出评分历史</div>
+            <div class="setting-description" data-i18n="descExportScoreHistory">将所有评分记录导出为CSV文件</div>
+          </div>
+          <div class="setting-control">
+            <button class="btn btn-secondary" id="export-score-history-btn" data-i18n="btnExportCsv">导出CSV</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelClearScoreHistory">清空评分历史</div>
+            <div class="setting-description" data-i18n="descClearScoreHistory">删除所有已保存的评分记录</div>
+          </div>
+          <div class="setting-control">
+            <button class="btn btn-danger" id="clear-score-history-btn" data-i18n="btnClear">清空</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Advanced provider compatibility settings -->
+      <section class="section">
+        <h2 class="section-title" data-i18n="sectionAdvancedSettings">高级设置</h2>
+
+        <details id="claude-entry-settings">
+          <summary data-i18n="claudeCustomEntryTitle">Claude 自定义页面网址（高级）</summary>
+          <div class="setting-description" style="margin: 12px 0;" data-i18n="claudeCustomEntryDescription">Claude 默认入口异常时使用。可填已验证的完整页面网址，例如 https://claude.ai/new。留空则使用默认入口</div>
+          <div class="setting-control" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <input id="claude-custom-entry-url" type="url" inputmode="url" autocomplete="off"
+              data-i18n-placeholder="claudeCustomEntryPlaceholder" placeholder="https://claude.ai/new" style="min-width: min(100%, 420px); flex: 1;">
+            <button class="btn btn-primary" id="save-claude-entry-url" type="button" data-i18n="save">保存</button>
+            <button class="btn btn-secondary" id="reset-claude-entry-url" type="button" data-i18n="claudeRestoreDefault">恢复默认入口</button>
+          </div>
+          <p id="claude-entry-url-status" class="setting-description" style="margin-top: 10px;"></p>
+          <p class="setting-description" style="margin-top: 8px; color: #b45309;" data-i18n="claudeCustomEntryWarning">可能进入已有对话，更换账号后可能失效，不建议分享。页面异常时清空即可恢复默认入口</p>
+        </details>
+
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelSourceUrlPlacement">来源 URL 位置</div>
+            <div class="setting-description" data-i18n="descSourceUrlPlacement">
+              选择发送选中文本或页面内容到 AI 提供商时，来源 URL 的放置位置
+            </div>
+          </div>
+          <div class="setting-control">
+            <select id="source-url-placement-select">
+              <option value="none" data-i18n="urlPlacementNone">不包含 URL</option>
+              <option value="end" data-i18n="urlPlacementEnd">放在末尾（内容之后）</option>
+              <option value="beginning" data-i18n="urlPlacementBeginning">放在开头（内容之前）</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Keyboard Settings -->
+      <section class="section">
+        <h2 class="section-title" data-i18n="sectionKeyboard">键盘</h2>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelEnableKeyboardShortcut">启用键盘快捷键</div>
+            <div class="setting-description" data-i18n="descEnableKeyboardShortcut">
+              切换全局快捷键，可在浏览器任意位置打开 AIChatMerge。
+            </div>
+          </div>
+          <div class="setting-control">
+            <label class="switch">
+              <input type="checkbox" id="keyboard-shortcut-toggle" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelDefaultShortcuts">默认快捷键</div>
+            <div class="setting-description" data-i18n-html="descDefaultShortcuts">
+              Command+Shift+E（Windows/Linux 上为 Ctrl+Shift+E）打开 AIChatMerge。<br>
+              Command+Shift+L（Windows/Linux 上为 Ctrl+Shift+L）打开提示词库。
+            </div>
+          </div>
+          <div class="setting-control">
+            <button class="btn btn-secondary" id="open-shortcuts-btn" data-i18n="btnOpenShortcuts">打开快捷键设置</button>
+          </div>
+        </div>
+
+        <div class="setting-item" id="edge-shortcut-helper" style="display: none;">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelEdgeShortcutHelper">在 Microsoft Edge 中确认</div>
+            <div class="setting-description" data-i18n="descEdgeShortcutHelper">
+              Edge 需要您确认一次快捷键。点击配置直接跳转到 Edge 快捷键页面。
+            </div>
+          </div>
+          <div class="setting-control">
+            <button class="btn btn-secondary" id="open-edge-shortcuts-btn" data-i18n="btnConfigureEdge">在 Edge 中配置</button>
+          </div>
+        </div>
+
+        <!-- Enter Key Behavior -->
+        <p style="font-size: 14px; color: #666; margin-top: 24px; margin-bottom: 8px;" data-i18n="descEnterBehavior1">
+          自定义在 AI 提供商输入框中按 Enter 和修饰键的行为。
+        </p>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelEnableEnterCustom">启用 Enter 键自定义</div>
+            <div class="setting-description" data-i18n="descEnableEnterCustom">
+              启用后，修改所有支持的 AI 提供商的 Enter 键行为
+            </div>
+          </div>
+          <div class="setting-control">
+            <label class="switch">
+              <input type="checkbox" id="enter-behavior-toggle" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div id="enter-behavior-settings">
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label" data-i18n="labelPreset">预设</div>
+              <div class="setting-description" data-i18n="descPreset">选择一个常用的按键组合模式</div>
+            </div>
+            <div class="setting-control">
+              <select id="enter-preset-select">
+                <option value="default" selected data-i18n="presetDefault">默认（Enter=发送，Shift+Enter=换行）</option>
+                <option value="swapped" data-i18n="presetSwapped">交换（Enter=换行，Shift+Enter=发送）</option>
+                <option value="slack" data-i18n="presetSlack">Slack 风格（Enter=发送，Ctrl+Enter=换行）</option>
+                <option value="discord" data-i18n="presetDiscord">Discord 风格（Enter=换行，Ctrl+Enter=发送）</option>
+                <option value="custom" data-i18n="presetCustom">自定义</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="custom-enter-settings" style="display: none;">
+            <div class="key-mapping-card">
+              <h3 data-i18n="labelInsertNewline">插入换行</h3>
+              <div class="key-mapping-controls">
+                <label>
+                  <input type="checkbox" id="newline-shift" /> <span data-i18n="keyShift">Shift</span>
+                </label>
+                <label>
+                  <input type="checkbox" id="newline-ctrl" /> <span data-i18n="keyCtrl">Ctrl</span>
+                </label>
+                <label>
+                  <input type="checkbox" id="newline-alt" /> <span data-i18n="keyAlt">Alt</span>
+                </label>
+                <label>
+                  <input type="checkbox" id="newline-meta" /> <span data-i18n="keyMeta">⌘/Win</span>
+                </label>
+                <span style="margin-left: auto;" data-i18n="keyPlusEnter">+ Enter</span>
+              </div>
+            </div>
+
+            <div class="key-mapping-card">
+              <h3 data-i18n="labelSendMessage">发送消息</h3>
+              <div class="key-mapping-controls">
+                <label>
+                  <input type="checkbox" id="send-shift" /> <span data-i18n="keyShift">Shift</span>
+                </label>
+                <label>
+                  <input type="checkbox" id="send-ctrl" /> <span data-i18n="keyCtrl">Ctrl</span>
+                </label>
+                <label>
+                  <input type="checkbox" id="send-alt" /> <span data-i18n="keyAlt">Alt</span>
+                </label>
+                <label>
+                  <input type="checkbox" id="send-meta" /> <span data-i18n="keyMeta">⌘/Win</span>
+                </label>
+                <span style="margin-left: auto;" data-i18n="keyPlusEnter">+ Enter</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Prompt Library -->
+      <section class="section">
+        <h2 class="section-title" data-i18n="sectionPromptLibrary">提示词库</h2>
+        <p style="font-size: 14px; color: #666; margin-bottom: 16px;" data-i18n="descPromptLibrary">
+          导入精选的 AI 工作流、研究、编码和分析元提示词
+        </p>
+
+        <div class="library-import-card">
+          <div class="library-header">
+            <h3 data-i18n="labelDefaultPromptLibrary">默认提示词库</h3>
+          </div>
+          <p class="library-description" data-i18n="descDefaultPromptLibrary">
+            用于提示词优化、规划、编码、测试、研究、写作等的元提示词。
+            支持变量的动态模板。
+          </p>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="import-default-library" data-i18n="btnImportDefault">导入默认提示词</button>
+            <button class="btn btn-secondary" id="import-custom-library" data-i18n="btnImportCustom">导入自定义提示词</button>
+          </div>
+          <p class="library-helper" data-i18n="descCustomPromptGuide">
+            需要自定义提示词的格式帮助？打开指南或下载 JSON 模板。
+          </p>
+          <div class="btn-group">
+            <button class="btn btn-secondary" id="open-custom-prompt-guide" type="button" data-i18n="btnOpenPromptGuide">打开指南</button>
+            <button class="btn btn-secondary" id="download-custom-prompt-template" type="button" data-i18n="btnDownloadPromptTemplate">下载模板</button>
+          </div>
+          <input type="file" id="import-custom-library-file" accept=".json" style="display: none;" />
+        </div>
+      </section>
+
+      <!-- T056-T064: Data Management -->
+      <section class="section">
+        <h2 class="section-title" data-i18n="sectionDataManagement">数据管理</h2>
+
+        <div class="data-stats" id="data-stats">
+          <div class="data-stat-item">
+            <span class="data-stat-label" data-i18n="statPrompts">提示词</span>
+            <span class="data-stat-value" id="stat-prompts">0</span>
+          </div>
+          <div class="data-stat-item">
+            <span class="data-stat-label" data-i18n="statStorageUsed">已用存储</span>
+            <span class="data-stat-value" id="stat-storage">~0 KB</span>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelExportData">导出数据</div>
+            <div class="setting-description" data-i18n="descExportData">将所有提示词和设置下载为 JSON</div>
+          </div>
+          <div class="setting-control">
+            <button class="btn btn-secondary" id="export-btn" data-i18n="btnExport">导出</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelImportData">导入数据</div>
+            <div class="setting-description" data-i18n="descImportData">从 JSON 文件恢复提示词和设置</div>
+          </div>
+          <div class="setting-control">
+            <input type="file" id="import-file" accept=".json" style="display: none;" />
+            <button class="btn btn-secondary" id="import-btn" data-i18n="btnImport">导入</button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Danger Zone -->
+      <section class="section">
+        <h2 class="section-title" style="color: #d32f2f;" data-i18n="sectionDangerZone">危险区域</h2>
+        <p style="font-size: 14px; color: #d32f2f; margin-bottom: 16px;" data-i18n="descDangerZone">
+          这些操作无法撤销，请谨慎使用。
+        </p>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelClearPrompts">清除提示词</div>
+            <div class="setting-description" data-i18n="descClearPrompts">删除您库中的所有提示词</div>
+          </div>
+          <div class="setting-control">
+            <button class="btn btn-danger" id="clear-prompts-btn" data-i18n="btnClear">清除</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label" data-i18n="labelResetSettings">重置设置</div>
+            <div class="setting-description" data-i18n="descResetSettings">将所有设置重置为默认值</div>
+          </div>
+          <div class="setting-control">
+            <button class="btn btn-danger" id="reset-settings-btn" data-i18n="btnReset">重置</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- About Section -->
+      <section class="section">
+        <h2 class="section-title" data-i18n="sectionAbout">关于</h2>
+
+        <div class="about-info">
+          <div class="version-display">
+            <div class="version" id="version">版本 1.0.3</div>
+            <!-- 版本更新功能已禁用 - commit-hash 元素
+            <div class="commit-hash" id="commit-hash" data-i18n="labelLoading">加载中...</div>
+            -->
+          </div>
+
+          <!-- 版本更新功能已禁用 - 检查更新按钮
+          <div class="version-actions">
+            <button class="btn btn-secondary" id="check-updates-btn" data-i18n="btnCheckUpdates">检查更新</button>
+          </div>
+          -->
+
+          <!-- 版本更新功能已禁用 - 更新状态显示
+          <div id="update-status" class="update-status" style="display: none;"></div>
+          -->
+
+          <!-- 版本更新功能已禁用 - 下载最新版本链接
+          <div class="version-download">
+            <a href="#"
+               id="download-latest-link"
+               target="_blank"
+               rel="noopener noreferrer"
+               data-i18n="linkDownloadLatest">下载最新版本</a>
+          </div>
+          -->
+
+          <p style="font-size: 14px; color: #666; margin-bottom: 8px; margin-top: 16px;" data-i18n="descAbout1">
+            AIChatMerge 让您在一个窗口中并排比较多个 AI，并将它们的回答融合为更优质的答案。
+          </p>
+          <p style="font-size: 12px; color: #999;" data-i18n="descAbout2">
+            采用隐私优先架构，所有数据本地存储。
+          </p>
+          <div class="project-links">
+            <a class="project-link project-link-primary"
+               href="https://github.com/YinDou-AI/AIChatMerge"
+               target="_blank"
+               rel="noopener noreferrer"
+               data-i18n="linkGitHubProject">GitHub 项目主页</a>
+            <a class="project-link"
+               href="https://github.com/YinDou-AI/AIChatMerge/issues"
+               target="_blank"
+               rel="noopener noreferrer"
+               data-i18n="linkGitHubIssues">反馈问题与建议</a>
+          </div>
+          <p class="project-support" data-i18n="descGitHubSupport">
+            如果 AIChatMerge 对您有帮助，欢迎在 GitHub 点亮 Star 并分享给朋友。
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>

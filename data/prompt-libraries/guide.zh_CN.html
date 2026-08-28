@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>生成一个基础提示词库</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Avenir", "Noto Sans", "Helvetica Neue", sans-serif;
+      background: #f7f7f9;
+      color: #1f1f24;
+    }
+    main {
+      max-width: 860px;
+      margin: 40px auto 80px;
+      padding: 0 24px;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+    h2 {
+      font-size: 22px;
+      margin-top: 32px;
+    }
+    p {
+      line-height: 1.6;
+      margin: 12px 0;
+    }
+    blockquote {
+      margin: 16px 0;
+      padding: 16px 20px;
+      background: #ffffff;
+      border-left: 4px solid #1a73e8;
+      border-radius: 8px;
+      box-shadow: 0 6px 14px rgba(26, 115, 232, 0.08);
+    }
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    li {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+    code {
+      background: #eef1f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    pre {
+      margin: 12px 0 0;
+      padding: 12px 16px;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      overflow: auto;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #0f1116;
+        color: #e4e7ee;
+      }
+      blockquote {
+        background: #161a22;
+        border-left-color: #7aa6ff;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+      }
+      code {
+        background: #1f2937;
+        color: #e2e8f0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>生成一个基础提示词库</h1>
+
+    <section>
+      <h2>三个最强基础提示词</h2>
+      <blockquote>
+        <ul>
+          <li>请将以下提示词改写成清晰、自然的中文，并运用 AI 提示词写作最佳实践进行优化，以获得更准确、具体且有用的结果。提示词：{draft}</li>
+          <li>请尽可能列出与以下主题或问题相关的项目、示例或想法，力求完整、准确、清晰。主题：{topic}</li>
+          <li>有哪些最有效的框架、方法或模型可以用来{objective}？请为每个框架说明其核心思想、优势，以及最适用的场景。</li>
+        </ul>
+      </blockquote>
+      <p>你可以使用以下文件路径导入这些提示词： <code>data/prompt-libraries/three-samples.json</code></p>
+    </section>
+
+    <section>
+      <h2>生成新的提示词库</h2>
+      <p>使用以下提示词生成一个可直接导入本插件的提示词库。</p>
+      <blockquote>
+        <p>生成 20 条你最近遇到或创建的最有效、最高质量的提示词。每条提示词都应具有洞见、创意或教育价值，能用于学习或启发。</p>
+        <p>请按以下 JSON 结构输出每条结果：</p>
+        <pre><code class="language-json">{
+  "title": "Short descriptive title of the prompt",
+  "content": "Full text of the prompt. Use {variables} for any placeholders.",
+  "category": "General theme or purpose of the prompt (e.g., Writing, Analysis, Creativity)",
+  "tags": ["tag1", "tag2"],
+  "variables": ["{variables used}"],
+  "isFavorite": false,
+  "useCount": 0,
+  "lastUsed": null
+}</code></pre>
+        <p>请确保每个 JSON 对象自洽、表述清晰，并便于解析。</p>
+      </blockquote>
+    </section>
+  </main>
+</body>
+</html>

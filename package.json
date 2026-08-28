@@ -1,0 +1,34 @@
+{
+  "name": "aichatmerge",
+  "version": "1.0.3",
+  "description": "Compare AI chatbots side-by-side",
+  "author": "zhoukailang",
+  "license": "MIT",
+  "homepage": "https://github.com/YinDou-AI/AIChatMerge",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YinDou-AI/AIChatMerge"
+  },
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "web-ext lint --source-dir . --ignore-files \"healthcheck/**\" \"docs/**\" \"tests/**\" \"scripts/**\" \"content-scripts/src/**\" \"content-scripts/dist/**\" \"assets/**\" \".claude/**\" \".trash/**\"",
+    "release:package": "node scripts/package-release.js",
+    "release:prepare": "node scripts/prepare-release.js",
+    "release:prepare:dry-run": "node scripts/prepare-release.js --dry-run",
+    "release:prep": "npm run release:prepare && npm run release:package",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui",
+    "build:content": "esbuild content-scripts/src/text-injection-entry.js --bundle --format=iife --outfile=content-scripts/text-injection-all-providers.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.1",
+    "@vitest/ui": "^3.2.4",
+    "esbuild": "^0.25.11",
+    "happy-dom": "^20.0.2",
+    "vitest": "^3.2.4",
+    "web-ext": "^9.0.0"
+  }
+}

@@ -1,0 +1,158 @@
+import { DEFAULT_PROVIDER_IDS } from './provider-defaults.js';
+
+export const PROVIDERS = [
+  {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    url: 'https://chat.deepseek.com',
+    icon: '/icons/providers/deepseek.png',
+    iconDark: '/icons/providers/dark/deepseek.png',
+    enabled: true
+  },
+  {
+    id: 'kimi',
+    name: 'Kimi',
+    url: 'https://www.kimi.com',
+    icon: '/icons/providers/kimi.png',
+    iconDark: '/icons/providers/dark/kimi.png',
+    enabled: true
+  },
+  {
+    id: 'doubao',
+    name: '豆包',
+    url: 'https://www.doubao.com/chat/',
+    icon: '/icons/providers/doubao.png',
+    iconDark: '/icons/providers/dark/doubao.png',
+    enabled: true
+  },
+  {
+    id: 'qianwen',
+    name: '千问',
+    url: 'https://www.qianwen.com/chat',
+    icon: '/icons/providers/qianwen.png',
+    iconDark: '/icons/providers/dark/qianwen.png',
+    enabled: true
+  },
+  {
+    id: 'zhipu',
+    name: '智谱清言',
+    url: 'https://chatglm.cn/',
+    icon: '/icons/providers/zhipu.png',
+    iconDark: '/icons/providers/dark/zhipu.png',
+    enabled: true
+  },
+  {
+    id: 'wenxin',
+    name: '文心一言',
+    url: 'https://wenxin.baidu.com/',
+    icon: '/icons/providers/wenxin.png',
+    iconDark: '/icons/providers/dark/wenxin.png',
+    enabled: true
+  },
+  {
+    id: 'yuanbao',
+    name: '元宝',
+    url: 'https://yuanbao.tencent.com/chat/',
+    icon: '/icons/providers/yuanbao.png',
+    iconDark: '/icons/providers/dark/yuanbao.png',
+    enabled: true
+  },
+  {
+    id: 'metaso',
+    name: '秘塔AI',
+    url: 'https://metaso.cn/',
+    icon: '/icons/providers/metaso.png',
+    iconDark: '/icons/providers/dark/metaso.png',
+    enabled: true
+  },
+  {
+    id: 'chatgpt',
+    name: 'ChatGPT',
+    url: 'https://chatgpt.com',
+    icon: '/icons/providers/chatgpt.png',
+    iconDark: '/icons/providers/dark/chatgpt.png',
+    enabled: true
+  },
+  {
+    id: 'gemini',
+    name: 'Gemini',
+    url: 'https://gemini.google.com',
+    icon: '/icons/providers/gemini.png',
+    iconDark: '/icons/providers/dark/gemini.png',
+    enabled: true
+  },
+  {
+    id: 'claude',
+    name: 'Claude',
+    url: 'https://claude.ai/new',
+    icon: '/icons/providers/claude.png',
+    iconDark: '/icons/providers/dark/claude.png',
+    enabled: true
+  },
+  {
+    id: 'grok',
+    name: 'Grok',
+    url: 'https://grok.com',
+    icon: '/icons/providers/grok.png',
+    iconDark: '/icons/providers/dark/grok.png',
+    enabled: true
+  }
+];
+
+export function getProviderIcon(provider, theme = null) {
+  if (!provider) return '';
+
+  const documentTheme = typeof document !== 'undefined'
+    ? document.documentElement?.getAttribute('data-theme')
+    : null;
+  const resolvedTheme = theme || documentTheme || 'light';
+  if (resolvedTheme === 'dark' && provider.iconDark) {
+    return provider.iconDark;
+  }
+
+  return provider.icon;
+}
+
+export function getProviderById(id) {
+  return PROVIDERS.find(p => p.id === id);
+}
+
+export async function getProviderByIdWithSettings(id) {
+  const provider = PROVIDERS.find(p => p.id === id);
+  if (!provider) return null;
+
+  return provider;
+}
+
+export async function getEnabledProviders() {
+  let settings = {
+    enabledProviders: DEFAULT_PROVIDER_IDS,
+    providerOrder: null
+  };
+  
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      settings = await chrome.storage.sync.get(settings);
+    }
+  } catch (error) {
+    console.warn('Failed to load provider settings, using defaults');
+  }
+
+  // Filter enabled providers
+  let enabledProviders = PROVIDERS.filter(p => settings.enabledProviders.includes(p.id));
+
+  // Sort by custom order if available
+  if (settings.providerOrder && Array.isArray(settings.providerOrder)) {
+    enabledProviders.sort((a, b) => {
+      const indexA = settings.providerOrder.indexOf(a.id);
+      const indexB = settings.providerOrder.indexOf(b.id);
+      // If not in order array, put at the end
+      if (indexA === -1 && indexB === -1) return 0;
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+  }
+
+  return enabledProviders;
+}
