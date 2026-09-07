@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="README.md"><strong>English</strong></a> |
-  <a href="README.zh-CN.md"><strong>简体中文</strong></a>
+  <a href="README.zh-CN.md"><strong>绠€浣撲腑鏂?/strong></a>
 </p>
 
 <p align="center">
@@ -21,13 +21,19 @@
   <img src="https://img.shields.io/badge/Edge-114+-0078D7.svg" alt="Edge">
 </p>
 
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/ai%E8%9E%8D%E5%90%88%E5%8A%A9%E6%89%8B/fkhmpepdhehapcbnlkagopedadpfajdi"><strong>Install from Chrome Web Store</strong></a>
+  ·
+  <a href="https://microsoftedge.microsoft.com/addons/detail/aichatmerge/gdbicmnjcjhklggjfkgbnbcaloenggli"><strong>Install from Microsoft Edge Add-ons</strong></a>
+</p>
+
 ---
 
 ## Why AIChatMerge?
 
 Ever found yourself copying the same prompt across multiple AI tabs just to compare answers? AIChatMerge eliminates that workflow entirely.
 
-**One window. One prompt. Multiple AI responses — then merge the best answer automatically.**
+**One window. One prompt. Multiple AI responses 鈥?then merge the best answer automatically.**
 
 <p align="center">
   <img src="assets/screenshots/PixPin_2026-06-30_14-13-19.jpg" alt="AIChatMerge Main Interface" width="800">
@@ -37,43 +43,43 @@ Ever found yourself copying the same prompt across multiple AI tabs just to comp
 
 ## Features at a Glance
 
-### 🎯 Ask Once, Compare All
+### 馃幆 Ask Once, Compare All
 
-Type your question once and send it to your selected providers simultaneously. See which AI gives you the best answer—no tab switching required.
+Type your question once and send it to your selected providers simultaneously. See which AI gives you the best answer鈥攏o tab switching required.
 
-### 📐 Flexible Layouts
+### 馃搻 Flexible Layouts
 
-Choose from 5 different layouts (1×1, 1×2, 1×3, 1×4, 1×5) to fit your workflow. Need a quick 2-way comparison? Use 1×2. Deep research across 4 models? Try 1×4. The choice is yours.
+Choose from 5 different layouts (1脳1, 1脳2, 1脳3, 1脳4, 1脳5) to fit your workflow. Need a quick 2-way comparison? Use 1脳2. Deep research across 4 models? Try 1脳4. The choice is yours.
 
 <p align="center">
   <img src="assets/screenshots/PixPin_2026-06-30_12-31-44.jpg" alt="Discussion Mode" width="600">
 </p>
 
-### 🔀 Auto-Merge & Discussion
+### 馃攢 Auto-Merge & Discussion
 
 After all providers respond, AIChatMerge can automatically merge their answers into a single best response. You can also enter Discussion mode to continue refining the result with any provider.
 
-### 📝 Markdown Export
+### 馃摑 Markdown Export
 
 Export merged results or individual conversations as Markdown files for easy sharing and archival.
 
-### ⚡ Zero Setup
+### 鈿?Zero Setup
 
 No API keys. No configuration. Just log into your AI accounts normally, and AIChatMerge uses those existing sessions. If you can use ChatGPT in a browser tab, you can use it in AIChatMerge.
 
-### 📚 Prompt Library
+### 馃摎 Prompt Library
 
 Save your best prompts and reuse them across all providers. Supports variables like `{topic}` for quick customization.
 
-### 🔒 Privacy First
+### 馃敀 Privacy First
 
 - One-click privacy mode across supported providers
 - AIChatMerge does not send your data to any AIChatMerge-owned server
 - Prompts you submit go directly to the AI provider you select; each provider handles data according to its own privacy policy
 - No tracking, no analytics, no data collection
-- Open source—review the code yourself
+- Open source鈥攔eview the code yourself
 
-### 🛠️ Developer-Friendly
+### 馃洜锔?Developer-Friendly
 
 - Custom entry URL support for Claude
 - Focused Chinese & English UI
@@ -125,10 +131,10 @@ Save your best prompts and reuse them across all providers. Supports variables l
 
 ## Quick Start
 
-1. **Log into your AI accounts** — Visit ChatGPT, Claude, etc. and log in as usual
-2. **Press `Cmd/Ctrl + Shift + E`** — Opens the AIChatMerge window
-3. **Pick a layout** — Choose how many AI panels you want
-4. **Type and send** — Your prompt goes to all panels at once
+1. **Log into your AI accounts** 鈥?Visit ChatGPT, Claude, etc. and log in as usual
+2. **Press `Cmd/Ctrl + Shift + E`** 鈥?Opens the AIChatMerge window
+3. **Pick a layout** 鈥?Choose how many AI panels you want
+4. **Type and send** 鈥?Your prompt goes to all panels at once
 
 That's it. No accounts to create, no API keys to configure.
 
@@ -148,13 +154,13 @@ Customize shortcuts at `chrome://extensions/shortcuts`
 ## Troubleshooting
 
 **AI provider shows login page?**
-→ Log into that provider in a regular browser tab first, then refresh AIChatMerge.
+鈫?Log into that provider in a regular browser tab first, then refresh AIChatMerge.
 
 **Shortcuts not working?**
-→ Check for conflicts at `chrome://extensions/shortcuts`
+鈫?Check for conflicts at `chrome://extensions/shortcuts`
 
 **Need more help?**
-→ [Open an issue](https://github.com/YinDou-AI/AIChatMerge/issues)
+鈫?[Open an issue](https://github.com/YinDou-AI/AIChatMerge/issues)
 
 ---
 
@@ -172,15 +178,15 @@ Customize shortcuts at `chrome://extensions/shortcuts`
 
 Found a bug? Have an idea? Contributions are welcome:
 
-- 🐛 Report bugs via [GitHub Issues](https://github.com/YinDou-AI/AIChatMerge/issues)
-- 💡 Suggest features
-- 🔧 Submit pull requests
+- 馃悰 Report bugs via [GitHub Issues](https://github.com/YinDou-AI/AIChatMerge/issues)
+- 馃挕 Suggest features
+- 馃敡 Submit pull requests
 
 ---
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+MIT License 鈥?see [LICENSE](LICENSE) for details.
 
 ### Third-Party Licenses
 
